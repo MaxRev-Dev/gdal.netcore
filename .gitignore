@@ -3,6 +3,17 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+*.c
+*.cpp
+*.so
+*.o
+*.obj
+const/
+gdal/
+ogr/
+osr/
+
+
 # User-specific files
 *.suo
 *.user
