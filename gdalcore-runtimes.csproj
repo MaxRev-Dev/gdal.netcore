@@ -9,13 +9,15 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>MaxRev.Gdal.LinuxRuntime.Minimal</PackageId>
     <PackageTags>gdal;netcore;docker</PackageTags>
-    <PackageLicenseUrl>trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.1.0.1</Version>
-    <Description>GDAL (3.1.0-dev) minimal libraries package. 
+    <Version>3.0.0.0</Version>
+    <Description>GDAL (3.0.0-dev) minimal libraries package. 
     Drivers included GEOS, GEOTIFF, JPEG, PNG, LIBZ, LERC
 </Description>
+    <AssemblyName>MaxRev.Gdal.LinuxRuntime.Minimal</AssemblyName>
+    <RootNamespace />
   </PropertyGroup>
   
    <ItemGroup>
