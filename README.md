@@ -1,5 +1,8 @@
 # gdal.netcore
 
+#### NuGet: [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br/>
+#### NuGet: [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/)
+
 ## **How to compile on Unix**
 
 Current version targets GDAL 3.1.0 with minimal drivers
