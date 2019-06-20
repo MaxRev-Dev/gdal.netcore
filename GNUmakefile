@@ -106,15 +106,19 @@ gdal_csharp:
 	
 	ldd $(_gdal_base_lib_)/libgdal.so | grep "=> /" | awk '{print $$3}' | xargs -I {} cp -v {} $(OUTPUT) 
 
-packc:
-	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.csproj
-packr:
+packc: 
+	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.csproj	
+	
+packr: 
 	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore-runtimes.csproj
+	
 pack: packc packr
 
 packdc:
 	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.csproj
+	
 packdr:
 	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore-runtimes.csproj
+	
 packdev: packdc packdr
 	

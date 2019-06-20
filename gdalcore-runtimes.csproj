@@ -12,9 +12,9 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.0.0.0</Version>
+    <Version>3.0.0.1</Version>
     <Description>GDAL (3.0.0-dev) minimal libraries package. 
-    Drivers included GEOS, GEOTIFF, JPEG, PNG, LIBZ, LERC
+    Drivers included GEOS (3.8), GEOTIFF, JPEG, PNG, LIBZ, LERC
 </Description>
     <AssemblyName>MaxRev.Gdal.LinuxRuntime.Minimal</AssemblyName>
     <RootNamespace />
