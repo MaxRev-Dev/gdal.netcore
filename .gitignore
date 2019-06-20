@@ -12,6 +12,7 @@ const/
 gdal/
 ogr/
 osr/
+push_*
 
 
 # User-specific files
