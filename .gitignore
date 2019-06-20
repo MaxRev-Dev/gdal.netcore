@@ -14,7 +14,7 @@ gdal/
 ogr/
 osr/
 push_*
-
+runtimes/
 
 # User-specific files
 *.suo
