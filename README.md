@@ -1,5 +1,8 @@
 # gdal.netcore
 
+#### NuGet: [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br/>
+#### NuGet: [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/)
+
 ## **How to compile on Unix**
 
 Current version targets GDAL 3.1.0 with minimal drivers
@@ -10,9 +13,9 @@ Drivers included PROJ6 with sqlite3, GEOS, GEOTIFF, JPEG, PNG, LIBZ, LERC
 
 First of all I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 2 hours.
 
-I'm compiling in WSL - Debian 9.7 distro, case It has GLIBC 2.2.5 natively.
+I'm compiling in WSL - Debian 9.7 distro, cause It has GLIBC 2.2.5 natively.
 
-My root directory - /mnt/e/dev/builds/
+My root directory - /mnt/e/dev/builds/ 
 
 To link SO libraries against exec dir: `sudo apt-get install patchelf -y`
 
@@ -36,12 +39,12 @@ If you have libsqlite3-dev installed you may skip this step
 
   Note: you must specify sqlite lib custom location with -L flag
 
-### Clone  & Compile GDAL
+### Clone & Compile GDAL
 
 1. `git clone https://github.com/OSGeo/gdal.git gdal-source && cd gdal-source/gdal`
 2. `./configure CFLAGS="-fPIC"  --with-geos --with-geotiff=internal --with-hide-internal-symbols --with-libtiff=internal --with-libz=internal --with-jpeg=internal  --with-threads --without-cfitsio --without-cryptopp --without-curl --without-ecw --without-expat --without-fme --without-freexl --without-gif --without-gnm --without-grass --without-hdf4 --without-hdf5 --without-idb --without-ingres --without-jasper --without-jp2mrsid --without-kakadu --without-libgrass --without-libkml --without-libtool --without-mrsid --without-mysql --without-netcdf --without-odbc --without-ogdi --without-openjpeg --without-pcidsk --without-pcraster --without-pcre --without-perl --without-pg --without-python --without-qhull --without-sde --without-sqlite3 --without-webp --without-xerces --without-xml2 --without-poppler --without-crypto --prefix=$(pwd)/build --with-proj=/mnt/e/dev/builds/proj6-bin`              
 
-After you have gdal installed you can proceed to netcore build                                                                           
+After you have gdal installed, you can proceed to netcore build                                                                           
 
 ### Clone this repo
 
@@ -53,7 +56,7 @@ After you have gdal installed you can proceed to netcore build
 
 4. `make RID=linux-x64`
 
-5. Cheers
+5. Cheers!
 
    
 
