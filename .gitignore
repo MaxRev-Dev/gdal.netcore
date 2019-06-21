@@ -15,6 +15,7 @@ ogr/
 osr/
 push_*
 runtimes/
+nuget/
 
 # User-specific files
 *.suo
