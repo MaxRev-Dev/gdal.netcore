@@ -1,12 +1,21 @@
 
 # ---------------------- CONFIG ---------------------
-##### GDAL source repo
+##### GDAL source location
 $(eval _basegdal_=/mnt/e/dev/builds/gdal-source/gdal)
 
+##### GDAL build location
+$(eval _gdal_build_=/mnt/e/dev/builds/gdal-build)
+
 ##### PROJ6 libraries path required by gdal
-$(eval _baseproj_=/mnt/e/dev/builds/proj6-bin/lib/*.so.15)
+$(eval _baseproj_=/mnt/e/dev/builds/proj6-bin)
 # --------------------- !CONFIG! --------------------
 
+ifeq ($(LIBGDAL_CURRENT),)
+LIBGDAL_CURRENT := 26
+endif
+
+$(eval _gdal_base_lib_=$(_gdal_build_)/lib)
+$(eval _gdal_so_ver_=so.$(LIBGDAL_CURRENT))
 $(eval _baseswig_=$(_basegdal_)/swig)
 $(eval _basesrc_=$(_baseswig_)/csharp)
 $(eval _outdir_=$(PWD))
@@ -50,10 +59,16 @@ clean:
 
 veryclean: clean
 	(cd $(_basesrc_) && rm -f -R const/*.cs const/*.c gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs ogr/*.cpp Data)
-	(cd $(PWD) && rm -f -R *.so *.o *.cs *.c *.cpp .libs/ const/ ogr/ osr/ gdal/ obj/ runtimes/ bin/)
+	(cd $(PWD) && rm -f -R *.so *.o ./*.cs gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs *.c *.cpp .libs/ const/ ogr/ osr/ gdal/ obj/ runtimes/ bin/)
+	
+cleangdal:
+	(cd $(_basegdal_) && git clean -fdxq)
+	
 cleanpackages:
 	(cd $(PWD) && rm -f -R nuget/)
+	
 generate: interface
+
 interface:
 	(cd $(_basesrc_) && ./mkinterface.sh)
 
@@ -66,7 +81,7 @@ install:
 	@echo "No installation to be done"
 
 $(CSHARP_MODULES): lib%csharp.$(SO_EXT): %_wrap.$(OBJ_EXT)
-	$(LINK) $(LDFLAGS) $(CONFIG_LIBS) -Wl,-rpath '-Wl,$$ORIGIN'  $(_suprf_) $< -o $@ $(LINK_EXTRAFLAGS)
+	$(LINK) $(LDFLAGS) $(CONFIG_LIBS) -Wl,-rpath '-Wl,$$ORIGIN'  $(_suprf_) $< -o $@ $(LINK_EXTRAFLAGS) $(OUTPUT)/libgdal.$(_gdal_so_ver_)
 
 %.$(OBJ_EXT): %.cpp
 	$(CXX) $(CFLAGS) $(GDAL_INCLUDE) $(_suprf_) -c $<
@@ -80,32 +95,35 @@ $(CSHARP_MODULES): lib%csharp.$(SO_EXT): %_wrap.$(OBJ_EXT)
 link_so:
 	$(echo ok $< && patchelf --set-rpath '$$ORIGIN' $<)
 
-gdal_csharp:
-	$(eval _gdal_base_lib_=$(_basegdal_)/build/lib)
-	$(eval _gdal_so_ver_=so.$(LIBGDAL_CURRENT))
-	mkdir -p $(OUTPUT)
+linkall:
+	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
+	$(foreach lib, $(_so_out_),  if [ -a $(lib) ]; then patchelf --set-rpath '$$ORIGIN' $(lib); fi;${\n})
+	
+clean_runtimes:
 	rm -rvf $(OUTPUT)/*.* 
+gdal_csharp: clean_runtimes
+	mkdir -p $(OUTPUT)
 	cp -a $(_basesrc_)/const/. $(_outdir_)/const
 	cp -a $(_basesrc_)/gdal/. $(_outdir_)/gdal
 	cp -a $(_basesrc_)/osr/. $(_outdir_)/osr
 	cp -a $(_basesrc_)/ogr/. $(_outdir_)/ogr
 	cp -f ${_gdal_base_lib_}/libgdal.$(_gdal_so_ver_) $(OUTPUT)/libgdal.$(_gdal_so_ver_)
-	cp -f lib*.so $(OUTPUT)
-	cp $(_baseproj_) $(OUTPUT)
-	mv $(OUTPUT)/libgdalconstcsharp.so $(OUTPUT)/gdalconst_wrap.so
-	mv $(OUTPUT)/libogrcsharp.so $(OUTPUT)/ogr_wrap.so
-	mv $(OUTPUT)/libosrcsharp.so $(OUTPUT)/osr_wrap.so	
-	
+#	cp -f lib*.so $(OUTPUT)
+	cp $(_baseproj_)/lib/*.so.15 $(OUTPUT)
+#	mkdir -p $(OUTPUT)/proj6/share/
+#	cp $(_baseproj_)/share/proj/*.db $(OUTPUT)/proj6/share/
+#	mv $(OUTPUT)/libgdalconstcsharp.so $(OUTPUT)/gdalconst_wrap.so
+#	mv $(OUTPUT)/libogrcsharp.so $(OUTPUT)/ogr_wrap.so
+#	mv $(OUTPUT)/libosrcsharp.so $(OUTPUT)/osr_wrap.so	
+  	
 	g++ -shared -o $(OUTPUT)/gdal_wrap.so gdal_wrap.o $(OUTPUT)/libgdal.$(_gdal_so_ver_)
-		
-	$(eval _o_out_=$(wildcard *.o))
+	
+	$(eval _o_out_:=$(wildcard *.o))
 	$(foreach lib, $(_o_out_),  g++ -shared -o $(OUTPUT)/$(basename $(lib)).so $(lib) $(OUTPUT)/libgdal.$(_gdal_so_ver_);${\n})
 	
-	$(eval _so_out_=$(wildcard $(OUTPUT)/*.so*))
-	$(foreach lib, $(_so_out_),  if [ -a $(lib) ]; then patchelf --set-rpath '$$ORIGIN' $(lib); fi;${\n})
-	
 	ldd $(_gdal_base_lib_)/libgdal.so | grep "=> /" | awk '{print $$3}' | xargs -I {} cp -v {} $(OUTPUT) 
-
+	$(MAKE) linkall
+	
 packc: 
 	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.csproj	
 	

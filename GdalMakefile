@@ -1,0 +1,27 @@
+include GdalCore.opt
+
+all: build
+build:  autogen configure gdalmake
+
+autogen:
+	chmod -x  $(GDAL_ROOT)/gdal/autogen.sh
+	cd $(GDAL_ROOT)/gdal && ./autogen.sh
+	
+configure:
+	./configuregdal.sh
+make: install
+	$(MAKE) -C $(GDAL_ROOT)/gdal
+install:
+	$(MAKE) -C $(GDAL_ROOT)/gdal install 
+clean: 
+	$(MAKE) -C $(GDAL_ROOT)/gdal clean
+init_gdal: 
+	mkdir $(GDAL_ROOT)
+	cd $(GDAL_ROOT) && git clone https://github.com/OSGeo/gdal.git .
+init_proj: 
+	mkdir $(PROJ_ROOT)
+ 	cd $(PROJ_ROOT) && git clone https://github.com/OSGeo/PROJ.git .
+reset:
+	cd $(GDAL_ROOT) && git checkout -q release/3.0; 
+	cd $(GDAL_ROOT) && git reset --hard; 
+	cd $(GDAL_ROOT) && git clean -fqdx; 
