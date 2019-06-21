@@ -1,0 +1,3 @@
+BUILD_ROOT=$(PWD)/..
+GDAL_ROOT=$(BUILD_ROOT)/gdal-source
+PROJ_ROOT=$(BUILD_ROOT)/proj-source

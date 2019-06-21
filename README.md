@@ -5,9 +5,9 @@
 
 ## **How to compile on Unix**
 
-Current version targets GDAL 3.1.0 with minimal drivers
+Current version targets GDAL 3.0.0 with minimal drivers
 
-Drivers included PROJ6 with sqlite3, GEOS, GEOTIFF, JPEG, PNG, LIBZ, LERC
+Drivers included PROJ6 with sqlite3, GEOS(3.8), GEOTIFF, JPEG, PNG, LIBZ, LERC
 
 ##### Prerequisites
 
@@ -17,11 +17,17 @@ I'm compiling in WSL - Debian 9.7 distro, cause It has GLIBC 2.2.5 natively.
 
 My root directory - /mnt/e/dev/builds/ 
 
-To link SO libraries against exec dir: `sudo apt-get install patchelf -y`
+To link SO libraries against exec dir: 
+
+​	`sudo apt-get install patchelf -y`
 
 Please issue, if of I forgot to mention any other packages
 
 #### Soo.. Let's start
+
+You can compile Gdal & Proj6 using **GdalMakefile**, but before any actions you must setup paths in **GdalCore.opt** file.
+
+(TODO: I will provide guide here in few days)
 
 If you have libsqlite3-dev installed you may skip this step
 
