@@ -13,6 +13,7 @@
 *.la
 *.lo
 .libs/
+shared/
 const/
 gdal/
 ogr/
