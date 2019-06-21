@@ -9,6 +9,8 @@
 *.so
 *.o
 *.obj
+*.la
+*.lo
 const/
 gdal/
 ogr/
