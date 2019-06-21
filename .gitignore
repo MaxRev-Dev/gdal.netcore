@@ -12,6 +12,7 @@
 *.obj
 *.la
 *.lo
+.libs/
 const/
 gdal/
 ogr/
