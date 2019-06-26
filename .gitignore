@@ -23,7 +23,7 @@ osr/
 push_*
 runtimes/
 nuget/
-
+maxrev.gdal.core.libshared/
 # User-specific files
 *.suo
 *.user
