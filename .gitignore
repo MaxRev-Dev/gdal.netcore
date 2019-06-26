@@ -12,6 +12,8 @@
 *.obj
 *.la
 *.lo
+*.exp
+*.lib
 .libs/
 shared/
 const/
