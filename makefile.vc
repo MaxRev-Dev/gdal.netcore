@@ -1,0 +1,131 @@
+#
+# makefile.vc - MSVC++ makefile for the C#/GDAL extension
+#
+# This VC++ makefile will build the GDAL C# interface assemblies 
+#
+# To use the makefile:
+#  - Open a DOS prompt window
+#  - Run the VCVARS32.BAT script to initialize the VC++ environment variables
+#  - Start the build with:  nmake /f makefile.vc
+#
+# $Id$
+#
+
+back = $(MAKEDIR)
+GDAL_ROOT	=	$(back)\..\gdal-source\gdal
+_swig_root = $(GDAL_ROOT)\swig
+source_root = $(_swig_root)
+source = $(source_root)\csharp
+_outdir_=$(MAKEDIR)
+!INCLUDE $(GDAL_ROOT)\nmake.opt
+
+!INCLUDE csharp.opt
+
+OUTPUT = runtimes\win-x86\native
+!IFDEF WIN64
+OUTPUT = runtimes\win-x64\native
+!ENDIF
+
+!IFDEF CSHARP_STATIC_LINKAGE
+GDALLIB	= $(GDAL_ROOT)\gdal.lib
+!ELSE
+GDALLIB	= $(GDAL_ROOT)\gdal_i.lib
+!ENDIF
+
+OBJ	=	gdal_wrap.obj gdalconst_wrap.obj ogr_wrap.obj osr_wrap.obj
+
+gdal_swig_include = ..\..\include
+
+all: ogr_dir gdal_dir osr_dir const_dir gdal_csharp
+
+gdal_csharp:
+	xcopy  /Y /R /F $(GDAL_ROOT)\gdal*.dll "$(OUTPUT)\"
+	link /dll $(OGR_INCLUDE) $(BASE_INCLUDE) $(source)\ogr_wrap.obj \
+		$(EXTERNAL_LIBS) $(GDALLIB)\
+		 /out:ogr_wrap.dll $(LINKER_FLAGS)
+	if exist ogr_wrap.dll.manifest mt -manifest ogr_wrap.dll.manifest -outputresource:ogr_wrap.dll;2
+	
+	link /dll $(OGR_INCLUDE) $(BASE_INCLUDE)  $(source)\gdal_wrap.obj \
+		$(EXTERNAL_LIBS) $(GDALLIB)\
+		 /out:gdal_wrap.dll $(LINKER_FLAGS)
+	if exist gdal_wrap.dll.manifest mt -manifest gdal_wrap.dll.manifest -outputresource:gdal_wrap.dll;2
+	
+	link /dll $(OGR_INCLUDE) $(BASE_INCLUDE)  $(source)\gdalconst_wrap.obj \
+		$(EXTERNAL_LIBS) $(GDALLIB)\
+		 /out:gdalconst_wrap.dll $(LINKER_FLAGS)
+	if exist gdalconst_wrap.dll.manifest mt -manifest gdalconst_wrap.dll.manifest -outputresource:gdalconst_wrap.dll;2
+	
+	link /dll $(OGR_INCLUDE) $(BASE_INCLUDE)  $(source)\osr_wrap.obj \
+		$(EXTERNAL_LIBS) $(GDALLIB)\
+		 /out:osr_wrap.dll $(LINKER_FLAGS)
+	if exist osr_wrap.dll.manifest mt -manifest osr_wrap.dll.manifest -outputresource:osr_wrap.dll;2
+	-md $(OUTPUT)
+	move *.dll $(OUTPUT)
+    
+ogr_dir:
+	cd $(source)\ogr
+	$(MAKE) /f makefile.vc
+	cd $(back)
+
+gdal_dir:
+	cd $(source)\gdal
+	$(MAKE) /f makefile.vc
+	cd $(back)
+
+const_dir:
+	cd $(source)\const
+	$(MAKE) /f makefile.vc
+	cd $(back)
+
+osr_dir:
+	cd $(source)\osr
+	$(MAKE) /f makefile.vc
+	cd $(back)
+
+interface:
+	cd  $(source)\const
+	$(SWIG) -csharp -namespace OSGeo.GDAL -dllimport gdalconst_wrap -o gdalconst_wrap.c $(gdal_swig_include)\gdalconst.i
+	cd  $(source)\gdal
+	$(SWIG) -c++ -csharp -namespace OSGeo.GDAL  -dllimport gdal_wrap -I$(gdal_swig_include)\csharp -o gdal_wrap.cpp $(gdal_swig_include)\gdal.i
+	cd  $(source)\osr
+	$(SWIG) -c++ -csharp -namespace OSGeo.OSR  -dllimport osr_wrap -I$(gdal_swig_include)\csharp -o osr_wrap.cpp $(gdal_swig_include)\osr.i
+	cd  $(source)\ogr
+	$(SWIG) -c++ -csharp -namespace OSGeo.OGR -dllimport ogr_wrap -I$(gdal_swig_include)\csharp -o ogr_wrap.cpp $(gdal_swig_include)\ogr.i	
+	cd $(back)
+	
+cleanlocal:
+	-del gdal.lib
+	-del *_wrap.dll
+	-del *_csharp.dll
+	-del *.obj
+	-del *.exp
+	-del *.ilk
+	-del *.pdb
+	-del *.tlb
+	-del *.lib
+	-del *.mdb
+	-del *.exe
+	-del *.manifest
+clean:	
+	cd  $(source)\gdal
+	$(MAKE) /f makefile.vc clean
+	cd  $(source)\ogr
+	$(MAKE) /f makefile.vc clean
+	cd $(source)\const
+	$(MAKE) /f makefile.vc clean
+	cd $(source)\osr
+	$(MAKE) /f makefile.vc clean
+	cd $(source)
+	$(MAKE) /f makefile.vc clean
+	-del /q /s Data
+	-del $(OUTPUT)\*.dll
+	cd $(back)	
+	$(MAKE) /f makefile.vc cleanlocal
+	rd /s /q runtimes\
+	
+install:
+	xcopy /Y /R /F *_wrap.dll $(OUTPUT)
+pack:
+	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore-runtimes-win.csproj
+packdev:
+	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore-runtimes-win.csproj
