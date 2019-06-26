@@ -12,3 +12,10 @@ Default installation location is parent folder to this repo location.
 
 After build they all build folders must be linked in **nmake.opt** file in gdal's source
 
+And finaly.
+
+Use **dumpbin** to gdal's dependencies. Check nuget packages before bringing them to prod. 
+
+Have fun)
+
+Contact me: [Telegram - MaxRev](t.me/maxrev)
