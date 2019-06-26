@@ -1,7 +1,12 @@
 # gdal.netcore
 
 #### NuGet: [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br/>
-#### NuGet: [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/)
+#### NuGet: [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/) <br/>
+#### NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)
+
+## **How to compile on Windows**
+
+It's quite tricky. Enter [win](win/) directory to find out how.
 
 ## **How to compile on Unix**
 
@@ -86,5 +91,7 @@ After you have gdal installed, you can proceed to netcore build
 
 based on https://github.com/OSGeo/gdal && https://github.com/jgoday/gdal
 
+Contact me: [Telegram - MaxRev](http://t.me/maxrev)
 
+Enjoy!
 

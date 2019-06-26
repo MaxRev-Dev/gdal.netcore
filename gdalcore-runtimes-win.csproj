@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Platform>x64</Platform>
+    <DebugType>portable</DebugType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Copyright>MaxRev © 2019</Copyright>
+    <Authors>MaxRev</Authors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>MaxRev.Gdal.WindowsRuntime.Minimal</PackageId>
+    <PackageTags>gdal;netcore;docker</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
+    <Version>3.0.0.1</Version>
+    <Description>GDAL (3.0.0) minimal libraries package. 
+Drivers included GEOS (3.8), CURL, SQLITE3;  internal  GEOTIFF, JPEG, PNG, LIBZ, LERC
+</Description>
+    <AssemblyName>MaxRev.Gdal.WindowsRuntime.Minimal</AssemblyName>
+    <RootNamespace />
+    <PackageReleaseNotes></PackageReleaseNotes>
+  </PropertyGroup>
+  
+   <ItemGroup>
+   <Compile Remove="**/*.cs"></Compile>
+    <None Include="runtimes/**">
+      <PackagePath>runtimes/</PackagePath> 
+      <Pack>true</Pack>
+    </None> 
+  </ItemGroup>
+  
+  <PropertyGroup Condition="$(Configuration) == 'Debug'">
+	<BumpLabel>dev</BumpLabel>
+	<BumpLabelDigits>3</BumpLabelDigits>
+</PropertyGroup>
+
+<PropertyGroup Condition="$(Configuration) == 'Release'">
+	<BumpRevision>True</BumpRevision>
+	<BumpResetLabel>dev</BumpResetLabel>
+</PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSBump" Version="2.3.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

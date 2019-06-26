@@ -13,7 +13,7 @@
     <RepositoryType>git</RepositoryType>  
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.0.0.2</Version>
+    <Version>3.0.0.2-dev008</Version>
     <Description>GDAL (3.0.0-dev) bindings for dotnet core (currently linux-x64).
 Bridge between gdal and netcore.
 Use dependency package (MaxRev.Gdal.LinuxRuntime.Minimal) to get drivers.
@@ -37,10 +37,13 @@ Works in docker containers without pkg installations!!
 
 <ItemGroup>
   <Compile Remove="./*.cs" />
-  <None Include="shared/**">
-    <PackagePath>shared/</PackagePath>
-    <Pack>true</Pack>
-  </None>
+  <Content Include="maxrev.gdal.core.libshared/**">
+      <Pack>true</Pack>
+      <CopyToOutput>true</CopyToOutput>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackageCopyToOutput>true</PackageCopyToOutput> 
+  </Content>
 </ItemGroup>
   
   <ItemGroup>
