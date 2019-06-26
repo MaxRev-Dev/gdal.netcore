@@ -91,7 +91,7 @@ After you have gdal installed, you can proceed to netcore build
 
 based on https://github.com/OSGeo/gdal && https://github.com/jgoday/gdal
 
-Contact me: [Telegram - MaxRev](t.me/maxrev)
+Contact me: [Telegram - MaxRev](http://t.me/maxrev)
 
 Enjoy!
 

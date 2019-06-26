@@ -18,4 +18,4 @@ Use **dumpbin** to gdal's dependencies. Check nuget packages before bringing the
 
 Have fun)
 
-Contact me: [Telegram - MaxRev](t.me/maxrev)
+Contact me: [Telegram - MaxRev](http://t.me/maxrev)
