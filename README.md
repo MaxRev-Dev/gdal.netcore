@@ -6,7 +6,7 @@
 
 ## **How to compile on Windows**
 
-It's quite tricky. Enter [win](win/README.md) directory to find out how.
+It's quite tricky. Enter [win](win/) directory to find out how.
 
 ## **How to compile on Unix**
 
