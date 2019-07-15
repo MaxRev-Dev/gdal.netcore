@@ -13,7 +13,7 @@
     <RepositoryType>git</RepositoryType>  
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.0.0.3</Version>
+    <Version>3.0.0.4</Version>
     <Description>GDAL (3.0.0-dev) bindings for dotnet core (currently linux-x64).
 Bridge between gdal and netcore.
 Use dependency package (MaxRev.Gdal.LinuxRuntime.Minimal) to get drivers.
@@ -22,6 +22,7 @@ Works in docker containers without pkg installations!!
     <RootNamespace></RootNamespace>
     <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
     <PackageReleaseNotes>
+-  Added reserve search path for Proj6
 - Fixed directory relative path in Proj6.Configure();
 - Fixed Proj6 loading - use Proj6.Configure();
 - Removed redundant classes</PackageReleaseNotes>
