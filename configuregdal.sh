@@ -11,6 +11,9 @@ chmod +x ${source}/gdal-source/gdal/configure
  --with-libz=internal \
  --with-jpeg=internal \
  --with-threads \
+ --with-hdf4 \
+ --with-hdf5 \
+ --with-sqlite3 \
  --without-cfitsio \
  --without-cryptopp \
  --without-curl \
@@ -22,8 +25,6 @@ chmod +x ${source}/gdal-source/gdal/configure
  --without-gif \
  --without-gnm \
  --without-grass \
- --without-hdf4 \
- --without-hdf5 \
  --without-idb \
  --without-ingres \
  --without-jasper \
@@ -45,7 +46,6 @@ chmod +x ${source}/gdal-source/gdal/configure
  --without-python \
  --without-qhull \
  --without-sde \
- --without-sqlite3 \
  --without-webp \
  --without-xerces \
  --without-xml2 \
