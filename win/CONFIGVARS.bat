@@ -1,10 +1,10 @@
 rem Build destination
 set _buildroot_=%~dp0..\..
 
-rem Which components to install
-set features=curl sqlite3 geos proj6
+rem Which components to install 
+set features=curl sqlite3 libjpeg libz proj6 geos hdf4 hdf5
 
-rem Remove sources after build?
+rem Remove sources after build? (init for true)
 set _rmsource_=
 
 rem Path to vcvars bat configurators
