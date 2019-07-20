@@ -2,7 +2,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using OSGeo.OGR;
 
 namespace MaxRev.Gdal.Core
 {
@@ -12,36 +13,71 @@ namespace MaxRev.Gdal.Core
     public static class GdalBase
     {
         /// <summary>
-        /// Setups gdalplugins and calls Gdal.AllRegister() & Ogr.RegisterAll() & Proj6.Configure()
+        /// Setups gdalplugins and calls Gdal.AllRegister() & Ogr.RegisterAll() & Proj6.Configure().
+        /// NOTE: on Windows runtime on Debug it must copy dependent drivers to entry directory 
         /// </summary>
         public static void ConfigureAll()
         {
             try
             {
-                var loc = Assembly.GetAssembly(typeof(InternalGdalBaseMarker)).Location;
-                var gj = new FileInfo(loc).Directory;
-                var name = gj.FullName;
-
-                if (!gj.EnumerateFiles("gdal_*.dll").Any())
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    var t = gj.Parent.Parent.FullName;
-                    name = Path.Combine(name, "runtimes", "win-x64", "native", "gdalplugins");
-                }
-                else
-                {
-                    var fi = new FileInfo(Assembly.GetEntryAssembly().Location);
-                    var drs = fi.Directory.GetFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
-                    Directory.CreateDirectory("gdalplugins");
-                    foreach (var dr in drs)
+                    Assembly asm;
+                    try
                     {
-                        File.Move(dr.FullName, Path.Combine("gdalplugins", dr.Name));
+                        asm = Assembly.Load(new AssemblyName("MaxRev.Gdal.WindowsRuntime.Minimal"));
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("Couldn't find 'MaxRev.Gdal.Core.Windows' assembly in loaded assemblies of current domain. Is it installed?");
+                        Console.WriteLine("Failed to configure Gdal for windows runtime");
+                        return;
                     }
 
-                    name = Path.Combine(Directory.GetCurrentDirectory(), "gdalplugins");
+                    var asmLocation = asm.Location;
+                    var assemblyDir = new FileInfo(asmLocation).Directory;
+                    string name;
+
+                    if (!assemblyDir.EnumerateFiles("gdal_*.dll").Any())
+                    {
+                        var t = assemblyDir.Parent.Parent.FullName;
+                        var tmp = Path.Combine(t, "runtimes", "win-x64", "native");
+
+                        void CopyAll(DirectoryInfo source, DirectoryInfo target)
+                        {
+                            Directory.CreateDirectory(target.FullName);
+
+                            foreach (var fi in source.GetFiles())
+                            {
+                                fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
+                            }
+
+                            foreach (var diSourceSubDir in source.GetDirectories())
+                            {
+                                CopyAll(diSourceSubDir, target.CreateSubdirectory(diSourceSubDir.Name));
+                            }
+                        }
+
+                        CopyAll(new DirectoryInfo(tmp), new DirectoryInfo(Directory.GetCurrentDirectory()));
+                        name = Path.Combine(Directory.GetCurrentDirectory(), "gdalplugins");
+                    }
+                    else
+                    {
+                        var fi = new FileInfo(Assembly.GetEntryAssembly().Location);
+                        var drs = fi.Directory.GetFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
+                        Directory.CreateDirectory("gdalplugins");
+                        foreach (var dr in drs)
+                        {
+                            File.Move(dr.FullName, Path.Combine("gdalplugins", dr.Name));
+                        }
+
+                        name = Path.Combine(Directory.GetCurrentDirectory(), "gdalplugins");
+                    }
+
+                    OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", name);
                 }
 
-                Gdal.SetConfigOption("GDAL_DRIVER_PATH", name);
-                Gdal.AllRegister();
+                OSGeo.GDAL.Gdal.AllRegister();
                 Ogr.RegisterAll();
                 Proj6.Configure();
             }
