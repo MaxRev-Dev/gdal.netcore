@@ -440,24 +440,24 @@ JPEG12_SUPPORTED = 1
 #KAKLIB = $(KAKDIR)\lib_x64\kdu_v79R.lib 	$(KAKDIR)\lib_x64\kdu_a79R.lib
 #KAKSRC = $(KAKDIR)\v7_9_1-01156C
 #KAKOBJDIR =  $(KAKDIR)\v7_generated_x86
-KAKADU_7_5_OR_LATER = YES
+#KAKADU_7_5_OR_LATER = YES
 #JP2KAK_PLUGIN = YES
 
 # Uncomment the following and update to enable NCSA HDF Release 4 support.
-#HDF4_PLUGIN = NO
-#HDF4_DIR =	D:\warmerda\HDF41r5
-#HDF4_LIB =	/LIBPATH:$(HDF4_DIR)\lib Ws2_32.lib
-#HDF4_INCLUDE = $(HDF4_DIR)\include
+HDF4_PLUGIN = YES
+HDF4_DIR =	$(BUILD_ROOT)\hdf4-build
+HDF4_LIB = $(HDF4_DIR)\lib\libhdf.lib $(HDF4_DIR)\lib\libmfhdf.lib $(HDF4_DIR)\lib\libxdr.lib  	$(BUILD_ROOT)\libz-build\lib\zlib.lib $(BUILD_ROOT)\libjpeg-build\lib\jpeg.lib Ws2_32.lib
+HDF4_INCLUDE = $(HDF4_DIR)\include -I$(BUILD_ROOT)\libz-build\include -I$(BUILD_ROOT)\libjpeg-build\include
 # HDF4 library newer than 4.2.5 has a SDreset_maxopenfiles/SDget_maxopenfiles
 # interface which allows opening many HDF files simultaneously (the max
 # number of files was previously hardcoded and too low, smth. like 32).
 # Uncomment following if your library is newer than 4.2.5.
-#HDF4_HAS_MAXOPENFILES = YES
+HDF4_HAS_MAXOPENFILES = YES
 
 # Uncomment the following and update to enable NCSA HDF Release 5 support.
-#HDF5_PLUGIN = NO
-#HDF5_DIR =	c:\warmerda\supportlibs\hdf5\5-164-win
-#HDF5_LIB =	$(HDF5_DIR)\dll\hdf5dll.lib 
+HDF5_PLUGIN = YES
+HDF5_DIR = $(BUILD_ROOT)\hdf5-build
+HDF5_LIB =	$(HDF5_DIR)\lib\libhdf5.lib 
 
 # Uncomment the following and update to enable KEA support.
 #KEA_PLUGIN = NO
@@ -986,7 +986,7 @@ DWG_LIB_LINK =
 !IFDEF WIN64
 !UNDEF STDCALL
 !ELSE
-SYM_PREFIX=
+SYM_PREFIX=_
 !ENDIF
 
 EXTERNAL_LIBS =	$(OGDILIB) $(XERCES_LIB) $(EXPAT_LIB) $(OCI_LIB) $(PG_LIB) \
