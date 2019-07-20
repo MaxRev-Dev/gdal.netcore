@@ -14,18 +14,16 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>3.0.0.4</Version>
-    <Description>GDAL (3.0.0-dev) bindings for dotnet core (currently linux-x64).
+    <Description>GDAL (3.0.0) bindings for dotnet core (now linux-x64 and win-x64).
 Bridge between gdal and netcore.
-Use dependency package (MaxRev.Gdal.LinuxRuntime.Minimal) to get drivers.
+Use dependency package for target runtime to get drivers.
 Works in docker containers without pkg installations!!
+Just call - GdalBase.ConfigureAll()
 </Description>
     <RootNamespace></RootNamespace>
     <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
     <PackageReleaseNotes>
--  Added reserve search path for Proj6
-- Fixed directory relative path in Proj6.Configure();
-- Fixed Proj6 loading - use Proj6.Configure();
-- Removed redundant classes</PackageReleaseNotes>
+- Now all configurations done by GdalBase.ConfigureAll()</PackageReleaseNotes>
   </PropertyGroup>
   
   <PropertyGroup Condition="$(Configuration) == 'Debug'">
@@ -40,6 +38,7 @@ Works in docker containers without pkg installations!!
 
 <ItemGroup>
   <Compile Remove="./*.cs" />
+  <Compile Remove="test\**" />
   <Content Include="maxrev.gdal.core.libshared/**">
       <Pack>true</Pack>
       <CopyToOutput>true</CopyToOutput>
@@ -48,11 +47,16 @@ Works in docker containers without pkg installations!!
       <PackageCopyToOutput>true</PackageCopyToOutput> 
   </Content>
 </ItemGroup>
+
+<ItemGroup>
+  <EmbeddedResource Remove="test\**" />
+  <None Remove="test\**" />
+</ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
+  </ItemGroup> 
 </Project>
