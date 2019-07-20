@@ -12,7 +12,9 @@ It's quite tricky. Enter [win](win/) directory to find out how.
 
 Current version targets GDAL 3.0.0 with minimal drivers
 
-Drivers included PROJ6 with sqlite3, GEOS(3.8), GEOTIFF, JPEG, PNG, LIBZ, LERC
+Drivers included PROJ6 with sqlite3, GEOS(3.8), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC
+
+NOTE: Windows and Linux drivers avialability may differ, ask me of specific driver for runtime.
 
 ##### Prerequisites
 
@@ -53,7 +55,7 @@ If you have libsqlite3-dev installed you may skip this step
 ### Clone & Compile GDAL
 
 1. `git clone https://github.com/OSGeo/gdal.git gdal-source && cd gdal-source/gdal`
-2. `./configure CFLAGS="-fPIC"  --with-geos --with-geotiff=internal --with-hide-internal-symbols --with-libtiff=internal --with-libz=internal --with-jpeg=internal  --with-threads --without-cfitsio --without-cryptopp --without-curl --without-ecw --without-expat --without-fme --without-freexl --without-gif --without-gnm --without-grass --without-hdf4 --without-hdf5 --without-idb --without-ingres --without-jasper --without-jp2mrsid --without-kakadu --without-libgrass --without-libkml --without-libtool --without-mrsid --without-mysql --without-netcdf --without-odbc --without-ogdi --without-openjpeg --without-pcidsk --without-pcraster --without-pcre --without-perl --without-pg --without-python --without-qhull --without-sde --without-sqlite3 --without-webp --without-xerces --without-xml2 --without-poppler --without-crypto --prefix=$(pwd)/build --with-proj=/mnt/e/dev/builds/proj6-bin`              
+2. `./configuregdal.sh`   - **change** before you go!
 
 After you have gdal installed, you can proceed to netcore build                                                                           
 
