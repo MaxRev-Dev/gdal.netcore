@@ -24,6 +24,9 @@ push_*
 runtimes/
 gdalplugins/
 nuget/
+maxrev.gdal.core.libshared/
+
+!compile/*.*
 
 # User-specific files
 *.suo

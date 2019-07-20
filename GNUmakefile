@@ -1,17 +1,21 @@
-
+include GdalCore.opt
 # ---------------------- CONFIG ---------------------
 ##### GDAL source location
-$(eval _basegdal_=/mnt/e/dev/builds/gdal-source/gdal)
+$(eval _basegdal_=$(GDAL_ROOT)/gdal)
 
 ##### GDAL build location
-$(eval _gdal_build_=/mnt/e/dev/builds/gdal-build)
+$(eval _gdal_build_=$(BUILD_ROOT)/gdal-build)
 
 ##### PROJ6 libraries path required by gdal
-$(eval _baseproj_=/mnt/e/dev/builds/proj6-bin)
+$(eval _baseproj_=$(BUILD_ROOT)/proj6-bin)
 # --------------------- !CONFIG! --------------------
 
 ifeq ($(LIBGDAL_CURRENT),)
 LIBGDAL_CURRENT := 26
+endif
+
+ifeq ($(RID),)
+RID=linux-x64
 endif
 
 $(eval _gdal_base_lib_=$(_gdal_build_)/lib)
@@ -101,27 +105,24 @@ linkall:
 	
 clean_runtimes:
 	rm -rvf $(OUTPUT)/*.* 
-gdal_csharp: clean_runtimes
+initdirs:
 	mkdir -p $(OUTPUT)
+copygdalout:
 	cp -a $(_basesrc_)/const/. $(_outdir_)/const
 	cp -a $(_basesrc_)/gdal/. $(_outdir_)/gdal
 	cp -a $(_basesrc_)/osr/. $(_outdir_)/osr
 	cp -a $(_basesrc_)/ogr/. $(_outdir_)/ogr
 	cp -f ${_gdal_base_lib_}/libgdal.$(_gdal_so_ver_) $(OUTPUT)/libgdal.$(_gdal_so_ver_)
-#	cp -f lib*.so $(OUTPUT)
+copyprojout:
 	cp $(_baseproj_)/lib/*.so.15 $(OUTPUT)
-#	mkdir -p $(OUTPUT)/proj6/share/
-#	cp $(_baseproj_)/share/proj/*.db $(OUTPUT)/proj6/share/
-#	mv $(OUTPUT)/libgdalconstcsharp.so $(OUTPUT)/gdalconst_wrap.so
-#	mv $(OUTPUT)/libogrcsharp.so $(OUTPUT)/ogr_wrap.so
-#	mv $(OUTPUT)/libosrcsharp.so $(OUTPUT)/osr_wrap.so	
-  	
-	g++ -shared -o $(OUTPUT)/gdal_wrap.so gdal_wrap.o $(OUTPUT)/libgdal.$(_gdal_so_ver_)
-	
-	$(eval _o_out_:=$(wildcard *.o))
-	$(foreach lib, $(_o_out_),  g++ -shared -o $(OUTPUT)/$(basename $(lib)).so $(lib) $(OUTPUT)/libgdal.$(_gdal_so_ver_);${\n})
-	
+makesolocal:
+	$(eval local_o:=$(wildcard *.o))
+	$(foreach lib, $(local_o),  g++ -shared -o $(OUTPUT)/$(basename $(lib)).so $(lib) $(OUTPUT)/libgdal.$(_gdal_so_ver_);${\n})
+copyalldepso:
 	ldd $(_gdal_base_lib_)/libgdal.so | grep "=> /" | awk '{print $$3}' | xargs -I {} cp -v {} $(OUTPUT) 
+
+gdal_csharp: clean_runtimes initdirs copygdalout copyprojout makesolocal copyalldepso 
+#	g++ -shared -o $(OUTPUT)/gdal_wrap.so gdal_wrap.o $(OUTPUT)/libgdal.$(_gdal_so_ver_)	
 	$(MAKE) linkall
 	
 packc: 

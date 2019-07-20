@@ -1,7 +1,7 @@
 include GdalCore.opt
 
 all: build
-build:  autogen configure gdalmake
+build:  reset autogen configure full
 
 autogen:
 	chmod -x  $(GDAL_ROOT)/gdal/autogen.sh
@@ -9,10 +9,10 @@ autogen:
 	
 configure:
 	./configuregdal.sh
-make: install
-	$(MAKE) -C $(GDAL_ROOT)/gdal
-install:
-	$(MAKE) -C $(GDAL_ROOT)/gdal install 
+full: make
+	$(MAKE) -C $(GDAL_ROOT)/gdal install
+make:
+	$(MAKE) -C $(GDAL_ROOT)/gdal  
 clean: 
 	$(MAKE) -C $(GDAL_ROOT)/gdal clean
 init_gdal: 
