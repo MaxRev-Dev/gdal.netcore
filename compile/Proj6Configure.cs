@@ -2,7 +2,7 @@ using System.IO;
 using System.Reflection;
 using System.Linq;
 
-namespace System
+namespace MaxRev.Gdal.Core
 {
 
     /// <summary>
