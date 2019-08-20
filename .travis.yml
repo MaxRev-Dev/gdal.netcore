@@ -5,13 +5,18 @@ language: csharp
 mono: none
 # setup container matrix
 matrix:
-  include:
-    - env: OS='ubuntu:16.04'
-    - env: OS='centos:7'
-    - env: OS='debian:9.7'
+  include:    
+    - env: distribution='centos' version='7'
+    - env: distribution='fedora' version='29'
+    - env: distribution='ubuntu' version='xenial'
+    - env: distribution='debian' version='stretch'
+        
+services:
+  - docker
 
 before_install:
-  - docker pull $OS
-
-script:
-  - docker run $OS /bin/sh -c "sudo apt-get install curl; curl -o- https://dot.net/v1/dotnet-install.sh | bash; dotnet restore 'test/GdalCoreTest/GdalCoreTest.csproj'; dotnet run --project 'test/GdalCoreTest/GdalCoreTest.csproj'"
+  - 'sudo docker pull ${distribution}:${version}'
+  - 'sudo docker build --rm --file=travis/Dockerfile.${distribution}-${version} --tag=${distribution}-${version}'
+#script:
+# TODO: run script
+#  - docker run $OS /bin/sh -c "sudo apt-get install curl; curl -o- https://dot.net/v1/dotnet-install.sh | bash; dotnet restore 'test/GdalCoreTest/GdalCoreTest.csproj'; dotnet run --project 'test/GdalCoreTest/GdalCoreTest.csproj'"
