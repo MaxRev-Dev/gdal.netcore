@@ -1,7 +1,17 @@
+# setup environment
+dist: xenial 
+sudo: required
 language: csharp
 mono: none
-dotnet: 2.2.401
+# setup container matrix
+matrix:
+  include:
+    - env: OS='ubuntu:16.04'
+    - env: OS='centos:7'
+    - env: OS='debian:9.7'
+
+before_install:
+  - docker pull $OS
+
 script:
- - cd test
- - dotnet restore
- - dotnet run
+  - docker run $OS /bin/sh -c "sudo apt-get install curl; curl -o- https://dot.net/v1/dotnet-install.sh | bash; dotnet restore 'test/GdalCoreTest/GdalCoreTest.csproj'; dotnet run --project 'test/GdalCoreTest/GdalCoreTest.csproj'"

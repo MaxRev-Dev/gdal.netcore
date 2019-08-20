@@ -68,7 +68,7 @@ namespace MaxRev.Gdal.Core
                         Directory.CreateDirectory("gdalplugins");
                         foreach (var dr in drs)
                         {
-                            File.Move(dr.FullName, Path.Combine("gdalplugins", dr.Name));
+                            File.Copy(dr.FullName, Path.Combine("gdalplugins", dr.Name), true);
                         }
 
                         name = Path.Combine(Directory.GetCurrentDirectory(), "gdalplugins");

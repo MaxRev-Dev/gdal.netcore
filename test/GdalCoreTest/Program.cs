@@ -11,8 +11,13 @@ namespace GdalCoreTest
             try
             {
                 GdalBase.ConfigureAll();
-                 
-                var drivers = new[] { "hdf4", "hdf5", "gtiff", "hf2", "ceos", "http" };
+
+                Console.WriteLine(string.Join('\n', 
+                    "GDAL Version: " + Gdal.VersionInfo("RELEASE_NAME"),
+                    "GDAL INFO: " + Gdal.VersionInfo("")));
+
+                var drivers = new[] { "hdf4", "hdf5", "gtiff", "hf2", "ceos", "ESRI Shapefile" };
+
                 foreach (var driver in drivers)
                 {
                     var driverByName = Gdal.GetDriverByName(driver);
@@ -23,9 +28,7 @@ namespace GdalCoreTest
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-            }
-
-            Console.ReadLine();
+            } 
         }
     }
 }
