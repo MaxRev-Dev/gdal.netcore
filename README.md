@@ -20,13 +20,12 @@ NOTE: Windows and Linux drivers avialability may differ, ask me of specific driv
 
 First of all I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 2 hours.
 
-I'm compiling in WSL - **Debian 9.7 distro, cause It has GLIBC 2.2.5 natively**.
-
-My root directory - /mnt/e/dev/builds/ 
+I'm compiling in WSL - **Debian 9.7 distro, cause It has GLIBC 2.24 (2016) natively**.
+For next release I will recompile to all libs using **CentOS 7 with GLIBC 2.17 (2012)**
 
 To link SO libraries against exec dir: 
 
-​	`sudo apt-get install patchelf -y`
+  `sudo apt-get install patchelf -y`
 
 Please issue, if of I forgot to mention any other packages
 
@@ -36,19 +35,26 @@ If you have installed sqlite3 and proj6 goto step #3.
 
 If you have libsqlite3-dev installed you may skip first step.
 
+Set a root variable for convenience
+``export gc_root=`pwd` ``
+
 ### 1. Compile SQLite3 (optional)
 
-1. [Download SQLite3 Autoconf](https://www.sqlite.org/download.html) & unpack 
-2. `./configure --prefix=/mnt/e/dev/builds/sqlite3-bin`  
-3. `make && make install`
+1. [Download SQLite3 Autoconf](https://www.sqlite.org/download.html) & unpack  <br>
+  `curl -o sqlite.tar.gz "https://www.sqlite.org/2019/sqlite-autoconf-3290000.tar.gz"` <br>
+  `tar xfv sqlite.tar.gz && mv sqlite-autoconf-3290000 sqlite3-source && cd sqlite3-source`
+2. `./configure --prefix=$gc_root/sqlite3-bin`  
+3. `make && make install && cd $gc_root`
 
 ### 2. Compile PROJ6 
 
-1. [Download proj](https://proj.org/download.html) & unpack 
-2. `./configure CFLAGS="-fPIC" --prefix=/mnt/e/dev/builds/proj6-bin`
-3.  `make LDFLAGS="-Wl,-rpath '-Wl,\$\$ORIGIN' -L/mnt/e/dev/sqlite3-bin/lib" && make install`        
+1. [Download proj](https://proj.org/download.html) & unpack <br>
+  `curl -o proj-6.1.0.tar.gz "https://download.osgeo.org/proj/proj-6.1.0.tar.gz"` <br>
+  `tar xfv proj-6.1.0.tar.gz && mv proj-6.1.0 proj6-source && cd proj6-source`
+2. `./configure CFLAGS="-fPIC" --prefix=$gc_root/proj6-bin`
+3.  `make LDFLAGS="-Wl,-rpath '-Wl,\$\$ORIGIN' -L$gc_root/sqlite3-bin/lib" && make install && cd $gc_root`        
 
-  Note: you must specify sqlite lib custom location with -L flag
+  Note: you must specify the sqlite lib custom location with -L flag
 
 ### 3. Clone & Compile GDAL
 
