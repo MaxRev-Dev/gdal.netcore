@@ -8,12 +8,12 @@ using OSGeo.OGR;
 namespace MaxRev.Gdal.Core
 {
     /// <summary>
-    /// Configures all variables and options for gdal including plugins and Proj6.db path
+    /// Configures all variables and options for GDAL including plugins and Proj6.db path
     /// </summary>
     public static class GdalBase
     {
         /// <summary>
-        /// Setups gdalplugins and calls Gdal.AllRegister() & Ogr.RegisterAll() & Proj6.Configure().
+        /// Setups gdalplugins and calls Gdal.AllRegister(), Ogr.RegisterAll(), Proj6.Configure().
         /// NOTE: on Windows runtime on Debug it must copy dependent drivers to entry directory 
         /// </summary>
         public static void ConfigureAll()
@@ -83,6 +83,7 @@ namespace MaxRev.Gdal.Core
             }
             catch (Exception ex)
             {
+                Console.WriteLine("Error in " + Assembly.GetExecutingAssembly().FullName);
                 Console.WriteLine(ex);
             }
         }
