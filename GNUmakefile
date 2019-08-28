@@ -99,7 +99,7 @@ $(CSHARP_MODULES): lib%csharp.$(SO_EXT): %_wrap.$(OBJ_EXT)
 link_so:
 	$(echo ok $< && patchelf --set-rpath '$$ORIGIN' $<)
 
-linkall:
+linkall: clean_runtimes initdirs copygdalout copyprojout makesolocal copyalldepso 
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
 	$(foreach lib, $(_so_out_),  if [ -a $(lib) ]; then patchelf --set-rpath '$$ORIGIN' $(lib); fi;${\n})
 	
@@ -121,8 +121,7 @@ makesolocal:
 copyalldepso:
 	ldd $(_gdal_base_lib_)/libgdal.so | grep "=> /" | awk '{print $$3}' | xargs -I {} cp -v {} $(OUTPUT) 
 
-gdal_csharp: clean_runtimes initdirs copygdalout copyprojout makesolocal copyalldepso 
-#	g++ -shared -o $(OUTPUT)/gdal_wrap.so gdal_wrap.o $(OUTPUT)/libgdal.$(_gdal_so_ver_)	
+gdal_csharp: 
 	$(MAKE) linkall
 	
 packc: 
