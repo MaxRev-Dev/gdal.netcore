@@ -8,7 +8,7 @@ using OSGeo.OGR;
 namespace MaxRev.Gdal.Core
 {
     /// <summary>
-    /// Configures all variables and options for gdal including plugins and Proj6.db path
+    /// Configures all variables and options for GDAL including plugins and Proj6.db path
     /// </summary>
     public static class GdalBase
     {
@@ -83,6 +83,7 @@ namespace MaxRev.Gdal.Core
             }
             catch (Exception ex)
             {
+                Console.WriteLine("Error in " + Assembly.GetExecutingAssembly().FullName);
                 Console.WriteLine(ex);
             }
         }
