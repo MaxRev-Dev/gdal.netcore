@@ -33,7 +33,7 @@ define \n
 
 
 endef
-all: build
+all: prebuild
 
 BINDING = csharp
 include SWIGmake.base
@@ -76,7 +76,10 @@ generate: interface
 interface:
 	(cd $(_basesrc_) && ./mkinterface.sh)
 
-build:  ${CSHARP_OBJECTS} ${CSHARP_MODULES} gdal_csharp	
+prebuild: interface 
+	$(MAKE)  build
+	
+build: ${CSHARP_OBJECTS} ${CSHARP_MODULES} gdal_csharp	
 
 sign:
 	(cd $(_basesrc_) && sn -k gdal.snk)
@@ -99,25 +102,31 @@ $(CSHARP_MODULES): lib%csharp.$(SO_EXT): %_wrap.$(OBJ_EXT)
 link_so:
 	$(echo ok $< && patchelf --set-rpath '$$ORIGIN' $<)
 
-linkall: clean_runtimes initdirs copygdalout copyprojout makesolocal copyalldepso 
+linkall: copywrappers clean_runtimes initdirs copygdalout copyprojout makesolocal copyalldepso 
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
 	$(foreach lib, $(_so_out_),  if [ -a $(lib) ]; then patchelf --set-rpath '$$ORIGIN' $(lib); fi;${\n})
 	
 clean_runtimes:
 	rm -rvf $(OUTPUT)/*.* 
+	
 initdirs:
 	mkdir -p $(OUTPUT)
+	
+copywrappers:
+	cp -fr $(_basesrc_)/const/ $(_outdir_)/const
+	cp -fr $(_basesrc_)/gdal/ $(_outdir_)/gdal
+	cp -fr $(_basesrc_)/osr/ $(_outdir_)/osr
+	cp -fr $(_basesrc_)/ogr/ $(_outdir_)/ogr
+	
 copygdalout:
-	cp -a $(_basesrc_)/const/. $(_outdir_)/const
-	cp -a $(_basesrc_)/gdal/. $(_outdir_)/gdal
-	cp -a $(_basesrc_)/osr/. $(_outdir_)/osr
-	cp -a $(_basesrc_)/ogr/. $(_outdir_)/ogr
 	cp -f ${_gdal_base_lib_}/libgdal.$(_gdal_so_ver_) $(OUTPUT)/libgdal.$(_gdal_so_ver_)
+	
 copyprojout:
 	cp $(_baseproj_)/lib/*.so.15 $(OUTPUT)
 makesolocal:
 	$(eval local_o:=$(wildcard *.o))
 	$(foreach lib, $(local_o),  g++ -shared -o $(OUTPUT)/$(basename $(lib)).so $(lib) $(OUTPUT)/libgdal.$(_gdal_so_ver_);${\n})
+	
 copyalldepso:
 	ldd $(_gdal_base_lib_)/libgdal.so | grep "=> /" | awk '{print $$3}' | xargs -I {} cp -v {} $(OUTPUT) 
 
