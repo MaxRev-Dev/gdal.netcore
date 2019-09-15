@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Linq;
@@ -18,6 +19,10 @@ namespace MaxRev.Gdal.Core
         /// </summary>
         public static void ConfigureAll()
         {
+#if DEBUG
+            Debugger.Launch();
+#endif
+            var thisName = Assembly.GetExecutingAssembly().FullName;
             try
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -36,42 +41,60 @@ namespace MaxRev.Gdal.Core
 
                     var asmLocation = asm.Location;
                     var assemblyDir = new FileInfo(asmLocation).Directory;
-                    string name;
 
+                    var executingDir = new FileInfo(Assembly.GetEntryAssembly().Location).Directory;
+                    var targetDir = new DirectoryInfo(Path.Combine(executingDir.FullName, "gdalplugins"));
+
+                    targetDir.Create();
+
+                    string name = targetDir.FullName;
                     if (!assemblyDir.EnumerateFiles("gdal_*.dll").Any())
                     {
-                        var t = assemblyDir.Parent.Parent.FullName;
-                        var tmp = Path.Combine(t, "runtimes", "win-x64", "native");
+                        Func<string, string> sources = s => Path.Combine(s, "runtimes", "win-x64", "native");
+                        var cdir = new DirectoryInfo(sources(assemblyDir.FullName));
+                        if (!cdir.Exists)
+                        {
+                            var primarySource = assemblyDir.Parent.Parent.FullName;
+                            cdir = new DirectoryInfo(sources(primarySource));
+                            if (!cdir.Exists)
+                            {
+                                cdir = new DirectoryInfo(sources(executingDir.FullName));
+                            }
+                        }
 
-                        void CopyAll(DirectoryInfo source, DirectoryInfo target)
+                        if (cdir.Exists)
+                        {
+                            CopyAll(cdir, targetDir);
+                        }
+                        else
+                        {
+                            Console.WriteLine(thisName + ": Can't find runtime libraries");
+                        }
+
+                        void CopyAll(DirectoryInfo fromDir, DirectoryInfo target)
                         {
                             Directory.CreateDirectory(target.FullName);
 
-                            foreach (var fi in source.GetFiles())
+                            foreach (var fi in fromDir.GetFiles())
                             {
                                 fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
                             }
 
-                            foreach (var diSourceSubDir in source.GetDirectories())
+                            foreach (var diSourceSubDir in fromDir.GetDirectories())
                             {
                                 CopyAll(diSourceSubDir, target.CreateSubdirectory(diSourceSubDir.Name));
                             }
                         }
 
-                        CopyAll(new DirectoryInfo(tmp), new DirectoryInfo(Directory.GetCurrentDirectory()));
-                        name = Path.Combine(Directory.GetCurrentDirectory(), "gdalplugins");
                     }
                     else
-                    {
-                        var fi = new FileInfo(Assembly.GetEntryAssembly().Location);
-                        var drs = fi.Directory.GetFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
-                        Directory.CreateDirectory("gdalplugins");
+                    { 
+                        var drs = executingDir.GetFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
+
                         foreach (var dr in drs)
                         {
-                            File.Copy(dr.FullName, Path.Combine("gdalplugins", dr.Name), true);
+                            File.Copy(dr.FullName, Path.Combine(targetDir.FullName, dr.Name), true);
                         }
-
-                        name = Path.Combine(Directory.GetCurrentDirectory(), "gdalplugins");
                     }
 
                     OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", name);
@@ -83,7 +106,7 @@ namespace MaxRev.Gdal.Core
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Error in " + Assembly.GetExecutingAssembly().FullName);
+                Console.WriteLine("Error in " + thisName);
                 Console.WriteLine(ex);
             }
         }

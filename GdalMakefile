@@ -22,6 +22,6 @@ init_proj:
 	mkdir $(PROJ_ROOT)
  	cd $(PROJ_ROOT) && git clone https://github.com/OSGeo/PROJ.git .
 reset:
-	cd $(GDAL_ROOT) && git checkout -q release/3.0; 
+	cd $(GDAL_ROOT) && git checkout -q 558f8a7aa15498ac25fb4a8227b220c1d4fecf29;
 	cd $(GDAL_ROOT) && git reset --hard; 
 	cd $(GDAL_ROOT) && git clean -fqdx; 

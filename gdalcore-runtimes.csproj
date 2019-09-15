@@ -12,7 +12,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.0.0.4</Version>
+    <Version>3.0.0.5</Version>
     <Description>GDAL (3.0.0) minimal libraries package. 
 Drivers included GEOS (3.8), HDF4, HDF5, SQLITE3, GEOTIFF, JPEG, PNG, LIBZ, LERC.
 Targets linux-x64. Based on netstandard2.0.

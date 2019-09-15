@@ -7,7 +7,7 @@ $(eval _basegdal_=$(GDAL_ROOT)/gdal)
 $(eval _gdal_build_=$(BUILD_ROOT)/gdal-build)
 
 ##### PROJ6 libraries path required by gdal
-$(eval _baseproj_=$(BUILD_ROOT)/proj6-bin)
+$(eval _baseproj_=$(BUILD_ROOT)/proj6-build)
 # --------------------- !CONFIG! --------------------
 
 ifeq ($(LIBGDAL_CURRENT),)

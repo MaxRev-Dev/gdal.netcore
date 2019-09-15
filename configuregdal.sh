@@ -3,7 +3,7 @@ source=`pwd`/..
 chmod +x ${source}/gdal-source/gdal/configure
 (cd ${source}/gdal-source/gdal && ./configure  --prefix=${source}/gdal-build  CFLAGS="-fPIC" \
  --with-geos=${source}/geos-build/bin/geos-config \
- --with-proj=${source}/proj6-bin \
+ --with-proj=${source}/proj6-build \
  --with-libtool \
  --with-geotiff=internal \
  --with-hide-internal-symbols \
