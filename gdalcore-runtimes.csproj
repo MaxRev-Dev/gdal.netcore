@@ -12,14 +12,15 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.0.0.5</Version>
-    <Description>GDAL (3.0.0) minimal libraries package. 
+    <Version>3.0.1.0</Version>
+    <Description>GDAL (3.0.1) minimal libraries package. 
 Drivers included GEOS (3.8), HDF4, HDF5, SQLITE3, GEOTIFF, JPEG, PNG, LIBZ, LERC.
 Targets linux-x64. Based on netstandard2.0.
 </Description>
     <AssemblyName>MaxRev.Gdal.LinuxRuntime.Minimal</AssemblyName>
     <RootNamespace />
-    <PackageReleaseNotes>- Added HDF4 and HDF5 drivers</PackageReleaseNotes>
+    <PackageReleaseNotes>- built on CentOS 7 (glibc - 2.17) 
+- GDAL 3.0.1</PackageReleaseNotes>
   </PropertyGroup>
   
    <ItemGroup>

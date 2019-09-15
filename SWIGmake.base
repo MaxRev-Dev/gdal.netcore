@@ -3,7 +3,7 @@ $(eval _include_=$(_baseswig_)/include)
 
 SWIG = swig
 SWIGARGS = -Wall -I$(_include_) -I$(_include_)/$(BINDING) -I$(_include_)/$(BINDING)/docs
-SWIGOUTPUTDIR=
+SWIGOUTPUTDIR=./
 
 WRAPPERS_WITHOUT_GNM = gdal_wrap.cpp   gdalconst_wrap.c  ogr_wrap.cpp  osr_wrap.cpp
 WRAPPERS = $(WRAPPERS_WITHOUT_GNM) gnm_wrap.cpp
@@ -12,10 +12,10 @@ gdal_wrap.cpp: $(_include_)/gdal.i $(_include_)/MajorObject.i $(_include_)/Drive
 	$(SWIG) $(SWIGARGS) $(SWIGDEFINES) -I$(GDAL_ROOT) -c++ -$(BINDING) -o $(SWIGOUTPUTDIR)$@ $(_include_)/gdal.i
 
 gdalconst_wrap.c: $(_include_)/gdalconst.i $(SWIG_INCLUDES)
-	$(SWIG) $(SWIGARGS) $(SWIGDEFINES) -I$(GDAL_ROOT) -$(BINDING) -o $(SWIGOUTPUTDIR)$@  $(_include_)/gdalconst.i
+	$(SWIG) $(SWIGARGS) $(SWIGDEFINES) -I$(GDAL_ROOT) -$(BINDING) -o $(SWIGOUTPUTDIR)$@  $(_include_)/gdalconst.i	
 
 ogr_wrap.cpp:  $(_include_)/ogr.i $(_include_)/$(BINDING)/ogr_$(BINDING).i $(_include_)/$(BINDING)/typemaps_$(BINDING).i $(SWIG_INCLUDES)
-	$(SWIG) $(SWIGARGS) $(SWIGDEFINES) -I$(GDAL_ROOT) -c++ -$(BINDING) -o $(SWIGOUTPUTDIR)$@  $(_include_)/ogr.i
+	$(SWIG) $(SWIGARGS) $(SWIGDEFINES) -I$(GDAL_ROOT) -c++ -$(BINDING) -o $(SWIGOUTPUTDIR)$@  $(_include_)/ogr.i	
 
 osr_wrap.cpp:  $(_include_)/osr.i $(_include_)/$(BINDING)/osr_$(BINDING).i $(_include_)/$(BINDING)/typemaps_$(BINDING).i $(SWIG_INCLUDES)
 	$(SWIG) $(SWIGARGS) $(SWIGDEFINES) -I$(GDAL_ROOT) -c++ -$(BINDING) -o $(SWIGOUTPUTDIR)$@  $(_include_)/osr.i

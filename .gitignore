@@ -24,7 +24,6 @@ push_*
 runtimes/
 gdalplugins/
 nuget/
-maxrev.gdal.core.libshared/
 
 !test/**/*.cs
 !compile/*.*

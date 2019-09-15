@@ -20,8 +20,7 @@ NOTE: Windows and Linux drivers avialability may differ, ask me of specific driv
 
 First of all I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 2 hours.
 
-I'm compiling in WSL - **Debian 9.7 distro, cause It has GLIBC 2.24 (2016) natively**.
-For next release I will recompile to all libs using **CentOS 7 with GLIBC 2.17 (2012)**
+I'm compiling in WSL on **CentOS 7 with GLIBC 2.17 (2012)**
 
 To link SO libraries against exec dir: 
 
