@@ -1,10 +1,9 @@
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Linq;
-using System.Runtime.InteropServices;
 using OSGeo.OGR;
+using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace MaxRev.Gdal.Core
 {
@@ -13,15 +12,26 @@ namespace MaxRev.Gdal.Core
     /// </summary>
     public static class GdalBase
     {
+        private static void CopyRecursive(DirectoryInfo fromDir, DirectoryInfo target)
+        {
+            Directory.CreateDirectory(target.FullName);
+
+            foreach (var fi in fromDir.GetFiles())
+            {
+                fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
+            }
+
+            foreach (var diSourceSubDir in fromDir.GetDirectories())
+            {
+                CopyRecursive(diSourceSubDir, target.CreateSubdirectory(diSourceSubDir.Name));
+            }
+        }
         /// <summary>
         /// Setups gdalplugins and calls Gdal.AllRegister(), Ogr.RegisterAll(), Proj6.Configure().
         /// NOTE: on Windows runtime on Debug it must copy dependent drivers to entry directory 
         /// </summary>
         public static void ConfigureAll()
         {
-#if DEBUG
-            Debugger.Launch();
-#endif
             var thisName = Assembly.GetExecutingAssembly().FullName;
             try
             {
@@ -64,31 +74,15 @@ namespace MaxRev.Gdal.Core
 
                         if (cdir.Exists)
                         {
-                            CopyAll(cdir, targetDir);
+                            CopyRecursive(cdir, targetDir);
                         }
                         else
                         {
                             Console.WriteLine(thisName + ": Can't find runtime libraries");
                         }
-
-                        void CopyAll(DirectoryInfo fromDir, DirectoryInfo target)
-                        {
-                            Directory.CreateDirectory(target.FullName);
-
-                            foreach (var fi in fromDir.GetFiles())
-                            {
-                                fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
-                            }
-
-                            foreach (var diSourceSubDir in fromDir.GetDirectories())
-                            {
-                                CopyAll(diSourceSubDir, target.CreateSubdirectory(diSourceSubDir.Name));
-                            }
-                        }
-
                     }
                     else
-                    { 
+                    {
                         var drs = executingDir.GetFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
 
                         foreach (var dr in drs)
@@ -108,6 +102,7 @@ namespace MaxRev.Gdal.Core
             {
                 Console.WriteLine("Error in " + thisName);
                 Console.WriteLine(ex);
+		throw ex;
             }
         }
     }
