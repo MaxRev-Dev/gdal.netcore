@@ -113,10 +113,10 @@ initdirs:
 	mkdir -p $(OUTPUT)
 	
 copywrappers:
-	cp -fr $(_basesrc_)/const/ $(_outdir_)/const
-	cp -fr $(_basesrc_)/gdal/ $(_outdir_)/gdal
-	cp -fr $(_basesrc_)/osr/ $(_outdir_)/osr
-	cp -fr $(_basesrc_)/ogr/ $(_outdir_)/ogr
+	cp -fr $(_basesrc_)/const $(_outdir_)/const
+	cp -fr $(_basesrc_)/gdal $(_outdir_)/gdal
+	cp -fr $(_basesrc_)/osr $(_outdir_)/osr
+	cp -fr $(_basesrc_)/ogr $(_outdir_)/ogr
 	
 copygdalout:
 	cp -f ${_gdal_base_lib_}/libgdal.$(_gdal_so_ver_) $(OUTPUT)/libgdal.$(_gdal_so_ver_)
@@ -134,18 +134,18 @@ gdal_csharp:
 	$(MAKE) linkall
 	
 packc: 
-	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.csproj	
+	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.loader.csproj	
 	
 packr: 
-	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore-runtimes.csproj
+	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.linuxruntime.csproj
 	
 pack: packc packr
 
 packdc:
-	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.csproj
+	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.loader.csproj
 	
 packdr:
-	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore-runtimes.csproj
+	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.linuxruntime.csproj
 	
 packdev: packdc packdr
 	

@@ -1,3 +1,13 @@
-BUILD_ROOT=$(PWD)/..
+BUILD_ROOT=$(PWD)/build-unix
+
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
-PROJ_ROOT=$(BUILD_ROOT)/proj-source
+GDAL_REPO=https://github.com/OSGeo/gdal.git
+GDAL_COMMIT_VER=558f8a7aa15498ac25fb4a8227b220c1d4fecf29
+
+PROJ6_ROOT=$(BUILD_ROOT)/proj6-source
+PROJ6_REPO=https://github.com/OSGeo/PROJ.git
+PROJ6_COMMIT_VER=2228592582910d866b8c1b5187bc2ef50955b281
+
+GEOS_ROOT=$(BUILD_ROOT)/geos-source
+GEOS_REPO=https://github.com/libgeos/geos.git 
+GEOS_COMMIT_VER=ff05d9755d189771147acb3105bd9c9cfff730ff

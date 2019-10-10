@@ -14,7 +14,7 @@ goto rmsources
 for %%s in (%sources%) do (
 call :green  "Fetching sources and building - %%s"
 call get%%s
-call :green  "Finished task building - %%s")
+call :green  "Finished building task- %%s")
 set _end=true
 
 :rmsources

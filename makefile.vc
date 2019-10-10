@@ -12,7 +12,7 @@
 #
 
 back = $(MAKEDIR)
-GDAL_ROOT	=	$(back)\..\gdal-source\gdal
+GDAL_ROOT	=	$(back)\build-win\gdal-source\gdal
 _swig_root = $(GDAL_ROOT)\swig
 source_root = $(_swig_root)
 source = $(source_root)\csharp
@@ -126,6 +126,6 @@ clean:
 install:
 	xcopy /Y /R /F *_wrap.dll $(OUTPUT)
 pack:
-	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore-runtimes-win.csproj
+	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.windowsruntime.csproj
 packdev:
-	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore-runtimes-win.csproj
+	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.windowsruntime.csproj

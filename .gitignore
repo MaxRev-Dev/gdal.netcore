@@ -24,6 +24,8 @@ push_*
 runtimes/
 gdalplugins/
 nuget/
+build-*
+libshared/
 
 !test/**/*.cs
 !compile/*.*

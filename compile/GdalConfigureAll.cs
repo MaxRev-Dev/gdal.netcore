@@ -1,4 +1,3 @@
-using OSGeo.OGR;
 using System;
 using System.IO;
 using System.Linq;
@@ -12,23 +11,8 @@ namespace MaxRev.Gdal.Core
     /// </summary>
     public static class GdalBase
     {
-        private static void CopyRecursive(DirectoryInfo fromDir, DirectoryInfo target)
-        {
-            Directory.CreateDirectory(target.FullName);
-
-            foreach (var fi in fromDir.GetFiles())
-            {
-                fi.CopyTo(Path.Combine(target.FullName, fi.Name), true);
-            }
-
-            foreach (var diSourceSubDir in fromDir.GetDirectories())
-            {
-                CopyRecursive(diSourceSubDir, target.CreateSubdirectory(diSourceSubDir.Name));
-            }
-        }
         /// <summary>
-        /// Setups gdalplugins and calls Gdal.AllRegister(), Ogr.RegisterAll(), Proj6.Configure().
-        /// NOTE: on Windows runtime on Debug it must copy dependent drivers to entry directory 
+        /// Setups gdalplugins and calls Gdal.AllRegister(), Ogr.RegisterAll(), Proj6.Configure(). 
         /// </summary>
         public static void ConfigureAll()
         {
@@ -53,28 +37,38 @@ namespace MaxRev.Gdal.Core
                     var assemblyDir = new FileInfo(asmLocation).Directory;
 
                     var executingDir = new FileInfo(Assembly.GetEntryAssembly().Location).Directory;
-                    var targetDir = new DirectoryInfo(Path.Combine(executingDir.FullName, "gdalplugins"));
-
-                    targetDir.Create();
+                    var targetDir = new DirectoryInfo(Path.Combine(executingDir.FullName));
 
                     string name = targetDir.FullName;
+                    targetDir.Create();
+
+
                     if (!assemblyDir.EnumerateFiles("gdal_*.dll").Any())
                     {
-                        Func<string, string> sources = s => Path.Combine(s, "runtimes", "win-x64", "native");
-                        var cdir = new DirectoryInfo(sources(assemblyDir.FullName));
+                        string Sources(string s) => Path.Combine(s, "runtimes", "win-x64", "native");
+                        var cdir = new DirectoryInfo(Sources(assemblyDir.FullName));
                         if (!cdir.Exists)
                         {
                             var primarySource = assemblyDir.Parent.Parent.FullName;
-                            cdir = new DirectoryInfo(sources(primarySource));
+                            cdir = new DirectoryInfo(Sources(primarySource));
                             if (!cdir.Exists)
                             {
-                                cdir = new DirectoryInfo(sources(executingDir.FullName));
+                                cdir = new DirectoryInfo(Sources(executingDir.FullName));
                             }
                         }
 
                         if (cdir.Exists)
                         {
-                            CopyRecursive(cdir, targetDir);
+                            var targetDrivers = Path.Combine(cdir.FullName, "gdalplugins");
+                            // here hdf4 driver requires jpeg library to be loaded
+                            // and I won't copy all libraries on each startup
+                            var targetJpeg = Path.Combine(executingDir.FullName, "jpeg.dll");
+                            if (!File.Exists(targetJpeg))
+                            {
+                                File.Copy(Path.Combine(cdir.FullName, "jpeg.dll"), Path.Combine(executingDir.FullName, "jpeg.dll"));
+                            }
+
+                            OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", targetDrivers);
                         }
                         else
                         {
@@ -84,25 +78,27 @@ namespace MaxRev.Gdal.Core
                     else
                     {
                         var drs = executingDir.GetFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
-
+                        var tr = Path.Combine(targetDir.FullName, "gdalplugins");
+                        Directory.CreateDirectory(tr);
                         foreach (var dr in drs)
                         {
-                            File.Copy(dr.FullName, Path.Combine(targetDir.FullName, dr.Name), true);
+                            var dest = Path.Combine(tr, dr.Name);
+                            if (File.Exists(dest)) File.Delete(dest);
+                            File.Copy(dr.FullName, dest, true);
                         }
+                        OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", tr);
                     }
-
-                    OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", name);
                 }
 
                 OSGeo.GDAL.Gdal.AllRegister();
-                Ogr.RegisterAll();
+                OSGeo.OGR.Ogr.RegisterAll();
                 Proj6.Configure();
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error in " + thisName);
                 Console.WriteLine(ex);
-		throw ex;
+                throw ex;
             }
         }
     }

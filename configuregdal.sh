@@ -1,5 +1,5 @@
 #!/bin/sh
-source=`pwd`/..
+source=`pwd`/build-unix
 chmod +x ${source}/gdal-source/gdal/configure
 (cd ${source}/gdal-source/gdal && ./configure  --prefix=${source}/gdal-build  CFLAGS="-fPIC" \
  --with-geos=${source}/geos-build/bin/geos-config \
@@ -14,14 +14,13 @@ chmod +x ${source}/gdal-source/gdal/configure
  --with-hdf4 \
  --with-hdf5 \
  --with-sqlite3 \
+ --with-curl \
  --without-cfitsio \
  --without-cryptopp \
- --without-curl \
  --without-ecw \
  --without-expat \
  --without-fme \
  --without-freexl \
- --without-gif \
  --without-gif \
  --without-gnm \
  --without-grass \

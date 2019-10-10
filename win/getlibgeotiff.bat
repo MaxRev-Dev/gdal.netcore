@@ -1,7 +1,8 @@
+@echo off
 set back=%cd%
 call %~dp0configvars
 set key=libgeotiff
-if not exist %key%-source git clone https://github.com/OSGeo/libgeotiff.git "%_buildroot_%/%key%-source"
+if not exist "%_buildroot_%/%key%-source" git clone https://github.com/OSGeo/libgeotiff.git "%_buildroot_%/%key%-source"
 cd "%_buildroot_%/%key%-source"
 git checkout master
 git reset --hard
@@ -20,6 +21,7 @@ nmake /f makefile.vc devinstall
 rem cmake -DLDLIBS=-I"%_buildroot_%/sqlite3-build/lib/libsqlite3.lib"  -DTIFF_LIBRARY=%_buildroot_%/libtiff-build/lib/tiff.lib -DTIFF_INCLUDE_DIR=%_buildroot_%/libtiff-build/include -DPROJ_LIBRARY=%_buildroot_%/proj6-build/lib/proj_6_1.lib -DPROJ_INCLUDE_DIR=%_buildroot_%/proj6-build/include .. 
 rem cmake --build . --target ALL_BUILD --config Release
 
+cd %bindir%
 call %__%\copyrecursive %bindir%
 
 cd %back%

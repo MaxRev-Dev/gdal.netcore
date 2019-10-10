@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Platform>x64</Platform>
+    <DebugType>portable</DebugType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Copyright>MaxRev © 2019</Copyright>
+    <Authors>MaxRev</Authors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>MaxRev.Gdal.LinuxRuntime.Minimal</PackageId>
+    <PackageTags>gdal;netcore;docker</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
+    <Version>3.0.1.2</Version>
+    <Description>GDAL (3.0.1) minimal libraries package. 
+Drivers included PROJ (6.1.1), GEOS (3.8), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5
+Targets linux-x64 runtime. Based on netstandard2.0.
+</Description>
+    <AssemblyName>MaxRev.Gdal.LinuxRuntime.Minimal</AssemblyName>
+    <RootNamespace />
+    <PackageReleaseNotes>- built on CentOS 7 (glibc - 2.17) 
+- GDAL 3.0.1
+- Sync build with windows runtime</PackageReleaseNotes>
+  </PropertyGroup>
+  
+   <ItemGroup>
+   <Compile Remove="**/*.cs"></Compile>
+   <Compile Remove="test\**" />
+    <None Include="runtimes/linux-x64/**">
+      <PackagePath>runtimes/linux-x64/</PackagePath> 
+      <Pack>true</Pack>
+    </None> 
+  </ItemGroup>
+  
+  <PropertyGroup Condition="$(Configuration) == 'Debug'">
+	<BumpLabel>dev</BumpLabel>
+	<BumpLabelDigits>3</BumpLabelDigits>
+</PropertyGroup>
+
+<PropertyGroup Condition="$(Configuration) == 'Release'">
+	<BumpRevision>True</BumpRevision>
+	<BumpResetLabel>dev</BumpResetLabel>
+</PropertyGroup>
+
+<ItemGroup>
+  <EmbeddedResource Remove="test\**" />
+  <None Remove="test\**" />
+</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSBump" Version="2.3.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

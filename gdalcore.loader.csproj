@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Platform>x64</Platform>
+    <DebugType>portable</DebugType>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Copyright>MaxRev © 2019</Copyright>
+    <Authors>MaxRev</Authors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>MaxRev.Gdal.Core</PackageId>
+    <PackageTags>gdal;netcore;docker</PackageTags>    
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryType>git</RepositoryType>  
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
+    <Version>3.0.1.2</Version>
+    <Description>GDAL (3.0.1) bindings for dotnet core (now linux-x64 and win-x64).
+Bridge between gdal and netcore.
+Use dependency package for target runtime to get drivers.
+Works in docker containers without pkg installations!!
+Just call - GdalBase.ConfigureAll()
+</Description>
+    <RootNamespace></RootNamespace>
+    <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
+    <PackageReleaseNotes>
+- Now all configurations done by GdalBase.ConfigureAll()
+- Updated runtimes</PackageReleaseNotes>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="$(Configuration) == 'Debug'">
+	<BumpLabel>dev</BumpLabel>
+	<BumpLabelDigits>3</BumpLabelDigits>
+</PropertyGroup>
+
+<PropertyGroup Condition="$(Configuration) == 'Release'">
+	<BumpRevision>True</BumpRevision>
+	<BumpResetLabel>dev</BumpResetLabel>
+</PropertyGroup>
+
+<ItemGroup>
+  <Compile Remove="./*.cs" />
+  <Compile Remove="build-win/**" />
+  <Compile Remove="build-unix/**" />
+  <Compile Remove="test\**" />
+  <Content Include="maxrev.gdal.core.libshared/**">
+      <Pack>true</Pack>
+      <CopyToOutput>true</CopyToOutput>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackageCopyToOutput>true</PackageCopyToOutput> 
+  </Content>
+</ItemGroup>
+
+<ItemGroup>
+
+  <None Remove="./*.cs" />
+  <None Remove="build-win/**" />
+  <None Remove="build-unix/**" />
+  <EmbeddedResource Remove="test\**" />
+  <None Remove="test\**" />
+</ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="MSBump" Version="2.3.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup> 
+</Project>

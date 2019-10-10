@@ -1,3 +1,4 @@
+@echo off
 set back=%cd%
 call %~dp0configvars
 set key=hdf5
@@ -21,6 +22,8 @@ cmake -S .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DHDF_CFG_NAME=Rel
 cmake --build . --config Release
 cmake --install . --prefix %key%-build
 move /Y %key%-build %bindir%/..
+
+call  %__%\copyrecursive %bindir%
 
 if defined _rmsource_ rd /s /q %_buildroot_%/%key%-source
 cd %back%

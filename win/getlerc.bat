@@ -1,8 +1,9 @@
+@echo off
 set back=%cd%
 call %~dp0configvars
 set key=lerc
 
-if not exist %key%-source git clone https://github.com/Esri/lerc.git "%_buildroot_%/%key%-source"
+if not exist "%_buildroot_%/%key%-source" git clone https://github.com/Esri/lerc.git "%_buildroot_%/%key%-source"
 cd  "%_buildroot_%/%key%-source"
 set source=%cd%
 git checkout master

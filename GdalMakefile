@@ -1,27 +1,30 @@
 include GdalCore.opt
 
-all: build
-build:  reset autogen configure full
+TARGETS = proj6 geos gdal
+all: ${TARGETS}
 
-autogen:
-	chmod -x  $(GDAL_ROOT)/gdal/autogen.sh
-	cd $(GDAL_ROOT)/gdal && ./autogen.sh
-	
-configure:
-	./configuregdal.sh
-full: make
-	$(MAKE) -C $(GDAL_ROOT)/gdal install
-make:
-	$(MAKE) -C $(GDAL_ROOT)/gdal  
-clean: 
-	$(MAKE) -C $(GDAL_ROOT)/gdal clean
-init_gdal: 
-	mkdir $(GDAL_ROOT)
-	cd $(GDAL_ROOT) && git clone https://github.com/OSGeo/gdal.git .
-init_proj: 
-	mkdir $(PROJ_ROOT)
- 	cd $(PROJ_ROOT) && git clone https://github.com/OSGeo/PROJ.git .
-reset:
-	cd $(GDAL_ROOT) && git checkout -q 558f8a7aa15498ac25fb4a8227b220c1d4fecf29;
-	cd $(GDAL_ROOT) && git reset --hard; 
-	cd $(GDAL_ROOT) && git clean -fqdx; 
+UP  = $(shell echo $* | tr a-z A-Z)
+LW = $(shell echo $* | tr A-Z a-z)
+$(TARGETS): init_$(UP) configure_$(UP) build_$(UP)
+
+init_%: 
+	if [ ! -d "$($(UP)_ROOT)" ]; then \
+		git clone $($(UP)_REPO) $($(UP)_ROOT); \
+	fi;
+	cd $($(UP)_ROOT) && git checkout -q $($(UP)_COMMIT_VER)
+
+configure_gdal:
+	./configuregdal.sh 
+
+configure_%:
+	cd $($(UP)_ROOT) && chmod -x ./autogen.sh && ./autogen.sh && ./configure  --prefix=$(BUILD_ROOT)/$(LW)-build
+
+build_%:
+	cd $($(UP)_ROOT) && make && make install
+
+build_gdal:
+	cd $(GDAL_ROOT)/gdal && make && make install
+
+reset: reset_PROJ6 reset_GDAL reset_GEOS
+reset_%: 
+	cd $($(UP)_ROOT) && git checkout -q $($(UP)_COMMIT_VER) && git reset --hard && git clean -fqdx; 

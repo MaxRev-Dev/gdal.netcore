@@ -7,13 +7,14 @@
 # You may want to add optimization options to the CFLAGS macro as well. 
 #
 
-tiif_root = ..\..\libtiff-build
+build_root=$(MAKEDIR)\..\..
+tiff_build_root = $(build_root)\libtiff-build
 
-TIFF_INC = -I$(tiif_root)\include -I..\..\proj6-build\include
-TIFF_LIB_DLL =..\..\proj6-build\lib\proj_6_1.lib ..\..\sqlite3-build\lib\sqlite3.lib $(tiif_root)\lib\tiff.lib
+TIFF_INC = -I$(tiff_build_root)\include -I$(build_root)\proj6-build\include
+TIFF_LIB_DLL =$(build_root)\proj6-build\lib\proj_6_1.lib $(build_root)\sqlite3-build\lib\sqlite3.lib $(tiff_build_root)\lib\tiff.lib
 
 # Installation locations (with install, or devinstall targets)
-PREFIX =	-I..\..\..\..\libgeotiff-build
+PREFIX =$(build_root)\libgeotiff-build
 BINDIR =	$(PREFIX)\bin
 LIBDIR =	$(PREFIX)\lib
 INCDIR =	$(PREFIX)\include
