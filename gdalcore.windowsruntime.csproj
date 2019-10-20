@@ -12,14 +12,15 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.0.1.2</Version>
+    <Version>3.0.1.25</Version>
     <Description>GDAL (3.0.1) minimal libraries package.
 Drivers included PROJ (6.1.1), GEOS (3.8), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5
 Targets win-x64 runtime. Target Frameworks: netstandard2.0, netcoreapp2.2, netcoreapp3.0.
 </Description>
     <AssemblyName>MaxRev.Gdal.WindowsRuntime.Minimal</AssemblyName>
     <RootNamespace /> 
-    <PackageReleaseNotes>- GDAL 3.0.1
+    <PackageReleaseNotes>- Fixed missing mingw64 dependency library for libgeos
+- GDAL 3.0.1
 - Sync build with linux runtime
 - now also targets netcoreapp3.0</PackageReleaseNotes>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> 
@@ -28,6 +29,8 @@ Targets win-x64 runtime. Target Frameworks: netstandard2.0, netcoreapp2.2, netco
    <ItemGroup>
    <Compile Remove="**/*.cs"></Compile>
    <Compile Remove="test/**"></Compile>
+   <None Remove="build-win/**" />
+   <None Remove="build-unix/**" />
     <None Include="runtimes/win-x64/**">
       <PackagePath>runtimes/win-x64/</PackagePath> 
       <Pack>true</Pack>

@@ -27,6 +27,8 @@ Targets linux-x64 runtime. Based on netstandard2.0.
    <ItemGroup>
    <Compile Remove="**/*.cs"></Compile>
    <Compile Remove="test\**" />
+   <None Remove="build-win/**" />
+   <None Remove="build-unix/**" />
     <None Include="runtimes/linux-x64/**">
       <PackagePath>runtimes/linux-x64/</PackagePath> 
       <Pack>true</Pack>

@@ -39,8 +39,8 @@ Just call - GdalBase.ConfigureAll()
 
 <ItemGroup>
   <Compile Remove="./*.cs" />
-  <Compile Remove="build-win/**" />
-  <Compile Remove="build-unix/**" />
+  <None Remove="build-win/**" />
+  <None Remove="build-unix/**" />
   <Compile Remove="test\**" />
   <Content Include="maxrev.gdal.core.libshared/**">
       <Pack>true</Pack>
