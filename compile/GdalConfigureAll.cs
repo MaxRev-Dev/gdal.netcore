@@ -45,8 +45,6 @@ namespace MaxRev.Gdal.Core
 
                     var executingDir = new FileInfo(Assembly.GetEntryAssembly().Location).Directory;
                     var targetDir = new DirectoryInfo(Path.Combine(executingDir.FullName));
-
-                    string name = targetDir.FullName;
                     targetDir.Create();
 
 
@@ -79,12 +77,12 @@ namespace MaxRev.Gdal.Core
                         }
                         else
                         {
-                            Console.WriteLine(thisName + ": Can't find runtime libraries");
+                            Console.WriteLine($"{thisName}: Can't find runtime libraries");
                         }
                     }
                     else
                     {
-                        var drs = executingDir.GetFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
+                        var drs = executingDir.EnumerateFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
                         var tr = Path.Combine(targetDir.FullName, "gdalplugins");
                         Directory.CreateDirectory(tr);
                         foreach (var dr in drs)
@@ -105,7 +103,7 @@ namespace MaxRev.Gdal.Core
             {
                 Console.WriteLine("Error in " + thisName);
                 Console.WriteLine(ex);
-                throw ex;
+                throw;
             }
 
             IsConfigured = true;
