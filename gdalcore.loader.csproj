@@ -13,7 +13,7 @@
     <RepositoryType>git</RepositoryType>  
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.0.1.2</Version>
+    <Version>3.0.1.25</Version>
     <Description>GDAL (3.0.1) bindings for dotnet core (now linux-x64 and win-x64).
 Bridge between gdal and netcore.
 Use dependency package for target runtime to get drivers.
@@ -23,8 +23,7 @@ Just call - GdalBase.ConfigureAll()
     <RootNamespace></RootNamespace>
     <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
     <PackageReleaseNotes>
-- Now all configurations done by GdalBase.ConfigureAll()
-- Updated runtimes</PackageReleaseNotes>
+- Fixed collision on multiple initializations</PackageReleaseNotes>
   </PropertyGroup>
   
   <PropertyGroup Condition="$(Configuration) == 'Debug'">
@@ -56,6 +55,9 @@ Just call - GdalBase.ConfigureAll()
   <None Remove="./*.cs" />
   <None Remove="build-win/**" />
   <None Remove="build-unix/**" />
+  <Compile Remove="./*.cs" />
+  <Compile Remove="build-win/**" />
+  <Compile Remove="build-unix/**" />
   <EmbeddedResource Remove="test\**" />
   <None Remove="test\**" />
 </ItemGroup>
