@@ -12,10 +12,17 @@ namespace MaxRev.Gdal.Core
     public static class GdalBase
     {
         /// <summary>
+        /// Shows if gdal is already initialized.
+        /// </summary>
+        public static bool IsConfigured { get; set; }
+
+        /// <summary>
         /// Setups gdalplugins and calls Gdal.AllRegister(), Ogr.RegisterAll(), Proj6.Configure(). 
         /// </summary>
         public static void ConfigureAll()
         {
+            if (IsConfigured) return;
+
             var thisName = Assembly.GetExecutingAssembly().FullName;
             try
             {
@@ -100,6 +107,8 @@ namespace MaxRev.Gdal.Core
                 Console.WriteLine(ex);
                 throw ex;
             }
+
+            IsConfigured = true;
         }
     }
 }
