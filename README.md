@@ -10,46 +10,42 @@ It's quite tricky. Enter [win](win/) directory to find out how.
 
 ## **How to compile on Unix**
 
-Current version targets GDAL 3.0.0 with minimal drivers
+Current version targets GDAL 3.0.1 with minimal drivers
 
 Drivers included PROJ6 with sqlite3, GEOS(3.8), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC
 
-NOTE: Windows and Linux drivers avialability may differ, ask me of specific driver for runtime.
+NOTE: Windows and Linux drivers availability may differ, ask me of specific driver for runtime. Please issue, if I forgot to mention any other packages.
 
-##### Prerequisites
+#### **Prerequisites**
 
 First of all I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 2 hours.
 
-I'm compiling in WSL on **CentOS 7 with GLIBC 2.17 (2012)**
+Environment: I'm compiling in WSL on **CentOS 7 with GLIBC 2.17 (2012)**
 
-To link SO libraries against exec dir: 
+Dynamic linking:  `sudo apt-get install patchelf -y`
 
-  `sudo apt-get install patchelf -y`
+If you have installed **libsqlite3-dev** and **proj6** - goto step **#3**.
 
-Please issue, if of I forgot to mention any other packages
+If you have **libsqlite3-dev** installed you may skip the first step.
 
-#### Soo.. Let's start
-
-If you have installed sqlite3 and proj6 goto step #3.
-
-If you have libsqlite3-dev installed you may skip first step.
-
-Set a root variable for convenience
+Set a root variable for convenience 
 ``export gc_root=`pwd` ``
+
+**Soo.. Let's start**
 
 ### 1. Compile SQLite3 (optional)
 
 1. [Download SQLite3 Autoconf](https://www.sqlite.org/download.html) & unpack  <br>
-  `curl -o sqlite.tar.gz "https://www.sqlite.org/2019/sqlite-autoconf-3290000.tar.gz"` <br>
-  `tar xfv sqlite.tar.gz && mv sqlite-autoconf-3290000 sqlite3-source && cd sqlite3-source`
+    `curl -o sqlite.tar.gz "https://www.sqlite.org/2019/sqlite-autoconf-3290000.tar.gz"` <br>
+    `tar xfv sqlite.tar.gz && mv sqlite-autoconf-3290000 sqlite3-source && cd sqlite3-source`
 2. `./configure --prefix=$gc_root/sqlite3-bin`  
 3. `make && make install && cd $gc_root`
 
 ### 2. Compile PROJ6 
 
 1. [Download proj](https://proj.org/download.html) & unpack <br>
-  `curl -o proj-6.1.0.tar.gz "https://download.osgeo.org/proj/proj-6.1.0.tar.gz"` <br>
-  `tar xfv proj-6.1.0.tar.gz && mv proj-6.1.0 proj6-source && cd proj6-source`
+    `curl -o proj-6.1.0.tar.gz "https://download.osgeo.org/proj/proj-6.1.0.tar.gz"` <br>
+    `tar xfv proj-6.1.0.tar.gz && mv proj-6.1.0 proj6-source && cd proj6-source`
 2. `./configure CFLAGS="-fPIC" --prefix=$gc_root/proj6-bin`
 3.  `make LDFLAGS="-Wl,-rpath '-Wl,\$\$ORIGIN' -L$gc_root/sqlite3-bin/lib" && make install && cd $gc_root`        
 
@@ -62,12 +58,13 @@ Also you must change **configuregdal.sh** script to setup necessary drivers.
 
 Then you may just call `make -f GdalMakefile build` - this will sync gdal repository, configure it and finaly build.
 
-Or alternatively...
+*Or alternatively...*
+
 1. `git clone https://github.com/OSGeo/gdal.git gdal-source && cd gdal-source/gdal`
 2. `./configuregdal.sh`   - **change** before you go!
 3. `make -f GdalMakefile full`
 
-After you have gdal installed, you can proceed to netcore build                                                                           
+After you have gdal installed, you can proceed to netcore bindings build.                                                                           
 
 ### 4. Clone this repo and build a wrapper
 
@@ -77,27 +74,27 @@ After you have gdal installed, you can proceed to netcore build
 4. `make RID=linux-x64`
 5. Cheers!
 
-   
+#### **Packages**
 
-   If you want to create nuget packages 
+If you want to create nuget packages 
 
-   ### **Install dotnet sdk for PCL builds** >> [dotnet](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install)
+### **Install dotnet sdk for PCL builds** >> [dotnet](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install)
 
-   Im using debian for example
+I'm using debian for example:
 
-   ```bash
-   wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.asc.gpg
-   sudo mv microsoft.asc.gpg /etc/apt/trusted.gpg.d/
-   wget -q https://packages.microsoft.com/config/debian/9/prod.list
-   sudo mv prod.list /etc/apt/sources.list.d/microsoft-prod.list
-   sudo chown root:root /etc/apt/trusted.gpg.d/microsoft.asc.gpg
-   sudo chown root:root /etc/apt/sources.list.d/microsoft-prod.list
-   sudo apt-get install apt-transport-https && apt-get update && apt-get install dotnet-sdk-2.2
-   ```
+```bash
+wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.asc.gpg
+sudo mv microsoft.asc.gpg /etc/apt/trusted.gpg.d/
+wget -q https://packages.microsoft.com/config/debian/9/prod.list
+sudo mv prod.list /etc/apt/sources.list.d/microsoft-prod.list
+sudo chown root:root /etc/apt/trusted.gpg.d/microsoft.asc.gpg
+sudo chown root:root /etc/apt/sources.list.d/microsoft-prod.list
+sudo apt-get install apt-transport-https && apt-get update && apt-get install dotnet-sdk-2.2
+```
 
-   And then just
+And then just
 
-   `make pack`
+`make pack`
 
 based on https://github.com/OSGeo/gdal && https://github.com/jgoday/gdal
 

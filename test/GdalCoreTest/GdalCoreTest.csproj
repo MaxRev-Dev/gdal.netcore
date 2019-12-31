@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Platforms>x64</Platforms>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MaxRev.Gdal.Core" Version="3.0.1.25" />
     <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal" Version="3.0.1.2" />
-    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" Version="3.0.1.25" />
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" Version="3.0.1.35" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.5" />
   </ItemGroup>
 

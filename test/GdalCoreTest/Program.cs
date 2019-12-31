@@ -2,6 +2,7 @@
 using OSGeo.GDAL;
 using OSGeo.OSR;
 using System;
+using System.IO;
 
 namespace GdalCoreTest
 {
@@ -11,6 +12,7 @@ namespace GdalCoreTest
         {
             try
             {
+                Console.WriteLine("Working directory: " + Directory.GetCurrentDirectory());
                 Console.WriteLine("Trying to configure all twice");
                 GdalBase.ConfigureAll();
                 GdalBase.ConfigureAll();
