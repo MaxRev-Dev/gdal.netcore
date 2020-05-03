@@ -3,8 +3,8 @@ call %~dp0configvars
 set key=gdal
 set _rx_=%_buildroot_%\%key%-source
 set back=%cd%
-cd "%_rx_%"
 if not exist "%_rx_%/gdal" git clone %GDAL_REPO% %_rx_%
+cd "%_rx_%"
 git checkout "release/3.0"
 git checkout -q %GDAL_COMMIT_VER%
 git clean -fdx

@@ -2,7 +2,7 @@
 set back=%cd%
 call %~dp0configvars
 set key=proj6
-goto e
+
 if not exist "%_buildroot_%/%key%-source" git clone %PROJ6_REPO% "%_buildroot_%/%key%-source"
 cd "%_buildroot_%/%key%-source"
 git checkout -q %PROJ6_COMMIT_VER%
@@ -15,7 +15,7 @@ cmake --build . --target ALL_BUILD --config Release
 set bindir=%_buildroot_%/%key%-build
 if exist "%bindir%" rd /s /q "%bindir%"
 cmake --install . --prefix %bindir%   --config Release
-:e
+
 call %__%\copyrecursive %bindir%
 
 rem copy proj.db to maxrev.gdal.core.libshared
