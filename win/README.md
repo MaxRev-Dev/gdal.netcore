@@ -2,7 +2,14 @@
 
 **ATTENTION**: *In plans to use **nmake** instead of batch scripts for future releases. Some of main batch files are not complete currently. For HDF4 driver - JPEG library must be copied to drivers folder on startup.*
 
-[TOC]
+## Table of contents
+
+- [Windows build scripts for GDAL](#windows-build-scripts-for-gdal)
+  * [Prerequisites:](#prerequisites-)
+  * [Building: (in cmd)](#building---in-cmd-)
+  * [ISSUES](#issues)
+
+Table of contents generated with [markdown-toc](http://ecotrust-canada.github.io/markdown-toc/).
 
 In this folder you can find bat scripts to fetch sources and build some GDAL drivers dependencies like GEOS, jpeg, tiff, png, zlib...
 
@@ -48,9 +55,9 @@ Use **dumpbin** or **dependency walker** to check gdal's dependencies. Test pack
 
 ### ISSUES
 
-1.  On .NET Core 3.1.200 SDK update - `dotnet pack` throws an error with MSBump: https://github.com/dotnet/core/issues/4404#issuecomment-605962124
+1.  On .NET Core 3.1.200 SDK update - `dotnet pack` throws an error with MSBump: https://github.com/dotnet/core/issues/4404#issuecomment-605962124 
 
-   Workaround on this:  `set MSBUILDSINGLELOADCONTEXT=1`
+   ​	Workaround on this:  `set MSBUILDSINGLELOADCONTEXT=1`
 
 Have fun)
 
