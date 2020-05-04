@@ -1,7 +1,8 @@
 #!/bin/sh
 source=`pwd`/build-unix
-chmod +x ${source}/gdal-source/gdal/configure
-(cd ${source}/gdal-source/gdal && ./configure  --prefix=${source}/gdal-build  CFLAGS="-fPIC" \
+cd ${source}/gdal-source/gdal
+chmod +x  ./configure 
+./configure  --prefix=${source}/gdal-build  CFLAGS="-fPIC" \
  --with-geos=${source}/geos-build/bin/geos-config \
  --with-proj=${source}/proj6-build \
  --with-libtool \
@@ -49,4 +50,4 @@ chmod +x ${source}/gdal-source/gdal/configure
  --without-xerces \
  --without-xml2 \
  --without-poppler \
- --without-crypto)
+ --without-crypto
