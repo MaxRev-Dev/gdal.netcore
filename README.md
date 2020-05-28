@@ -18,6 +18,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
   * [About this library](#about-this-library)
     + [What is this library](#what-is-this-library)
     + [What is not](#what-is-not)
+  * [How to Use it](#how-to-use-it)
   * [How to compile on Windows](#how-to-compile-on-windows)
   * [How to compile on Unix](#how-to-compile-on-unix)
     
@@ -54,6 +55,22 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 - Does not compile all drivers. Only configured, they are listed [below](#how-to-compile-on-unix). By default GDAL has a lot of internal drivers. 
 - Does not change GDAL source code.
 - Does not extend GDAL methods.
+
+## How to Use it
+
+It's quite simple. note: this explanation is for a .net core 3.1 application
+- install the core nuget `Install-Package MaxRev.Gdal.Core`
+- install the runtime 
+  - for windows `Install-Package MaxRev.Gdal.WindowsRuntime.Minimal`
+  - for linux `Install-Package MaxRev.Gdal.LinuxRuntime.Minimal`
+- set the environment variable
+  - windows (cmd) `set PROJ_LIB=<YOUR PROJECT PATH>/maxrev.gdal.core.libshared` or even better in the "control panel". remember to re-start visual studio.
+  - linux (sh) `export PROJ_LIB=<YOUR PROJECT PATH>/maxrev.gdal.core.libshared`
+  - docker (Dockerfile) `ENV PROJ_LIB=/app/bin/Debug/netcoreapp3.1/maxrev.gdal.core.libshared`
+
+Notes 
+- I tried adding it to the project properties (build.envVariables tab), didn't work. 
+- I tried setting it directly with `Environment.SetEnvironmentVariable("PROJ_LIB", "yyy");`, didn't work. 
 
 ## How to compile on Windows
 
