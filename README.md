@@ -18,6 +18,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
   * [About this library](#about-this-library)
     + [What is this library](#what-is-this-library)
     + [What is not](#what-is-not)
+  * [How to use](#how-to-use)
   * [How to compile on Windows](#how-to-compile-on-windows)
   * [How to compile on Unix](#how-to-compile-on-unix)
     
@@ -54,6 +55,28 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 - Does not compile all drivers. Only configured, they are listed [below](#how-to-compile-on-unix). By default GDAL has a lot of internal drivers. 
 - Does not change GDAL source code.
 - Does not extend GDAL methods.
+
+## How to use
+
+1. Install core package - [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
+ ```powershell
+ Install-Package MaxRev.Gdal.Core
+ ```
+2. Install [libraries](#packages) for your runtime. You can install one of them or both with no conflicts. 
+```powershell
+Install-Package MaxRev.Gdal.Core.WindowsRuntime.Minimal
+Install-Package MaxRev.Gdal.Core.LinuxRuntime.Minimal
+``` 
+2. Initialize libraries in runtime
+```csharp
+using MaxRev.Gdal.Core;
+...
+// call once, before using GDAL
+// this will initialize all GDAL drivers and set PROJ6 shared library paths
+GdalBase.ConfigureAll();
+
+```
+
 
 ## How to compile on Windows
 
