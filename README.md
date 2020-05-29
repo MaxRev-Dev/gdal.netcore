@@ -67,15 +67,16 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 Install-Package MaxRev.Gdal.Core.WindowsRuntime.Minimal
 Install-Package MaxRev.Gdal.Core.LinuxRuntime.Minimal
 ``` 
-2. Initialize libraries in runtime
+3. Initialize libraries in runtime
 ```csharp
 using MaxRev.Gdal.Core;
 ...
-// call once, before using GDAL
+// call it once, before using GDAL
 // this will initialize all GDAL drivers and set PROJ6 shared library paths
 GdalBase.ConfigureAll();
 
 ```
+4. Profit! Use it in ordinary flow
 
 
 ## How to compile on Windows
