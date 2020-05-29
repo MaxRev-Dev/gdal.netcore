@@ -66,7 +66,7 @@ It's quite simple. note: this explanation is for a .net core 3.1 application
 - set the environment variable
   - windows (cmd) `set PROJ_LIB=<YOUR PROJECT PATH>/maxrev.gdal.core.libshared` or even better in the "control panel". remember to re-start visual studio.
   - linux (sh) `export PROJ_LIB=<YOUR PROJECT PATH>/maxrev.gdal.core.libshared`
-  - docker (Dockerfile) `ENV PROJ_LIB=/app/bin/Debug/netcoreapp3.1/maxrev.gdal.core.libshared`
+  - docker (Dockerfile) `ENV PROJ_LIB=./maxrev.gdal.core.libshared`
 
 Notes 
 - I tried adding it to the project properties (build.envVariables tab), didn't work. 
