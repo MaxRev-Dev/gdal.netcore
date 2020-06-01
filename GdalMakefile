@@ -33,7 +33,7 @@ build_sqlite3:
 	cd $(BUILD_ROOT)/sqlite3-build && make
 
 configure_%:
-	cd $($(UP)_ROOT) && chmod -x ./autogen.sh && ./autogen.sh && ./configure  --prefix=$(BUILD_ROOT)/$(LW)-build
+	cd $($(UP)_ROOT) && chmod +x ./autogen.sh && ./autogen.sh && ./configure  --prefix=$(BUILD_ROOT)/$(LW)-build
 
 build_%:
 	cd $($(UP)_ROOT) && make && make install
