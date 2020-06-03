@@ -2,6 +2,14 @@
 
 A simple (as is) build engine of [GDAL](https://gdal.org/) 3.0 library for [.NET Core](https://dotnet.microsoft.com/download). 
 
+## Packages
+
+NuGet: [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br/>
+
+NuGet: [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/) <br/>
+
+NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)
+
 ## Table Of Contents
 
 - [gdal.netcore](#gdalnetcore)
@@ -10,6 +18,7 @@ A simple (as is) build engine of [GDAL](https://gdal.org/) 3.0 library for [.NET
   * [About this library](#about-this-library)
     + [What is this library](#what-is-this-library)
     + [What is not](#what-is-not)
+  * [How to use](#how-to-use)
   * [How to compile on Windows](#how-to-compile-on-windows)
   * [How to compile on Unix](#how-to-compile-on-unix)
     
@@ -20,9 +29,9 @@ A simple (as is) build engine of [GDAL](https://gdal.org/) 3.0 library for [.NET
     + [2. Compile PROJ6](#2-compile-proj6)
     + [3. Clone and Compile GDAL](#3-clone-and-compile-gdal)
     + [4. Build a wrapper](#4-build-a-wrapper)
-    + [Building Nuget Packages](#building-nuget-packages)
-      - [Prerequisites](#prerequisites-1)
-      - [Packaging](#packaging)
+  * [Building Nuget Packages](#building-nuget-packages)
+    + [Prerequisites](#prerequisites-1)
+    + [Packaging](#packaging)
   * [FAQ](#faq)
       - [Missing {some} drivers, can you add more?](#q-missing-some-drivers-can-you-add-more)
       - [GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
@@ -30,16 +39,8 @@ A simple (as is) build engine of [GDAL](https://gdal.org/) 3.0 library for [.NET
       - [Can't compile on Windows](#q-cant-compile-on-windows)
       - [Can I compile it on Ubuntu or another unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system)
       - [In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
-    + [About and Contacts](#about-and-contacts)
+  * [About and Contacts](#about-and-contacts)
 
-
-## Packages
-
-NuGet: [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br/>
-
-NuGet: [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/) <br/>
-
-NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)
 
 ## About this library
 
@@ -54,6 +55,29 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 - Does not compile all drivers. Only configured, they are listed [below](#how-to-compile-on-unix). By default GDAL has a lot of internal drivers. 
 - Does not change GDAL source code.
 - Does not extend GDAL methods.
+
+## How to use
+
+1. Install core package - [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
+ ```powershell
+ Install-Package MaxRev.Gdal.Core
+ ```
+2. Install [libraries](#packages) for your runtime. You can install one of them or both with no conflicts. 
+```powershell
+Install-Package MaxRev.Gdal.Core.WindowsRuntime.Minimal
+Install-Package MaxRev.Gdal.Core.LinuxRuntime.Minimal
+``` 
+3. Initialize libraries in runtime
+```csharp
+using MaxRev.Gdal.Core;
+...
+// call it once, before using GDAL
+// this will initialize all GDAL drivers and set PROJ6 shared library paths
+GdalBase.ConfigureAll();
+
+```
+4. Profit! Use it in ordinary flow
+
 
 ## How to compile on Windows
 
@@ -274,14 +298,14 @@ After you have gdal installed, you can proceed to netcore bindings build.
 
 5. Cheers!
 
-### Building Nuget Packages
+## Building Nuget Packages
 
-#### Prerequisites
+### Prerequisites
 
 1. Install [.NET Core SDK](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install)  and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages
 2. You have already built everything 
 
-#### Packaging
+### Packaging
 
 1. I'm using debian for example:
 
@@ -328,7 +352,7 @@ A: The main reason I'm compiling it on CentOS - glibc of version 2.17. It's the 
 A: Use of [older version](https://github.com/MaxRev-Dev/gdal.netcore/issues/1) of GLIBC might be [a reason](https://github.com/MaxRev-Dev/gdal.netcore/issues/6). But It's not a fault of build engine.
 
 
-### About and Contacts
+## About and Contacts
 
 based on https://github.com/OSGeo/gdal && https://github.com/jgoday/gdal
 
