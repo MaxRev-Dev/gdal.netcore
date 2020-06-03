@@ -6,6 +6,7 @@ set key=sqlite3
 if not exist "%_buildroot_%/%key%-source" git clone https://github.com/sqlite/sqlite.git  "%_buildroot_%/%key%-source"
 cd  "%_buildroot_%/%key%-source"
 set source=%cd%
+git fetch
 git checkout branch-3.28
 git reset --hard
 git clean -fdx

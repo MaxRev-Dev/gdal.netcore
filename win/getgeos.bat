@@ -6,6 +6,7 @@ call %~dp0configvars
 set key=geos
 if not exist "%_buildroot_%/%key%-source" git clone %GEOS_REPO% "%_buildroot_%/%key%-source"
 cd %_buildroot_%/%key%-source
+git fetch
 git checkout -q %GEOS_COMMIT_VER%
 git reset --hard
 git clean -fdx

@@ -5,6 +5,7 @@ set key=proj6
 
 if not exist "%_buildroot_%/%key%-source" git clone %PROJ6_REPO% "%_buildroot_%/%key%-source"
 cd "%_buildroot_%/%key%-source"
+git fetch
 git checkout -q %PROJ6_COMMIT_VER%
 git reset --hard
 git clean -fdx

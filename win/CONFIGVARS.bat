@@ -3,7 +3,7 @@ rem Build destination
 set _buildroot_=%~dp0..\build-win
 
 set GDAL_REPO=https://github.com/OSGeo/gdal.git
-set GDAL_COMMIT_VER=558f8a7aa15498ac25fb4a8227b220c1d4fecf29
+set GDAL_COMMIT_VER=a3f8b8b84d38c65717e1d9f08f8be85782cf7094
 
 set PROJ6_REPO=https://github.com/OSGeo/PROJ.git
 set PROJ6_COMMIT_VER=2228592582910d866b8c1b5187bc2ef50955b281

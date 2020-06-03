@@ -5,6 +5,7 @@ set key=libz
 if not exist "%_buildroot_%/%key%-source" git clone https://github.com/madler/zlib.git  "%_buildroot_%/%key%-source"
 cd  "%_buildroot_%/%key%-source"
 set source=%cd%
+git fetch
 git checkout master
 git reset --hard
 git clean -fdx

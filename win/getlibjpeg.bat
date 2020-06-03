@@ -6,6 +6,7 @@ set key=libjpeg
 if not exist "%_buildroot_%/%key%-source" git clone https://github.com/LuaDist/libjpeg.git "%_buildroot_%/%key%-source"
 cd  "%_buildroot_%/%key%-source"
 set source=%cd%
+git fetch
  git fetch origin pull/3/head:lof
  git checkout lof
 git clean -fdx

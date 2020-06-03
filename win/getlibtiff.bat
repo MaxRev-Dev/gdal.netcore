@@ -4,6 +4,7 @@ set key=libtiff
 if not exist "%_buildroot_%/%key%-source" git clone https://gitlab.com/libtiff/libtiff.git %_buildroot_%/%key%-source
 cd %_buildroot_%/%key%-source
 set source=%cd%
+git fetch
 git checkout master
 git reset --hard
 git clean -fdx

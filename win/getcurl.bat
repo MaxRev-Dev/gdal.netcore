@@ -4,7 +4,7 @@ call %~dp0configvars
 set key=curl
 if not exist "%_buildroot_%\%key%-source" git clone https://github.com/curl/curl.git "%_buildroot_%\%key%-source"
 cd "%_buildroot_%\%key%-source"
-
+git fetch
 git checkout -q 1ca91bcdb588dc6c25d345f2411fdba314433732
 git reset --hard
 git clean -fdx

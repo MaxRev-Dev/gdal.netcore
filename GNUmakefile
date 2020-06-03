@@ -3,15 +3,20 @@ include GdalCore.opt
 ##### GDAL source location
 $(eval _basegdal_=$(GDAL_ROOT)/gdal)
 
+$(eval _outdir_=$(PWD))
+
 ##### GDAL build location
 $(eval _gdal_build_=$(BUILD_ROOT)/gdal-build)
 
 ##### PROJ6 libraries path required by gdal
 $(eval _baseproj_=$(BUILD_ROOT)/proj6-build)
+
+##### NUGET output folder
+$(eval _nuget_=$(_outdir_)/build/nuget)
 # --------------------- !CONFIG! --------------------
 
 ifeq ($(LIBGDAL_CURRENT),)
-LIBGDAL_CURRENT := 26
+LIBGDAL_CURRENT := 27
 endif
 
 ifeq ($(RID),)
@@ -22,7 +27,6 @@ $(eval _gdal_base_lib_=$(_gdal_build_)/lib)
 $(eval _gdal_so_ver_=so.$(LIBGDAL_CURRENT))
 $(eval _baseswig_=$(_basegdal_)/swig)
 $(eval _basesrc_=$(_baseswig_)/csharp)
-$(eval _outdir_=$(PWD))
 
 # suppress warnings..
 $(eval _suprf_=-Wno-missing-prototypes -Wno-missing-declarations -Wno-deprecated-declarations -Wno-unused-parameter -Wno-unused-function)
@@ -69,7 +73,7 @@ cleangdal:
 	(cd $(_basegdal_) && git clean -fdxq)
 	
 cleanpackages:
-	(cd $(PWD) && rm -f -R nuget/)
+	(cd $(PWD) && rm -f -R $(_nuget_))
 	
 generate: interface
 
@@ -113,10 +117,11 @@ initdirs:
 	mkdir -p $(OUTPUT)
 	
 copywrappers:
-	cp -fr $(_basesrc_)/const $(_outdir_)/const
-	cp -fr $(_basesrc_)/gdal $(_outdir_)/gdal
-	cp -fr $(_basesrc_)/osr $(_outdir_)/osr
-	cp -fr $(_basesrc_)/ogr $(_outdir_)/ogr
+	echo "wrappers to => $(_outdir_)"
+	cp -fr $(_basesrc_)/const $(_outdir_)
+	cp -fr $(_basesrc_)/gdal $(_outdir_)
+	cp -fr $(_basesrc_)/osr $(_outdir_)
+	cp -fr $(_basesrc_)/ogr $(_outdir_)
 	
 copygdalout:
 	cp -f ${_gdal_base_lib_}/libgdal.$(_gdal_so_ver_) $(OUTPUT)/libgdal.$(_gdal_so_ver_)
@@ -134,18 +139,18 @@ gdal_csharp:
 	$(MAKE) linkall
 	
 packc: 
-	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.loader.csproj	
+	dotnet pack -c Release -o $(_nuget_) $(_outdir_)/gdalcore.loader.csproj	
 	
 packr: 
-	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.linuxruntime.csproj
+	dotnet pack -c Release -o $(_nuget_) $(_outdir_)/gdalcore.linuxruntime.csproj
 	
 pack: packc packr
 
 packdc:
-	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.loader.csproj
+	dotnet pack -c Debug -o $(_nuget_) $(_outdir_)/gdalcore.loader.csproj
 	
 packdr:
-	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.linuxruntime.csproj
+	dotnet pack -c Debug -o $(_nuget_) $(_outdir_)/gdalcore.linuxruntime.csproj
 	
 packdev: packdc packdr
 	
