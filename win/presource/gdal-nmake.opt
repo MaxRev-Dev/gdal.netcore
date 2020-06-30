@@ -22,7 +22,6 @@
 
 BUILD_ROOT=$(GDAL_ROOT)\..\..\
 
-
 !IF EXIST("$(GDAL_ROOT)\nmake.local")
 !INCLUDE $(GDAL_ROOT)\nmake.local
 !ENDIF
@@ -40,8 +39,16 @@ BUILD_ROOT=$(GDAL_ROOT)\..\..\
 # 1900 = 14.0(2015)
 #
 !IFNDEF MSVC_VER
-#assume msvc VS2015.
+#assume msvc VS2017.
 MSVC_VER=1920
+!ENDIF
+
+###############################################################################
+# Allow setting of parallel compilation number of processors with CPU_COUNT 
+# variable
+
+!IFNDEF CPU_COUNT
+CPU_COUNT=%NUMBER_OF_PROCESSORS%
 !ENDIF
 
 ###############################################################################
@@ -75,7 +82,8 @@ INCDIR = "$(GDAL_HOME)\include"
 DATADIR = "$(GDAL_HOME)\data"
 !ENDIF
 !IFNDEF HTMLDIR
-HTMLDIR = "$(GDAL_HOME)\html"
+# If you want the documentation to be build define a directory
+# HTMLDIR = "$(GDAL_HOME)\html"
 !ENDIF
 
 # Set this to the installed directory containing python.  If you don't
@@ -115,17 +123,23 @@ CXX_ANALYZE_FLAGS=
 # Set DEBUG=1 to create a debug build
 !IFNDEF DEBUG
 DEBUG=0
+!IFNDEF POSTFIX
+POSTFIX=
+!ENDIF
 !ENDIF
 
 # Force PDB output for DEBUG mode
 !IF "$(DEBUG)" == "1"
 WITH_PDB=1
+!IFNDEF POSTFIX
+POSTFIX=_d
+!ENDIF
 !ELSE IF "$(DEBUG)" != "0"
 !ERROR DEBUG should be set to 0 or 1
 !ENDIF
 
 !IFNDEF GDAL_PDB
-GDAL_PDB = $(GDAL_ROOT)\gdal$(VERSION).pdb
+GDAL_PDB = $(GDAL_ROOT)\gdal$(VERSION)$(POSTFIX).pdb
 !ENDIF
 
 !IFDEF WITH_PDB
@@ -136,9 +150,9 @@ CXX_PDB_FLAGS=
 
 !IFNDEF OPTFLAGS
 !IF "$(DEBUG)" == "0"
-OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP /MD /EHsc /Ox /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP$(CPU_COUNT) /MD /EHsc /Ox /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DNDEBUG
 !ELSE
-OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP /MDd /EHsc /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DDEBUG
+OPTFLAGS= $(CXX_ANALYZE_FLAGS) $(CXX_PDB_FLAGS) /nologo /MP$(CPU_COUNT) /MDd /EHsc /FC /D_CRT_SECURE_NO_DEPRECATE /D_CRT_NONSTDC_NO_DEPRECATE /DDEBUG
 !ENDIF
 !ENDIF  # OPTFLAGS
 
@@ -207,7 +221,7 @@ STDCALL=YES
 # Version number embedded in DLL name. 
 # If GDAL version is X.Y.Z, VERSION = X * 100 + Y
 !IFNDEF VERSION
-VERSION =	300
+VERSION =	301
 !ENDIF
 
 # Comment the following out if you want PAM supported disabled
@@ -233,11 +247,13 @@ INCLUDE_OGR_FRMTS = YES
 INCLUDE_GNM_FRMTS = YES
 !ENDIF
 
-# To be enabled defined to point to setargv.obj from the Visual C++ directory,
+# To be enabled defined to point to wsetargv.obj from the Visual C++ directory,
 # when you want the utility programs to be able to expand wildcards. 
-#SETARGV =	"D:\Software\VStudio\VC98\lib\setargv.obj"
+#SETARGV =	"D:\Software\VStudio\VC98\lib\wsetargv.obj"
 
 # PROJ stuff (required dependency: PROJ >= 6)
+# Note: shell32.lib is needed starting with PROJ 7.0 in some circumstances
+# See https://github.com/OSGeo/gdal/issues/2488
 PROJ_INCLUDE = -I$(BUILD_ROOT)\proj6-build\include
 PROJ_LIBRARY = $(BUILD_ROOT)\proj6-build\lib\proj_6_1.lib
 
@@ -297,16 +313,13 @@ PNG_EXTERNAL_LIB = 1
 PNGDIR = $(BUILD_ROOT)\libpng-build\include
 PNG_LIB = $(BUILD_ROOT)\libpng-build\lib\libpng16.lib
 
-# if using an external libtiff library
-#TIFF_INC =	-I$(BUILD_ROOT)\libtiff-build\include
-#TIFF_LIB =	$(BUILD_ROOT)\libtiff-build\lib\tiff_i.lib
-# uncomment following line, if you have libtiff version >= 4.0 to
-# enable BigTIFF support
-#TIFF_OPTS=	-DBIGTIFF_SUPPORT
+# if using an external libtiff library. Must be libtiff >= 4.0
+#TIFF_INC =	-Ic:/warmerda/libtiff/libtiff
+#TIFF_LIB =	c:/warmerda/libtiff/libtiff/libtiff_i.lib
 
 # if using an external libgeotiff library
-#GEOTIFF_INC =  -I$(BUILD_ROOT)\libgeotiff-build\include
-#GEOTIFF_LIB =   $(BUILD_ROOT)\libgeotiff-build\lib\geotiff_i.lib
+#GEOTIFF_INC =   -Ic:/warmerda/libgeotiff -Ic:/warmerda/libgeotiff/libxtiff
+#GEOTIFF_LIB =   C:/warmerda/libgeotiff/geotiff_i.lib
 
 # Uncomment out the following lines to enable LibKML support.
 #LIBKML_DIR = C:/Dev/libkml
@@ -339,13 +352,34 @@ PNG_LIB = $(BUILD_ROOT)\libpng-build\lib\libpng16.lib
 # NCSEcw4.lib, and add -DHAVE_COMPRESS to ECWFLAGS.  The ECWDIR setting will
 # also need some adjustment. 
 
-# Uncomment the following and update to enable ECW read support with the 5.0 SDK
-#ECWDIR  =  "c:\Intergraph\ecwsdk5"
-#ECWFLAGS = -DECWSDK_VERSION=50 \
-#       -I$(ECWDIR)\include \
-#       -I$(ECWDIR)\include/NCSECW/api -I$(ECWDIR)\include/NCSECW/jp2 \
-#       -I$(ECWDIR)\include/NCSECW/ecw
-#ECWLIB  =  $(ECWDIR)\lib\vc90\win32\NCSEcw.lib
+# Uncomment the following and update to enable ECW read support with the 5.0+ SDK
+#!IF $(MSVC_VER) < 1910
+#ECW_PLATFORM_TOOLSET_DIR = vc140
+#!ELSE
+#ECW_PLATFORM_TOOLSET_DIR = vc141
+#!ENDIF
+
+#!IF "$(DEBUG)" == "1"
+#ECW_LIB_DEBUG_SUFFIX = d
+#!ENDIF
+
+#!IF "$(WIN64)" == "1"
+#ECW_PLATFORM_DIR = x64
+#!ELSE
+#ECW_PLATFORM_DIR = Win32
+#!ENDIF
+
+#ECWDIR = "C:/Hexagon/ERDAS ECW JPEG 2000 SDK 5.4.0/Desktop Read-Only"
+#ECWDIR = "C:/Hexagon/ERDAS ECW JPEG 2000 SDK 5.5.0/Desktop Read-Only"
+#ECW_MAJOR_MINOR_VERSION = 55
+
+#ECW_INCLUDES = -I$(ECWDIR)/include \
+#       -I$(ECWDIR)/include/NCSEcw/API -I$(ECWDIR)/include/NCSEcw/JP2 \
+#       -I$(ECWDIR)/include/NCSEcw/ECW
+
+#ECW_ENABLE_COMPRESSION = -DHAVE_COMPRESS
+#ECWFLAGS = -DECWSDK_VERSION=$(ECW_MAJOR_MINOR_VERSION) $(ECW_ENABLE_COMPRESSION) $(ECW_INCLUDES)
+#ECWLIB = $(ECWDIR)\lib\$(ECW_PLATFORM_TOOLSET_DIR)\$(ECW_PLATFORM_DIR)\NCSEcw$(ECW_LIB_LINK_SUFFIX).lib
 
 # To build ECW support as a plugin uncomment the following, and make sure
 # to do "nmake /f makefile.vc plugin" in gdal/frmts/ecw and copy the two
@@ -374,10 +408,97 @@ PNG_LIB = $(BUILD_ROOT)\libpng-build\lib\libpng16.lib
 #		/DLIBECWJ2 /DWIN32 /D_WINDLL -DNO_X86_MMI
 
 # DWG support using the Open Design Alliance Teigha Libraries
+# Two versions are supported:
+# - ODA >= 2021 (tested with 2021.2), defined immediately
+# - Teigha 4.2, see a bit below
 
-#TD_BASE = C:\warmerda\pkg\td_vc9
-#TD_FLAGS = -D_TOOLKIT_IN_DLL_
-#TD_INCLUDE = -I$(TD_BASE)\TD\Include -I$(TD_BASE)\TD\Extensions\ExServices
+# For ODA >= 2021, you must define appropriately the following variables
+# TD_ACTIVATION_FILE_DIRECTORY: path to a directory where the "OdActivationInfo" file is.
+# TD_DRAWINGS_BASE: path where the Drawings component is installed (it has among others the Dgn, lib, Kernel and KernelBase subdirectories)
+# TD_KERNEL_BASE: path where the Kernel component is installed (it has among others the lib subdirectories)
+# TD_PLATFORM: suffix indicating the architecture, compiler version and uild type. For example "vc15dll", "vc15md". This is the suffix found at the end of TD_KERNEL_BASE and TD_DRAWINGS_BASE
+# And only when linking against a DLL build of ODA,
+# TD_DLL_FLAGS: to uncomment only when linking against a DLL build of ODA.
+#
+# Example:
+# TD_ACTIVATION_FILE_DIRECTORY = C:\dev\oda
+# TD_KERNEL_BASE = C:\dev\oda\Kernel_vc15dll
+# TD_DRAWINGS_BASE = C:\dev\oda\Drawings_vc15dll
+# TD_PLATFORM = vc15dll
+# TD_DLL_FLAGS = /D_TOOLKIT_IN_DLL_
+
+# Logic to define TD_INCLUDE and TD_LIBS for ODA >= 2020
+!IFDEF TD_PLATFORM
+!IFNDEF TD_INCLUDE
+TD_INCLUDE = $(TD_DLL_FLAGS)\
+             -I$(TD_ACTIVATION_FILE_DIRECTORY) \
+             -I$(TD_DRAWINGS_BASE)\KernelBase\Include \
+			 -I$(TD_DRAWINGS_BASE)\Kernel\Include \
+			 -I$(TD_DRAWINGS_BASE)\Kernel\Extensions\ExServices \
+			 -I$(TD_DRAWINGS_BASE)\Drawing\Include \
+			 -I$(TD_DRAWINGS_BASE)\Drawing\Extensions\ExServices \
+			 -I$(TD_DRAWINGS_BASE)\Dgn\include \
+			 -I$(TD_DRAWINGS_BASE)\Dgn\Extensions\ExServices
+!ENDIF
+
+!IFNDEF TD_LIBS
+TD_DRAWINGS_LIBDIR = $(TD_DRAWINGS_BASE)\lib\$(TD_PLATFORM)
+TD_KERNEL_LIBDIR = $(TD_KERNEL_BASE)\lib\$(TD_PLATFORM)
+
+TD_LIBS =  \
+    $(TD_DRAWINGS_LIBDIR)/TD_Db.lib \
+    $(TD_DRAWINGS_LIBDIR)/TD_DbCore.lib \
+    $(TD_DRAWINGS_LIBDIR)/TD_DbEntities.lib \
+    $(TD_DRAWINGS_LIBDIR)/TD_DrawingsExamplesCommon.lib \
+    $(TD_DRAWINGS_LIBDIR)/TG_Db.lib \
+    $(TD_DRAWINGS_LIBDIR)/TG_ExamplesCommon.lib \
+    $(TD_KERNEL_LIBDIR)/TD_Alloc.lib \
+    $(TD_KERNEL_LIBDIR)/TD_DbRoot.lib \
+    $(TD_KERNEL_LIBDIR)/TD_ExamplesCommon.lib \
+    $(TD_KERNEL_LIBDIR)/TD_Ge.lib \
+    $(TD_KERNEL_LIBDIR)/TD_Root.lib \
+    advapi32.lib
+
+!IFDEF TD_DLL_FLAGS
+# Additional libs specific to ODA DLL builds
+TD_LIBS = $(TD_LIBS) \
+    $(TD_DRAWINGS_LIBDIR)/TD_Key.lib
+!ELSE
+# Additional libs specific to ODA static builds
+TD_LIBS = $(TD_LIBS) \
+    $(TD_KERNEL_LIBDIR)/TD_Gi.lib \
+    $(TD_KERNEL_LIBDIR)/tinyxml.lib \
+    $(TD_KERNEL_LIBDIR)/TD_Zlib.lib \
+    $(TD_DRAWINGS_LIBDIR)/TD_DbIO.lib \
+    $(TD_DRAWINGS_LIBDIR)/ISM.lib \
+    $(TD_DRAWINGS_LIBDIR)/WipeOut.lib \
+    $(TD_DRAWINGS_LIBDIR)/RText.lib \
+    $(TD_DRAWINGS_LIBDIR)/ATEXT.lib \
+    $(TD_DRAWINGS_LIBDIR)/SCENEOE.lib \
+    $(TD_DRAWINGS_LIBDIR)/ACCAMERA.lib \
+    $(TD_DRAWINGS_LIBDIR)/AcMPolygonObj15.lib \
+    $(TD_KERNEL_LIBDIR)/TD_Gs.lib \
+    $(TD_KERNEL_LIBDIR)/TD_SpatialIndex.lib \
+    $(TD_KERNEL_LIBDIR)/oless.lib \
+    $(TD_KERNEL_LIBDIR)/UTF.lib \
+    $(TD_KERNEL_LIBDIR)/WinBitmap.lib \
+    $(TD_KERNEL_LIBDIR)/OdBrepModeler.lib \
+    $(TD_KERNEL_LIBDIR)/TD_Br.lib \
+    $(TD_KERNEL_LIBDIR)/TD_AcisBuilder.lib \
+    $(TD_KERNEL_LIBDIR)/TD_BrepBuilder.lib \
+    $(TD_KERNEL_LIBDIR)/TD_BrepBuilderFiller.lib \
+    $(TD_KERNEL_LIBDIR)/TD_BrepRenderer.lib \
+    $(TD_DRAWINGS_LIBDIR)/ModelerGeometry.lib \
+    $(TD_DRAWINGS_LIBDIR)/RecomputeDimBlock.lib \
+    crypt32.lib \
+    secur32.lib \
+    user32.lib \
+    gdi32.lib \
+    ole32.lib
+!ENDIF  # TD_DLL_FLAGS
+!ENDIF  # TD_LIBS
+!ENDIF  # TD_PLATFORM
+
 # The following works for Teigha 4.2.2
 # In TD_INCLUDE, add /D_TOOLKIT_IN_DLL_ if linking against the .dll
 #TD_INCLUDE = -I$(TD_BASE)\Core\Include -I$(TD_BASE)\Core\Extensions\ExServices -I$(TD_BASE)\Dgn\include -I$(TD_BASE)\Dgn\Extensions\ExServices
@@ -439,25 +560,33 @@ PNG_LIB = $(BUILD_ROOT)\libpng-build\lib\libpng16.lib
 #KAKDIR = C:\0_PGH\SRC_CSD\CSD_INTEGRATION\cots\kakadu\download\dev
 #KAKLIB = $(KAKDIR)\lib_x64\kdu_v79R.lib 	$(KAKDIR)\lib_x64\kdu_a79R.lib
 #KAKSRC = $(KAKDIR)\v7_9_1-01156C
+#KAKEXTRAINC=-I$(KAKDIR)
 #KAKOBJDIR =  $(KAKDIR)\v7_generated_x86
-#KAKADU_7_5_OR_LATER = YES
 #JP2KAK_PLUGIN = YES
+!IFNDEF KAKADU_7_5_OR_LATER
+KAKADU_7_5_OR_LATER = YES
+!ENDIF
 
 # Uncomment the following and update to enable NCSA HDF Release 4 support.
+# HDF4 library newer than 4.2.5 has a SDreset_maxopenfiles/SDget_maxopenfiles
+# interface which allows opening many HDF files simultaneously (the max
+# number of files was previously hardcoded and too low, smth. like 32).
+
 HDF4_PLUGIN = YES
 HDF4_DIR =	$(BUILD_ROOT)\hdf4-build
 HDF4_LIB = $(HDF4_DIR)\lib\libhdf.lib $(HDF4_DIR)\lib\libmfhdf.lib $(HDF4_DIR)\lib\libxdr.lib  	$(BUILD_ROOT)\libz-build\lib\zlib.lib $(BUILD_ROOT)\libjpeg-build\lib\jpeg.lib Ws2_32.lib
 HDF4_INCLUDE = $(HDF4_DIR)\include -I$(BUILD_ROOT)\libz-build\include -I$(BUILD_ROOT)\libjpeg-build\include
-# HDF4 library newer than 4.2.5 has a SDreset_maxopenfiles/SDget_maxopenfiles
-# interface which allows opening many HDF files simultaneously (the max
-# number of files was previously hardcoded and too low, smth. like 32).
 # Uncomment following if your library is newer than 4.2.5.
 HDF4_HAS_MAXOPENFILES = YES
 
 # Uncomment the following and update to enable NCSA HDF Release 5 support.
 HDF5_PLUGIN = YES
 HDF5_DIR = $(BUILD_ROOT)\hdf5-build
-HDF5_LIB =	$(HDF5_DIR)\lib\libhdf5.lib 
+HDF5_LIB =	$(HDF5_DIR)\lib\libhdf5.lib $(HDF5_DIR)\lib\hdf5.lib 
+
+# Needed to define H5_BUILT_AS_DYNAMIC_LIB for windows compilation 
+# scenarios where it is not exported on the target (non-CMake builds)
+HDF5_H5_IS_DLL = NO
 
 # Uncomment the following and update to enable KEA support.
 #KEA_PLUGIN = NO
@@ -562,9 +691,13 @@ GRIB_SETTING=yes
 #OCI_PLUGIN = YES
 
 !IFDEF ORACLE_HOME
+!IFNDEF OCI_LIB
 OCI_LIB =	$(ORACLE_HOME)\oci\lib\msvc\ociw32.lib \
 		$(ORACLE_HOME)\oci\lib\msvc\oci.lib
+!ENDIF
+!IFNDEF OCI_INCLUDE
 OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
+!ENDIF
 !ENDIF
 
 #SDE_ENABLED = YES
@@ -598,7 +731,7 @@ OCI_INCLUDE =	-I$(ORACLE_HOME)\oci\include
 
 
 # Uncomment to use libcurl (DLL by default)
-# The cURL library is used for WCS, WMS, GeoJSON, SRS call importFromUrl(), WFS, GFT, CouchDB, /vsicurl/ etc.
+# The cURL library is used for WCS, WMS, GeoJSON, SRS call importFromUrl(), WFS, CouchDB, /vsicurl/ etc.
 CURL_DIR=$(BUILD_ROOT)\curl-build\lib
 CURL_INC = -I$(BUILD_ROOT)\curl-build\include
 # Uncomment following line to use libcurl as dynamic library
@@ -652,29 +785,15 @@ ZLIB_LIB = $(BUILD_ROOT)\libz-build\lib\zlib.lib
 #
 # Copyright (C) 2015 Klokan Technologies GmbH (http://www.klokantech.com/)
 # Author: Martin Mikita <martin.mikita@klokantech.com>, xmikit00 @ FIT VUT Brno
+# Copyright 2019 Even Rouault
 #
-# Pdfium can be built from the win_gdal_build branch at https://github.com/rouault/pdfium that
-# has the following patch to ensure /MD (MultiThreadedDLL) linking consistent with GDAL one.
-# Build script from PDFium is available at https://github.com/rouault/pdfium/tree/build
-#
-#diff --git a/build/standalone.gypi b/build/standalone.gypi
-#index ecf849b..0e567e4 100644
-#--- a/build/standalone.gypi
-#+++ b/build/standalone.gypi
-#@@ -100,7 +100,8 @@
-#               ['component=="shared_library"', {
-#                 'RuntimeLibrary': '2',  #/MD
-#               }, {
-#-                'RuntimeLibrary': '0',  #/MT
-#+                #'RuntimeLibrary': '0',  #/MT
-#+                 'RuntimeLibrary': '2',  #/MD
-#               }],
-#             ],
-#
+# Pdfium must be built from https://github.com/rouault/pdfium_build_gdal_3_1
+
 #PDFIUM_ENABLED = YES
-#PDFIUM_CFLAGS = -Ie:/pdfium/ -Ie:/pdfium/public
-#PDFIUM_LIB_DIR = e:/pdfium/build/Release/lib
-#PDFIUM_LIBS = $(PDFIUM_LIB_DIR)/pdfium.lib $(PDFIUM_LIB_DIR)/bigint.lib $(PDFIUM_LIB_DIR)/fdrm.lib $(PDFIUM_LIB_DIR)/formfiller.lib $(PDFIUM_LIB_DIR)/fpdfapi.lib $(PDFIUM_LIB_DIR)/fpdfdoc.lib $(PDFIUM_LIB_DIR)/fpdftext.lib $(PDFIUM_LIB_DIR)/freetype.lib $(PDFIUM_LIB_DIR)/fxcodec.lib $(PDFIUM_LIB_DIR)/fxcrt.lib $(PDFIUM_LIB_DIR)/fxedit.lib $(PDFIUM_LIB_DIR)/fxge.lib $(PDFIUM_LIB_DIR)/pdfwindow.lib $(PDFIUM_LIB_DIR)/fx_agg.lib $(PDFIUM_LIB_DIR)/fx_lcms2.lib $(PDFIUM_LIB_DIR)/fx_libjpeg.lib $(PDFIUM_LIB_DIR)/fx_libopenjpeg.lib $(PDFIUM_LIB_DIR)/fx_zlib.lib gdi32.lib kernel32.lib advapi32.lib
+#PDFIUM_CFLAGS = -IC:\dev\pdfium\install\include\pdfium
+#PDFIUM_LIB_DIR = C:\dev\pdfium\install\lib
+#PDFIUM_LIBS = $(PDFIUM_LIB_DIR)\pdfium.lib gdi32.lib kernel32.lib user32.lib
+
 
 # Build PDF driver as plugin
 #PDF_PLUGIN = NO
@@ -691,6 +810,11 @@ ZLIB_LIB = $(BUILD_ROOT)\libz-build\lib\zlib.lib
 #TILEDB_ENABLED = YES
 #TILEDB_CFLAGS = -IC:/install-tiledb/dist/include
 #TILEDB_LIBS = C:/install-tiledb/dist/lib/libtiledb.lib
+
+# Uncomment for RDB support
+#RDB_ENABLED = YES
+#RDB_CFLAGS = -IC:\rdb\rdblib-2.2.0-x86_64-windows\interface\cpp -IC:\rdb\rdblib-2.2.0-x86_64-windows\interface\c
+#RDB_LIB = C:\rdb\rdblib-2.2.0-x86_64-windows\library\rdblib.lib
 
 # Uncomment for WEBP support
 #WEBP_ENABLED = YES
@@ -793,8 +917,15 @@ HAVE_LERC=1
 # Comment out the following if you want to build JPEGLS with CHARLS support
 #CHARLS_INC=-IE:\work\GIS\gdal\supportlibs\charls\include\
 #CHARLS_LIB=e:\work\GIS\gdal\supportlibs\charls\bin\Release\x86\CharLS.lib
-# Comment out for API 2.x:
+# Comment out for charls 2.0:
 #CHARLS_FLAGS = -DCHARLS_2
+# And for charls 2.1
+#CHARLS_FLAGS = -DCHARLS_2_1
+
+# Comment out for DDS driver
+#CRUNCH_INC = -Ic:\dev\install-crunch\include\crunch
+#CRUNCH_LIB = c:\dev\install-crunch\lib\crunch.lib
+
 
 ########### END OF STUFF THAT NORMALLY NEEDS TO BE UPDATED ##################
 
@@ -802,7 +933,9 @@ HAVE_LERC=1
 # Location of MS Data Access SDK (not really needed anymore I think)
 #MSDASDK =	D:\Software\MDAC_2.6
 
-GDAL_DLL =	gdal$(VERSION).dll
+!IFNDEF GDAL_DLL
+GDAL_DLL =	gdal$(VERSION)$(POSTFIX).dll
+!ENDIF
 
 INC	=	-I$(GDAL_ROOT)\port -I$(GDAL_ROOT)\ogr -I$(GDAL_ROOT)\gcore \
 		-I$(GDAL_ROOT)\alg -I$(GDAL_ROOT)\ogr\ogrsf_frmts  -I$(GDAL_ROOT)\gnm -I$(GDAL_ROOT)\gnm\gnm_frmts -I$(GDAL_ROOT)\apps
@@ -838,12 +971,15 @@ INSTALL	=	xcopy /y /r /d /f /I
 
 CPLLIB	=    $(GDAL_ROOT)/port/cpl.lib
 
+!IFNDEF GDAL_LIB_NAME
 !IF "$(DLLBUILD)" == "1"
-GDALLIB	=    $(GDAL_ROOT)/gdal_i.lib
+GDAL_LIB_NAME = gdal_i$(POSTFIX).lib
 !ELSE
-GDALLIB	=    $(GDAL_ROOT)/gdal.lib
+GDAL_LIB_NAME = gdal$(POSTFIX).lib
+!ENDIF
 !ENDIF
 
+GDALLIB = $(GDAL_ROOT)\$(GDAL_LIB_NAME)
 !IFDEF ODBC_SUPPORTED
 # legacy_stdio_definitions.lib : https://connect.microsoft.com/VisualStudio/feedback/details/1134693/vs-2015-ctp-5-c-vsnwprintf-s-and-other-functions-are-not-exported-in-appcrt140-dll-breaking-linkage-of-static-libraries
 ODBCLIB = legacy_stdio_definitions.lib odbc32.lib odbccp32.lib user32.lib
@@ -999,4 +1135,5 @@ EXTERNAL_LIBS =	$(OGDILIB) $(XERCES_LIB) $(EXPAT_LIB) $(OCI_LIB) $(PG_LIB) \
 	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(PDF_LIB_LINK) $(LZMA_LIBS) $(ZSTD_LIBS) \
 	$(LIBICONV_LIBRARY) $(WEBP_LIBS) $(TILEDB_LIBS) $(FGDB_LIB_LINK) $(FREEXL_LIBS) $(GTA_LIBS) \
 	$(INGRES_LIB) $(LIBXML2_LIB) $(PCRE_LIB) $(MONGODB_LIB_LINK) $(MONGODBV3_LIB_LINK) $(CRYPTOPP_LIB) $(OPENSSL_LIB) $(CHARLS_LIB) ws2_32.lib \
+	$(RDB_LIB) $(CRUNCH_LIB) \
     kernel32.lib psapi.lib

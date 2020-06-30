@@ -29,11 +29,12 @@ CPPFLAGS = $(CPPFLAGS) -DGNM_ENABLED
 
 !IF DEFINED(STDCALL) && !DEFINED(WIN64)
 
-BASE_INCLUDE =	/INCLUDE:$(SYM_PREFIX)GDALSimpleImageWarp@36 \
-		/INCLUDE:$(SYM_PREFIX)GDALReprojectImage@48 \
-		/INCLUDE:$(SYM_PREFIX)GDALComputeMedianCutPCT@32 \
-		/INCLUDE:$(SYM_PREFIX)GDALDitherRGB2PCT@28 \
-		/INCLUDE:$(SYM_PREFIX)OCTNewCoordinateTransformation@8
+BASE_INCLUDE = /INCLUDE:$(SYM_PREFIX)GDALSimpleImageWarp@36 \
+              /INCLUDE:$(SYM_PREFIX)GDALReprojectImage@48 \
+               /INCLUDE:$(SYM_PREFIX)GDALComputeMedianCutPCT@32 \
+               /INCLUDE:$(SYM_PREFIX)GDALDitherRGB2PCT@28 \
+               /INCLUDE:$(SYM_PREFIX)OCTNewCoordinateTransformation@8
+
 !ELSE
 BASE_INCLUDE =	/INCLUDE:$(SYM_PREFIX)GDALSimpleImageWarp \
 		/INCLUDE:$(SYM_PREFIX)GDALReprojectImage \
@@ -43,7 +44,8 @@ BASE_INCLUDE =	/INCLUDE:$(SYM_PREFIX)GDALSimpleImageWarp \
 !ENDIF
 
 APPS_OBJ = apps\commonutils.obj apps\gdalinfo_lib.obj apps\gdal_translate_lib.obj apps\gdalwarp_lib.obj apps\ogr2ogr_lib.obj \
-	 apps\gdaldem_lib.obj apps\nearblack_lib.obj apps\gdal_grid_lib.obj apps\gdal_rasterize_lib.obj apps\gdalbuildvrt_lib.obj
+	 apps\gdaldem_lib.obj apps\nearblack_lib.obj apps\gdal_grid_lib.obj apps\gdal_rasterize_lib.obj apps\gdalbuildvrt_lib.obj \
+	 apps\gdalmdiminfo_lib.obj apps\gdalmdimtranslate_lib.obj
 
 LIBOBJ = port\*.obj gcore\*.obj alg\*.obj frmts\o\*.obj $(OGR_OBJ) gnm\*.obj gnm\gnm_frmts\o\*.obj third_party\o\*.obj $(APPS_OBJ)
 
@@ -74,17 +76,16 @@ default:	$(TARGET_LIB) $(PLUGIN_TARGET) apps_dir
 # output before creating main build output, but not as a target dependency.
 CLEAN_MAIN_BUILD_OUTPUT_CMDS = \
 @SETLOCAL EnableExtensions^
-if exist gdal.lib del gdal.lib^
+if exist $(GDAL_LIB_NAME) del $(GDAL_LIB_NAME)^
 if exist $(GDAL_DLL) del $(GDAL_DLL)^
 if exist $(GDAL_DLL).manifest del $(GDAL_DLL).manifest^
-if exist gdal_i.lib del gdal_i.*^
 if exist *.ilk del *.ilk
 
 staticlib:	$(LIB_DEPENDS)
 	call <<clean_main_build_output.bat
 $(CLEAN_MAIN_BUILD_OUTPUT_CMDS)
 <<
-	lib /nologo /out:gdal.lib $(LIBOBJ) $(EXTERNAL_LIBS)
+	lib /nologo /out:$(GDAL_LIB_NAME) $(LIBOBJ) $(EXTERNAL_LIBS)
 
 appslib-target:
 	cd apps
@@ -188,7 +189,7 @@ third_party_dir:      port_dir
 lib_dist:	default
 	rm -rf $(DISTDIR)
 	mkdir $(DISTDIR)
-	cp gdal.lib port\*.h gcore\*.h ogr\*.h $(DISTDIR)
+	cp $(GDAL_LIB_NAME) port\*.h gcore\*.h ogr\*.h $(DISTDIR)
 	zip -r $(DISTDIR).zip $(DISTDIR)
 
 $(GDAL_DLL): $(LIB_DEPENDS)
@@ -197,10 +198,16 @@ $(CLEAN_MAIN_BUILD_OUTPUT_CMDS)
 <<
 	link /nologo /dll $(OGR_INCLUDE) $(BASE_INCLUDE) $(LIBOBJ) \
 		$(EXTERNAL_LIBS) gcore\Version.res \
-		 /out:$(GDAL_DLL) /implib:gdal_i.lib $(LINKER_FLAGS)
+		 /out:$(GDAL_DLL) /implib:$(GDAL_LIB_NAME) $(LINKER_FLAGS)
 	if exist $(GDAL_DLL).manifest mt -manifest $(GDAL_DLL).manifest -outputresource:$(GDAL_DLL);2
 
 dll:	$(GDAL_DLL)
+
+# build using cygwin
+docs:
+!IFDEF HTMLDIR
+	make PYTHONHOME= -C doc html
+!ENDIF
 
 bindings:
 	-for %d in ( $(BINDINGS) ) do \
@@ -221,7 +228,7 @@ bindings_clean:
 		&& $(MAKE) /f  makefile.vc  clean \
 		&& cd ..   \
 		|| exit 1
-install: default
+install: default docs
 	-mkdir $(BINDIR)
 	-mkdir $(DATADIR)
 	if exist $(GDAL_DLL) $(INSTALL) $(GDAL_DLL) $(BINDIR)
@@ -234,16 +241,11 @@ install: default
 	$(INSTALL) LICENSE.TXT $(DATADIR)
 !IFDEF HTMLDIR
 	-mkdir $(HTMLDIR)
-	cd frmts
-	$(MAKE) /f makefile.vc html-install
-	cd ..
+	xcopy /S /Y doc\build\html $(HTMLDIR)
 !ENDIF
 !IFDEF INCLUDE_OGR_FRMTS
 	cd ogr\ogrsf_frmts
 	$(MAKE) /f makefile.vc plugins-install
-!IFDEF HTMLDIR
-	$(MAKE) /f makefile.vc html-install
-!ENDIF
 	cd ..\..
 !ENDIF
 

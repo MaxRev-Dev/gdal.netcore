@@ -1,6 +1,6 @@
 # gdal.netcore
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.0 library for [.NET Core](https://dotnet.microsoft.com/download). 
+A simple (as is) build engine of [GDAL](https://gdal.org/) 3.1 library for [.NET Core](https://dotnet.microsoft.com/download). 
 
 ## Packages
 
@@ -23,12 +23,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
   * [How to compile on Unix](#how-to-compile-on-unix)
     
     + [Prerequisites](#prerequisites)
-  * [Easy way compiling](#easy-way-compiling)
-  * [Alternate way](#alternate-way)
-    + [1. Compile SQLite3 (optional)](#1-compile-sqlite3-optional)
-    + [2. Compile PROJ6](#2-compile-proj6)
-    + [3. Clone and Compile GDAL](#3-clone-and-compile-gdal)
-    + [4. Build a wrapper](#4-build-a-wrapper)
+  * [Building runtime libraries](#building-runtime-libraries)
   * [Building Nuget Packages](#building-nuget-packages)
     + [Prerequisites](#prerequisites-1)
     + [Packaging](#packaging)
@@ -66,7 +61,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 ```powershell
 Install-Package MaxRev.Gdal.Core.WindowsRuntime.Minimal
 Install-Package MaxRev.Gdal.Core.LinuxRuntime.Minimal
-``` 
+```
 3. Initialize libraries in runtime
 ```csharp
 using MaxRev.Gdal.Core;
@@ -85,7 +80,7 @@ It's quite tricky. Enter [win](win/) directory to find out how.
 
 ## How to compile on Unix
 
-Current version targets **GDAL 3.0.1** with **minimal drivers**
+Current version targets **GDAL 3.1.0** with **minimal drivers**
 
 Drivers included PROJ6, SQLITE3, GEOS(3.8), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC, CURL
 
@@ -188,115 +183,18 @@ Drivers included PROJ6, SQLITE3, GEOS(3.8), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ
 
 **NOTE**: Windows and Linux drivers availability may differ, ask me of specific driver for runtime. Please issue, if I forgot to mention any other packages.
 
-### Prerequisites
+## Building runtime libraries
 
-First of all I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 2 hours.
+Current version is targeting GDAL 3.1.0 version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdalcore package) are build from **linux**.
 
-**Environment**: I'm compiling in WSL on **CentOS 7 with GLIBC 2.17 (2012)**
+To make everything work smoothly, each configuration targets same drivers and their versions respectively.
 
-1.  `yum install tcl tcl-devel -y`   - for building sqlite3 
-2.  `yum install patchelf -y` - dynamic linking
+- Configuration files of unix runtime - `unix/GdalCore.opt`
+- Configuration of windows runtime - `win/CONFIGVARS.bat`
+- - Patched configuration - `win/presource/gdal-nmake.opt` 
+  - Patched makefile - `win/presource/gdal-makefile.vc`
 
-If you have installed **libsqlite3-dev** and **proj6** - go forward to step **#3**
-
-If you have **libsqlite3-dev** installed you may skip the first step.
-
-Set a root variable for convenience 
-``export gc_root=`pwd` ``
-
-**Soo.. Let's start**
-
-## Easy way compiling
-
-Assuming you have `tclsh` for compiling `sqlite3` 
-
-```shell
-make -f GdalMakefile
-```
-
-this will compile `sqlite3, proj6, geos` and `gdal` from scratch
-
-##  Alternate way
-
-### 1. Compile SQLite3 (optional)
-
-1. [Download SQLite3 Autoconf](https://www.sqlite.org/download.html) & unpack (GdalMakefile uses git for this)
-   
-    ```shell
-    mkdir $gc_root/build-unix  
-    curl -o sqlite.tar.gz "https://www.sqlite.org/2019/sqlite-autoconf-3290000.tar.gz"
-    tar xfv sqlite.tar.gz && mv sqlite-autoconf-3290000 sqlite3-source && cd sqlite3-source
-    ```
-    
-2. Configure sqlite3
-
-    ```shell
-    ./configure --prefix=$gc_root/sqlite3-build
-    ```
-
-3. Compile and install
-     ```shell
-    make && make install && cd $gc_root
-    ```
-
-    
-
-### 2. Compile PROJ6 
-
-1. [Download proj](https://proj.org/download.html) & unpack  (GdalMakefile uses git for this)
-   
-    ```shell
-    mkdir $gc_root/build-unix
-    curl -o proj-6.1.0.tar.gz "https://download.osgeo.org/proj/proj-6.1.0.tar.gz"
-    tar xfv proj-6.1.0.tar.gz && mv proj-6.1.0 proj6-source && cd proj6-source
-    ```
-    
-2. ```shell
-    ./configure CFLAGS="-fPIC" --prefix=$gc_root/proj6-build
-    ```
-
-3. ```shell
-    make LDFLAGS="-Wl,-rpath '-Wl,\$\$ORIGIN' -L$gc_root/sqlite3-build/lib" && make install && cd $gc_root  
-    ```
-
-  **Note**: you must specify the **sqlite3 library** custom location with **-L flag**
-
-### 3. Clone and Compile GDAL
-
-You can build gdal using **GdalMakefile**, but before you must setup paths in **GdalCore.opt** file.
-Also you must change **configuregdal.sh** script to setup necessary drivers.
-
-Then you may just call `make -f GdalMakefile gdal` - this will sync gdal repository, configure it and finaly build.
-
-*Or alternatively...* (assuming you are in the root of this repo)
-
-1. ```shell
-   git clone https://github.com/OSGeo/gdal.git $gc_root/build-unix/gdal-source
-   ```
-
-2. ```shell
-   cd $gc_root && make -f GdalMakefile configure_gdal #calls ./configuregdal.sh
-   ```
-
-3. ```shell
-   make -f GdalMakefile build_gdal
-   ```
-
-After you have gdal installed, you can proceed to netcore bindings build.                                                                           
-
-### 4. Build a wrapper
-
-1. Edit library path for proj & gdal (configured above) in **GNUMakefile**
-
-2. ```shell
-   cd $gc_root && make interface
-   ```
-
-3. ```shell
-   make RID=linux-x64 #NOTE: You must call it TWICE. Thas a bug in linker
-   ```
-
-5. Cheers!
+To build for a specific runtime, see the **README.md** in respective directory.
 
 ## Building Nuget Packages
 

@@ -1,0 +1,17 @@
+include GdalCore.opt
+
+BINDING=csharp
+SWIG=swig 
+SWIGARGS=-DSWIG2_CSHARP -Wall -I$(SWIG_INCLUDE_)/include -I$(SWIG_INCLUDE_)/csharp -I$(SWIG_INCLUDE_)/..
+
+default: all
+
+mkdir: 
+	mkdir -p const gdal osr ogr
+	
+all: mkdir
+	$(SWIG) -$(BINDING) -namespace OSGeo.GDAL -dllimport gdalconst_wrap -o const/gdalconst_wrap.c $(SWIG_INCLUDE_)/gdalconst.i
+	$(SWIG) $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.GDAL -dllimport gdal_wrap -o gdal/gdal_wrap.cpp $(SWIG_INCLUDE_)/gdal.i
+	$(SWIG) $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.OSR -dllimport osr_wrap -o osr/osr_wrap.cpp $(SWIG_INCLUDE_)/osr.i
+	$(SWIG) $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.OGR -dllimport osr_wrap -o ogr/osr_wrap.cpp $(SWIG_INCLUDE_)/osr.i
+	$(SWIG) $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.OGR -dllimport ogr_wrap -o ogr/ogr_wrap.cpp $(SWIG_INCLUDE_)/ogr.i

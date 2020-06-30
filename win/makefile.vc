@@ -12,18 +12,18 @@
 #
 
 back = $(MAKEDIR)
-GDAL_ROOT	=	$(back)\build-win\gdal-source\gdal
+GDAL_ROOT	=	$(back)\..\build-win\gdal-source\gdal
 _swig_root = $(GDAL_ROOT)\swig
 source_root = $(_swig_root)
 source = $(source_root)\csharp
-_outdir_=$(MAKEDIR)
+_outdir_=$(MAKEDIR)\..
 !INCLUDE $(GDAL_ROOT)\nmake.opt
 
-!INCLUDE csharp.opt
+!INCLUDE $(GDAL_ROOT)\swig\csharp\csharp.opt
 
-OUTPUT = runtimes\win-x86\native
+OUTPUT = ..\runtimes\win-x86\native
 !IFDEF WIN64
-OUTPUT = runtimes\win-x64\native
+OUTPUT = ..\runtimes\win-x64\native
 !ENDIF
 
 !IFDEF CSHARP_STATIC_LINKAGE
@@ -121,11 +121,14 @@ clean:
 	-del $(OUTPUT)\*.dll
 	cd $(back)	
 	$(MAKE) /f makefile.vc cleanlocal
-	rd /s /q runtimes\
+	rd /s /q ..\runtimes\
 	
 install:
 	xcopy /Y /R /F *_wrap.dll $(OUTPUT)
-pack:
+
+hostfix31:
+	set  MSBUILDSINGLELOADCONTEXT=1
+pack: hostfix31
 	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.windowsruntime.csproj
-packdev:
+packdev: hostfix31
 	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.windowsruntime.csproj

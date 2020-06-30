@@ -1,5 +1,5 @@
 #!/bin/sh
-source=`pwd`/build-unix
+source=`pwd`/../build-unix
 cd ${source}/gdal-source/gdal
 chmod +x  ./configure 
 ./configure  --prefix=${source}/gdal-build  CFLAGS="-fPIC" \

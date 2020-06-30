@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Platform>x64</Platform>
     <DebugType>portable</DebugType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <Copyright>MaxRev © 2020</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -13,7 +13,7 @@
     <RepositoryType>git</RepositoryType>  
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.1.0.0</Version>
+    <Version>3.1.0.100</Version>
     <Description>GDAL (3.1.0) bindings for dotnet core (now linux-x64 and win-x64).
 Bridge between gdal and netcore.
 Use dependency package for target runtime to get drivers.
@@ -22,8 +22,7 @@ Just call - GdalBase.ConfigureAll()
 </Description>
     <RootNamespace></RootNamespace>
     <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
-    <PackageReleaseNotes>
-- Fixed collision on multiple initializations</PackageReleaseNotes>
+    <PackageReleaseNotes>GDAL Version 3.1.0</PackageReleaseNotes>
   </PropertyGroup>
   
   <PropertyGroup Condition="$(Configuration) == 'Debug'">
@@ -41,6 +40,16 @@ Just call - GdalBase.ConfigureAll()
   <None Remove="build-win/**" />
   <None Remove="build-unix/**" />
   <Compile Remove="test\**" />
+  <None Remove="./*.cs" />
+  <None Remove="build-win/**" />
+  <None Remove="build-unix/**" />
+  <None Remove="build/**" />
+  <Compile Remove="build/**" />
+  <Compile Remove="./*.cs" />
+  <Compile Remove="build-win/**" />
+  <Compile Remove="build-unix/**" />
+  <EmbeddedResource Remove="test\**" />
+  <None Remove="test\**" />
   <Content Include="maxrev.gdal.core.libshared/**">
       <Pack>true</Pack>
       <CopyToOutput>true</CopyToOutput>
@@ -48,19 +57,7 @@ Just call - GdalBase.ConfigureAll()
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput> 
   </Content>
-</ItemGroup>
-
-<ItemGroup>
-
-  <None Remove="./*.cs" />
-  <None Remove="build-win/**" />
-  <None Remove="build-unix/**" />
-  <Compile Remove="./*.cs" />
-  <Compile Remove="build-win/**" />
-  <Compile Remove="build-unix/**" />
-  <EmbeddedResource Remove="test\**" />
-  <None Remove="test\**" />
-</ItemGroup>
+ </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2">

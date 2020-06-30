@@ -34,6 +34,8 @@ for /f %%i in ('where mingw32-make') do set mingw32_path=%%i
 call :getDirPath mingw32_dir !mingw32_path!
 copy /Y "%mingw32_dir%libwinpthread-1.dll" "%bindir%/bin/"
 
+call  %__%\copyrecursive %bindir%
+
 if defined _rmsource_ rd /s /q %_buildroot_%/%key%-source
 cd %back%
 echo %key% installation complete!
