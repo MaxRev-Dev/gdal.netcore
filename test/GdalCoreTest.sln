@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GdalCoreTest", "GdalCoreTes
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{E82FBDCE-730C-4766-A90B-B673983C6281}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GdalCore-XUnit", "GdalCore-XUnit\GdalCore-XUnit.csproj", "{1262702F-7623-4AB8-AEE6-ABD75C984ED6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,6 +31,14 @@ Global
 		{E82FBDCE-730C-4766-A90B-B673983C6281}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E82FBDCE-730C-4766-A90B-B673983C6281}.Release|x64.ActiveCfg = Release|Any CPU
 		{E82FBDCE-730C-4766-A90B-B673983C6281}.Release|x64.Build.0 = Release|Any CPU
+		{1262702F-7623-4AB8-AEE6-ABD75C984ED6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1262702F-7623-4AB8-AEE6-ABD75C984ED6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1262702F-7623-4AB8-AEE6-ABD75C984ED6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1262702F-7623-4AB8-AEE6-ABD75C984ED6}.Debug|x64.Build.0 = Debug|Any CPU
+		{1262702F-7623-4AB8-AEE6-ABD75C984ED6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1262702F-7623-4AB8-AEE6-ABD75C984ED6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1262702F-7623-4AB8-AEE6-ABD75C984ED6}.Release|x64.ActiveCfg = Release|Any CPU
+		{1262702F-7623-4AB8-AEE6-ABD75C984ED6}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
