@@ -1,4 +1,7 @@
-RUNTIME_RID=unix
+BASE=$(PWD)
+BASE_RUNTIME_RID=unix
+VCPKG_RID=x64-linux
+
 include ../shared/GdalCore.opt
 include $(BASE_GDAL_)/GDALmake.opt
 include $(GDAL_ROOT)/swig/csharp/csharp.opt
