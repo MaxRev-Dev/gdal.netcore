@@ -1,0 +1,78 @@
+#
+#  gdal.netcore package automation
+#
+
+TARGETS = proj geos gdal
+all: $(TARGETS) 
+
+BASE=$(MAKEDIR)
+BASE_RUNTIME_RID=win
+VCPKG_RID=x64-windows
+
+!INCLUDE ..\shared\GdalCore.opt
+
+OUTPUT = ..\runtimes\win-x86\native
+!IFDEF WIN64
+OUTPUT = ..\runtimes\win-x64\native
+!ENDIF
+
+$(TARGETS): build-$@
+
+fetch-gdal:
+
+build-proj: 
+	call getproj.bat
+
+build-geos: 
+	call getgeos.bat
+
+fetch-gdal:
+!IF !EXISTS($(GDAL_ROOT))
+    git clone $(GDAL_REPO) $(GDAL_ROOT)
+!ENDIF
+	cd $(GDAL_ROOT)
+	git fetch
+	git checkout -q $(GDAL_COMMIT_VER) --force
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE) 
+
+fetch-geos:
+!IF !EXISTS($(GEOS_ROOT))
+    git clone $(GEOS_REPO) $(GEOS_ROOT)
+!ENDIF
+	cd $(GEOS_ROOT)
+	git fetch
+	git checkout -q $(GEOS_COMMIT_VER) --force
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE)
+	
+fetch-proj:
+!IF !EXISTS($(PROJ_ROOT))
+    git clone $(PROJ_REPO) $(PROJ_ROOT)
+!ENDIF
+	cd $(PROJ_ROOT)
+	git fetch
+	git checkout -q $(PROJ_COMMIT_VER) --force
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE)
+
+configure-gdal: fetch-gdal
+#	-echo Populating gdal source with nmake.opt options..
+#	-copy /y "$(BASE)\gdal-nmake.opt" "$(GDAL_ROOT)\nmake.opt"
+	-echo Populating gdal source with makefile.vc..
+	-copy /y "$(BASE)\presource\gdal-makefile.vc" "$(GDAL_ROOT)\makefile.vc"
+
+build-gdal: configure-gdal
+	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc MSVC_VER=1920 WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
+	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc install WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
+
+
+hostfix31:
+	set  MSBUILDSINGLELOADCONTEXT=1
+pack: hostfix31
+	dotnet pack -c Release -o $(_outdir_)/nuget $(_outdir_)/gdalcore.windowsruntime.csproj
+packdev: hostfix31
+	dotnet pack -c Debug -o $(_outdir_)/nuget $(_outdir_)/gdalcore.windowsruntime.csproj

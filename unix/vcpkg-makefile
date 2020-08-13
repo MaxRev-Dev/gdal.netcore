@@ -1,0 +1,68 @@
+#
+#  gdal.netcore package automation
+#
+
+BASE=$(PWD)
+BASE_RUNTIME_RID=unix
+VCPKG_RID=x64-linux
+
+include ../shared/GdalCore.opt
+ 
+VCPKG=$(VCPKG_ROOT)/vcpkg
+
+# lowercase func
+LW = $(shell echo '$*' | tr A-Z a-z)
+
+# add support for [-force] param
+REP = $(shell echo '$*' | sed "s/-force//g")
+
+all: install_vcpkg install_requirements
+
+# accepts any user params
+% :
+ifneq ($(filter $(REP),$(VCPKG_REQUIRE_UNIX)),'')
+	@if [[ "$(LW)" == *"-force"* ]] ; then \
+		$(MAKE) -f vcpkg-makefile upgrade; \
+		$(VCPKG) remove $(REP):$(VCPKG_RID) --recurse; \
+		$(VCPKG) install $(REP):$(VCPKG_RID) --recurse --clean-after-build; \
+	else \
+		echo "To rebuild add {key}-force"; \
+		$(VCPKG) list; \ 
+	fi;
+else
+	@echo "Can not make $(REP)"
+endif
+
+install_vcpkg:
+	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
+		git clone https://github.com/microsoft/vcpkg $(VCPKG_ROOT); \
+	fi;
+	@if [ ! -f "$(VCPKG)" ]; then \
+		$(MAKE) pull_vcpkg; \
+		(cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh); \
+	fi;
+
+install_requirements: install_vcpkg install_packages
+
+pull_vcpkg:
+	cd $(VCPKG_ROOT) && git pull origin master   
+upgrade: pull_vcpkg
+	$(VCPKG) upgrade
+update: pull_vcpkg 
+	$(VCPKG) update
+
+$(VCPKG_CLEANUP):
+	@if [ -d "$(VCPKG_ROOT)/$@/" ]; then \
+		 rm -rf "$(VCPKG_ROOT)/$@"; \
+	fi;
+
+build_cleanup: $(VCPKG_CLEANUP)
+clean_ALL: build_cleanup
+
+
+install_packages: 
+	@$(foreach pack,$(VCPKG_REQUIRE_UNIX),$(VCPKG) install $(pack):$(VCPKG_RID) --recurse --clean-after-build;)
+
+remove_packages: 
+	@$(foreach pack,$(VCPKG_REQUIRE_UNIX), $(VCPKG) remove $(pack):$(VCPKG_RID) --recurse;)
+	 

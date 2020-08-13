@@ -1,0 +1,49 @@
+#
+# gdal-makefile.vc - gdal.netcore package automation
+#
+
+all: install_vcpkg install_requirements
+
+BASE = $(MAKEDIR)
+BASE_RUNTIME_RID = win
+VCPKG_RID=x64-windows
+
+VCPKG_CLEANUP=buildtrees downloads packages installed
+
+!INCLUDE ..\shared\GdalCore.opt
+VCPKG_ROOT = $(BASE)\..\build-$(BASE_RUNTIME_RID)\vcpkg
+VCPKG = $(VCPKG_ROOT)\vcpkg.exe
+
+install_vcpkg:
+!IF !EXISTS($(VCPKG_ROOT))
+    git clone https://github.com/microsoft/vcpkg $(VCPKG_ROOT)
+!ENDIF
+!IF !EXISTS($(VCPKG))
+    cd $(VCPKG_ROOT) && git pull origin master
+    $(VCPKG_ROOT)\bootstrap-vcpkg.bat
+!ENDIF
+
+install_requirements: install_vcpkg install_packages   
+
+
+pull_vcpkg:
+    cd $(VCPKG_ROOT) && git pull origin master   
+upgrade: pull_vcpkg
+    $(VCPKG) upgrade
+update: pull_vcpkg 
+    $(VCPKG) update
+
+$(VCPKG_CLEANUP):
+    @cmd /c if exist "$(VCPKG_ROOT)\$@\" rmdir /S /Q "$(VCPKG_ROOT)\$@"
+
+
+build_cleanup: $(VCPKG_CLEANUP)
+clean_ALL: build_cleanup
+
+install_packages:
+	-for %p in ( $(VCPKG_REQUIRE_WIN) ) \
+	 do $(VCPKG) install %p:$(VCPKG_RID) --recurse --clean-after-build 
+remove_packages:
+	-for %p in ( $(VCPKG_REQUIRE_WIN) ) \
+	 do $(VCPKG) remove %p:$(VCPKG_RID) --recurse 
+

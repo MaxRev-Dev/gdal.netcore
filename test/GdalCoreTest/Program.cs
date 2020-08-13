@@ -2,7 +2,9 @@
 using OSGeo.GDAL;
 using OSGeo.OSR;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace GdalCoreTest
 {
@@ -22,7 +24,7 @@ namespace GdalCoreTest
                     "GDAL Version: " + Gdal.VersionInfo("RELEASE_NAME"),
                     "GDAL INFO: " + Gdal.VersionInfo("")));
                 var spatialReference = new SpatialReference(null);
-                spatialReference.SetWellKnownGeogCS("wgs84");
+                spatialReference.SetWellKnownGeogCS("wgs84");  
 
                 // list of common drivers
                 var drivers = new[]

@@ -17,7 +17,14 @@ if exist "%bindir%" rd /s /q "%bindir%"
 if not exist build mkdir build
 cd build
 
-cmake -S .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DHDF_CFG_NAME=Release -DCMAKE_INSTALL_PREFIX=%cd%/%key%-build  -DJPEG_LIBRARY=%_buildroot_%/libjpeg-build/lib/jpeg.lib -DJPEG_DIR=%_buildroot_%/libjpeg-build -DJPEG_INCLUDE_DIR=%_buildroot_%/libjpeg-build/include -DZLIB_LIBRARY=%_buildroot_%/libz-build/lib/zlib.lib -DZLIB_INCLUDE_DIR=%_buildroot_%/libz-build/include -DHDF4_BUILD_FORTRAN=OFF 
+cmake -S .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON^
+ -DHDF_CFG_NAME=Release^
+ -DJPEG_LIBRARY=%LIBRARIES%/lib/jpeg.lib^
+ -DJPEG_DIR=%LIBRARIES%^
+ -DJPEG_INCLUDE_DIR=%LIBRARIES%/include^
+ -DZLIB_LIBRARY=%LIBRARIES%/lib/zlib.lib^
+ -DZLIB_INCLUDE_DIR=%LIBRARIES%/include^ 
+ -DHDF4_BUILD_FORTRAN=OFF 
 cmake --build . --config Release
 cmake --install . --prefix %key%-build
 move /Y %key%-build %bindir%/..

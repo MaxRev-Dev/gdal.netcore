@@ -1,25 +1,35 @@
 #!/bin/sh
 source=`pwd`/../build-unix
 cd ${source}/gdal-source/gdal
+vcdir=${source}/vcpkg/installed/x64-linux
 chmod +x  ./configure 
-./configure  --prefix=${source}/gdal-build  CFLAGS="-fPIC" \
+export PKG_CONFIG_PATH="${vcdir}/lib/pkgconfig"
+
+# hdf5 path - only this works.
+# tried with vcpkg static and other HDF5_LIBS
+
+./configure  --prefix=${source}/gdal-build  \
+CFLAGS="-fPIC" \
  --with-geos=${source}/geos-build/bin/geos-config \
- --with-proj=${source}/proj6-build \
+ --with-proj=${source}/proj-build \
+ --with-liblzma \
  --with-libtool \
  --with-geotiff=internal \
  --with-hide-internal-symbols \
- --with-libtiff=internal \
- --with-libz=internal \
- --with-jpeg=internal \
  --with-threads \
- --with-hdf4 \
- --with-hdf5 \
- --with-sqlite3 \
  --with-curl \
+ --with-png  \
+ --with-sqlite3 \
+ --with-hdf4 \
+ --with-hdf5="/usr/lib64" \
+ --with-libz=${vcdir} \
+ --with-jpeg=${vcdir}  \
+ --with-expat=${vcdir} \
+ --with-libtiff=${vcdir} \
+ --with-xerces=${vcdir} \
  --without-cfitsio \
  --without-cryptopp \
  --without-ecw \
- --without-expat \
  --without-fme \
  --without-freexl \
  --without-gif \
@@ -47,7 +57,6 @@ chmod +x  ./configure
  --without-qhull \
  --without-sde \
  --without-webp \
- --without-xerces \
  --without-xml2 \
  --without-poppler \
  --without-crypto

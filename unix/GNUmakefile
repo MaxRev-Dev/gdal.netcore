@@ -1,8 +1,7 @@
-include GdalCore.opt
+RUNTIME_RID=unix
+include ../shared/GdalCore.opt
 include $(BASE_GDAL_)/GDALmake.opt
 include $(GDAL_ROOT)/swig/csharp/csharp.opt
-
-SRC_=$(PWD)
 
 ifeq ($(LIBGDAL_CURRENT),)
 LIBGDAL_CURRENT := 27
@@ -37,15 +36,15 @@ endif
 OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
 
 CSHARP_MODULES = libgdalcsharp.$(SO_EXT) libogrcsharp.$(SO_EXT) libgdalconstcsharp.$(SO_EXT) libosrcsharp.$(SO_EXT)
-CSHARP_OBJECTS = $(SRC_)/const/gdalconst_wrap.$(OBJ_EXT) $(SRC_)/gdal/gdal_wrap.$(OBJ_EXT)  $(SRC_)/osr/osr_wrap.$(OBJ_EXT)  $(SRC_)/ogr/ogr_wrap.$(OBJ_EXT)
+CSHARP_OBJECTS = $(BASE)/const/gdalconst_wrap.$(OBJ_EXT) $(BASE)/gdal/gdal_wrap.$(OBJ_EXT)  $(BASE)/osr/osr_wrap.$(OBJ_EXT)  $(BASE)/ogr/ogr_wrap.$(OBJ_EXT)
 echo:
 	echo $(CXX)
 clean:
-	(cd $(SRC_) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
+	(cd $(BASE) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
 	(cd $(PWD) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
 
 veryclean: clean
-	(cd $(SRC_) && rm -f -R const/*.cs const/*.c gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs ogr/*.cpp Data)
+	(cd $(BASE) && rm -f -R const/*.cs const/*.c gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs ogr/*.cpp Data)
 	(cd $(PWD) && rm -f -R *.so *.o ./*.cs gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs *.c *.cpp .libs/ const/ ogr/ osr/ gdal/ obj/ runtimes/ bin/)
 	
 cleangdal:
@@ -65,7 +64,7 @@ prebuild: interface
 build: ${CSHARP_OBJECTS} ${CSHARP_MODULES} gdal_csharp
 
 sign:
-	(cd $(SRC_) && sn -k gdal.snk)
+	(cd $(BASE) && sn -k gdal.snk)
 
 install:
 	@echo "No installation to be done"

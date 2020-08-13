@@ -1,0 +1,86 @@
+#
+#  gdal.netcore package automation
+#
+
+BASE=$(PWD)
+BASE_RUNTIME_RID=unix
+VCPKG_RID=x64-linux
+
+include ../shared/GdalCore.opt 
+
+# default targets on linux
+TARGETS = proj geos gdal
+all: $(TARGETS)
+
+# lower and uppercase funcs
+UP  = $(shell echo '$*' | tr a-z A-Z)
+LW = $(shell echo '$*' | tr A-Z a-z)
+
+# add support for [-force] param
+REP = $(shell echo '$(LW)' | sed "s/-force//g")
+
+# accepts any user params
+% :
+ifneq ($(filter $(REP),$(TARGETS)),'')
+	@if [ ! -d "$(BUILD_ROOT)/$(REP)-build" ] || [[ "$(LW)" == *"-force"* ]] ; then \
+		$(MAKE) -f gdal-makefile  init_$(REP); \
+		$(MAKE) -f gdal-makefile  configure_$(REP); \
+		$(MAKE) -f gdal-makefile  build_$(REP); \
+	else \
+		echo "Build folder exists $(BUILD_ROOT)/$(REP)-build"; \
+		echo "To rebuild add {key}-force"; \
+	fi;
+else
+	@echo "Can not make $(REP)"
+endif 
+
+init_%: 
+	@if [ ! -d "$($(UP)_ROOT)" ]; then \
+		git clone $($(UP)_REPO) $($(UP)_ROOT); \
+	fi;
+	@echo "Restoring $(LW) sources version to $($(UP)_COMMIT_VER)"
+	@cd $($(UP)_ROOT) && git fetch
+	@cd $($(UP)_ROOT) && git checkout -q $($(UP)_COMMIT_VER) --force
+	@cd $($(UP)_ROOT) && git reset --hard
+	@cd $($(UP)_ROOT) && $(GIT_CLEAN)
+	@echo "Sources restore complete for $(LW)"
+
+configure_gdal:
+	./configuregdal.sh 
+	
+configure_%:
+	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
+	cd $(PROJ_ROOT) &&	./autogen.sh 
+	cd $(PROJ_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/$(LW)-build
+
+configure_proj: 
+	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
+	cd $(PROJ_ROOT) &&	./autogen.sh 
+
+# 1. --with-curl=[path] does not work because curl-config not found
+# 2. vcpkg's tiff_x64-linux default location in pkg-config also not found
+
+	cd $(PROJ_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/proj-build \
+	LIBS="-L$(VCPKG_INSTALLED)/lib -lsqlite3 -L$(VCPKG_INSTALLED)/lib -ltiff -L$(VCPKG_INSTALLED)/lib -llzma -L$(VCPKG_INSTALLED)/lib -ljpeg" \
+	TIFF_INCLUDE_DIR=-I$(VCPKG_INSTALLED)/include \
+	TIFF_CFLAGS=-L$(VCPKG_INSTALLED)/lib \
+	SQLITE3_CFLAGS=-I$(VCPKG_INSTALLED)/include \
+	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib \
+	TIFF_LIBRARY_RELEASE=$(VCPKG_INSTALLED)/lib/libtiff.a
+
+build_%:
+	cd $($(UP)_ROOT) &&  $(MAKE) &&  $(MAKE) install
+
+
+build_gdal:
+	cd $(GDAL_ROOT) && $(MAKE)
+	cd $(GDAL_ROOT) && $(MAKE) install
+
+reset: reset_proj reset_gdal reset_geos 
+reset_%: 
+	cd $($(UP)_ROOT) && git checkout -q $($(UP)_COMMIT_VER) && git reset --hard && git clean -fqdx; 
+
+
+.EXPORT_ALL_VARIABLES:
+
+PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig
