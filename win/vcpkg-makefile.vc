@@ -6,9 +6,9 @@ all: install_vcpkg install_requirements
 
 BASE = $(MAKEDIR)
 BASE_RUNTIME_RID = win
-VCPKG_RID=x64-windows
+VCPKG_RID = x64-windows
 
-VCPKG_CLEANUP=buildtrees downloads packages installed
+VCPKG_CLEANUP = buildtrees downloads packages installed
 
 !INCLUDE ..\shared\GdalCore.opt
 VCPKG_ROOT = $(BASE)\..\build-$(BASE_RUNTIME_RID)\vcpkg
@@ -41,9 +41,9 @@ build_cleanup: $(VCPKG_CLEANUP)
 clean_ALL: build_cleanup
 
 install_packages:
-	-for %p in ( $(VCPKG_REQUIRE_WIN) ) \
+	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
 	 do $(VCPKG) install %p:$(VCPKG_RID) --recurse --clean-after-build 
 remove_packages:
-	-for %p in ( $(VCPKG_REQUIRE_WIN) ) \
+	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
 	 do $(VCPKG) remove %p:$(VCPKG_RID) --recurse 
 

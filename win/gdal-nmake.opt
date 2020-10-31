@@ -1,3 +1,6 @@
+#
+# gdal.netcore - external nmake.opt for gdal
+#
 # $Id$
 #
 # nmake.opt - main configuration file for NMAKE makefiles.
@@ -28,9 +31,11 @@ BUILD_ROOT_VCPKG=$(BUILD_ROOT)\vcpkg\installed\x64-windows
 !ENDIF
 
 # nmake -f makefile.vc EXT_NMAKE_OPT=mynmake.opt
-!IFDEF EXT_NMAKE_OPT
-!INCLUDE $(EXT_NMAKE_OPT)
-!ENDIF
+
+# this file is already external
+#!IFDEF EXT_NMAKE_OPT
+#!INCLUDE $(EXT_NMAKE_OPT)
+#!ENDIF
 
 ###############################################################################
 # Check version of Visual C++ compiler:

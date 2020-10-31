@@ -21,7 +21,7 @@ CFLAGS="-fPIC" \
  --with-png  \
  --with-sqlite3 \
  --with-hdf4 \
- --with-hdf5="/usr/lib64" \
+ --with-hdf5   \
  --with-libz=${vcdir} \
  --with-jpeg=${vcdir}  \
  --with-expat=${vcdir} \

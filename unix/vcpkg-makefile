@@ -17,17 +17,21 @@ LW = $(shell echo '$*' | tr A-Z a-z)
 REP = $(shell echo '$*' | sed "s/-force//g")
 
 all: install_vcpkg install_requirements
+	@exit 0
+force: $(addsuffix -force, $(TARGETS))
+	@exit 0
 
 # accepts any user params
 % :
 ifneq ($(filter $(REP),$(VCPKG_REQUIRE_UNIX)),'')
+	@echo "'vcpkg make' > trying to make stuff for => $(REP)"
 	@if [[ "$(LW)" == *"-force"* ]] ; then \
 		$(MAKE) -f vcpkg-makefile upgrade; \
 		$(VCPKG) remove $(REP):$(VCPKG_RID) --recurse; \
 		$(VCPKG) install $(REP):$(VCPKG_RID) --recurse --clean-after-build; \
 	else \
 		echo "To rebuild add {key}-force"; \
-		$(VCPKG) list; \ 
+		$(VCPKG) list; \
 	fi;
 else
 	@echo "Can not make $(REP)"
@@ -43,11 +47,13 @@ install_vcpkg:
 	fi;
 
 install_requirements: install_vcpkg install_packages
-
+	@exit 0
 pull_vcpkg:
 	cd $(VCPKG_ROOT) && git pull origin master   
 upgrade: pull_vcpkg
 	$(VCPKG) upgrade
+upgrade-force: pull_vcpkg 
+	$(VCPKG) upgrade --no-dry-run
 update: pull_vcpkg 
 	$(VCPKG) update
 
@@ -57,8 +63,9 @@ $(VCPKG_CLEANUP):
 	fi;
 
 build_cleanup: $(VCPKG_CLEANUP)
+	@exit 0
 clean_ALL: build_cleanup
-
+	@exit 0
 
 install_packages: 
 	@$(foreach pack,$(VCPKG_REQUIRE_UNIX),$(VCPKG) install $(pack):$(VCPKG_RID) --recurse --clean-after-build;)

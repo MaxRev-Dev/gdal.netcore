@@ -14,7 +14,7 @@ namespace MaxRev.Gdal.Core
         /// <summary>
         /// Shows if gdal is already initialized.
         /// </summary>
-        public static bool IsConfigured { get; set; }
+        public static bool IsConfigured { get; private set; }
 
         /// <summary>
         /// Setups gdalplugins and calls Gdal.AllRegister(), Ogr.RegisterAll(), Proj6.Configure(). 
