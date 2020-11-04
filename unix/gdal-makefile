@@ -2,15 +2,13 @@
 #  gdal.netcore package automation
 #
 
-BASE=$(PWD)
-BASE_RUNTIME_RID=unix
-VCPKG_RID=x64-linux
-
+include RID.opt 
 include ../shared/GdalCore.opt 
 
 # default targets on linux
 TARGETS = proj geos gdal
-PRE = "gdal.nc \>\>"
+PRE = [gdal.netcore]
+
 all: $(TARGETS)
 	@echo "$(PRE) Everything looks good. Linux libraries for GDAL is ready to packaging!"
 	@echo "$(PRE) Configured libraries (vcpkg): $(VCPKG_REQUIRE_UNIX)"
@@ -119,7 +117,7 @@ reset: reset_proj reset_gdal reset_geos
 reset_%:
 	@echo "$(TO) Resetting..."
 	@cd $($(UP)_ROOT) && git checkout -q $($(UP)_COMMIT_VER) && git reset --hard && git clean -fqdx; 
-	@echo "$(TO) Reset $* is complete"
+	@echo "$(TO) Reset is complete"
 
 .EXPORT_ALL_VARIABLES:
 

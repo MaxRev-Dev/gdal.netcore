@@ -68,9 +68,10 @@ namespace MaxRev.Gdal.Core
                             // here hdf4 driver requires jpeg library to be loaded
                             // and I won't copy all libraries on each startup
                             var targetJpeg = Path.Combine(executingDir.FullName, "jpeg.dll");
-                            if (!File.Exists(targetJpeg))
+							var sourceJpeg = Path.Combine(cdir.FullName, "jpeg.dll");
+                            if (!File.Exists(targetJpeg) &&File.Exists(sourceJpeg))
                             {
-                                File.Copy(Path.Combine(cdir.FullName, "jpeg.dll"), Path.Combine(executingDir.FullName, "jpeg.dll"));
+                                File.Copy(sourceJpeg, Path.Combine(executingDir.FullName, "jpeg.dll"));
                             }
 
                             OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", targetDrivers);

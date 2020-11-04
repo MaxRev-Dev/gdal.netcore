@@ -1,0 +1,105 @@
+
+!INCLUDE RID.opt
+!INCLUDE ..\shared\GdalCore.opt
+
+OUTPUT = $(ROOTDIR_)\runtimes\win-x64\native
+COPY = xcopy /y /r /d /f /I
+
+TARGETS = proj geos gdal
+all: $(TARGETS) build collect interface pack
+
+!INCLUDE RID.opt
+!INCLUDE ..\shared\GdalCore.opt
+
+OUTPUT = ..\runtimes\win-x64\native
+
+PRE = [gdal.netcore]
+
+$(TARGETS): build-$@
+
+pre-vcpkg:
+	@echo $(PRE) Precheck for VCPKG libraries installation...
+	$(MAKE) -f vcpkg-makefile.vc
+	@echo $(PRE) VCPKG libraries precheck complete
+	
+fetch-gdal:
+	@echo $(PRE) Fetching GDAL sources...
+!IF !EXISTS($(GDAL_ROOT))
+    git clone $(GDAL_REPO) $(GDAL_ROOT)
+!ENDIF
+	cd $(GDAL_ROOT)
+	git fetch
+	git checkout -fq $(GDAL_COMMIT_VER) 
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE) 
+
+fetch-geos:
+!IF !EXISTS($(GEOS_ROOT))
+    git clone $(GEOS_REPO) $(GEOS_ROOT)
+!ENDIF
+	cd $(GEOS_ROOT)
+	git fetch
+	git checkout -fq $(GEOS_COMMIT_VER) 
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE)
+	
+fetch-proj:
+!IF !EXISTS($(PROJ_ROOT))
+    git clone $(PROJ_REPO) $(PROJ_ROOT)
+!ENDIF
+	cd $(PROJ_ROOT)
+	git fetch
+	git checkout -fq $(PROJ_COMMIT_VER)
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE)
+
+configure-gdal: fetch-gdal
+	@echo $(PRE) Populating gdal source with makefile.vc..
+	-copy /y "$(BASE)\presource\gdal-makefile.vc" "$(GDAL_ROOT)\makefile.vc"
+
+build-proj:
+	@echo $(PRE) building PROJ...
+	call getproj.bat
+	@echo $(PRE) PROJ was built successfully!
+
+build-geos:
+	@echo $(PRE) building GEOS...
+	call getgeos.bat
+	@echo $(PRE) GEOS was built successfully!
+
+build-gdal: pre-vcpkg configure-gdal
+	@echo $(PRE) building GDAL...
+	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc MSVC_VER=1920 WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
+	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc install WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
+	@echo $(PRE) GDAL was built successfully!
+
+build: build-gdal
+	
+build-gdal-only: build collect interface pack
+	
+interface:
+	$(MAKE) /f gdal-makefile.vc interface
+	$(MAKE) /f gdal-makefile.vc 
+
+collect:
+	$(COPY) "$(VCPKG_INSTALLED)/bin/*.dll" "$(OUTPUT)\"
+	$(COPY) "$(BUILD_ROOT)\libshared\bin" "$(OUTPUT)\"
+	$(COPY) "$(BUILD_ROOT)\gdal-build\bin\gdalplugins" "$(OUTPUT)\gdalplugins\"
+	$(COPY) "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\*.dll" "$(OUTPUT)\"
+	
+	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" ) 
+veryclean:
+	$(MAKE) -f vcpkg-makefile.vc build_cleanup
+	$(MAKE) -f gdal-makefile.vc clean
+
+hostfix31:
+	set MSBUILDSINGLELOADCONTEXT=1
+
+pack: hostfix31
+	dotnet pack -c Release -o $(ROOTDIR_)\nuget $(ROOTDIR_)\gdalcore.windowsruntime.csproj
+
+packdev: hostfix31
+	dotnet pack -c Debug -o $(ROOTDIR_)\nuget $(ROOTDIR_)\gdalcore.windowsruntime.csproj

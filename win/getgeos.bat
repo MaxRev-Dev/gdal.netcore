@@ -4,9 +4,8 @@ setlocal enabledelayedexpansion enableextensions
 set back=%cd%
 call %~dp0configvars
 set key=geos
-if not exist "%_buildroot_%/%key%-source" git clone %GEOS_REPO% "%_buildroot_%/%key%-source"
-cd %_buildroot_%/%key%-source
 nmake -f gdal-makefile.vc fetch-geos
+cd %_buildroot_%/%key%-source
 set bindir=%_buildroot_%/%key%-build
 if exist "%bindir%" rd /s /q "%bindir%"
 

@@ -25,6 +25,7 @@
 
 BUILD_ROOT=$(GDAL_ROOT)\..\..
 BUILD_ROOT_VCPKG=$(BUILD_ROOT)\vcpkg\installed\x64-windows
+BUILD_ROOT_VCPKG_STATIC=$(BUILD_ROOT)\vcpkg\installed\x64-windows-static
 
 !IF EXIST("$(GDAL_ROOT)\nmake.local")
 !INCLUDE $(GDAL_ROOT)\nmake.local
@@ -587,12 +588,14 @@ HDF4_HAS_MAXOPENFILES = YES
 
 # Uncomment the following and update to enable NCSA HDF Release 5 support.
 HDF5_PLUGIN = YES
-HDF5_DIR = $(BUILD_ROOT_VCPKG)  
-HDF5_LIB =	$(HDF5_DIR)\lib\hdf5.lib  $(HDF5_DIR)\lib\hdf5_hl.lib $(HDF5_DIR)\lib\zlib.lib $(HDF5_DIR)\lib\szip.lib
+
+# [gdal.netcore] hdf plugin is linked statically
+HDF5_DIR = $(BUILD_ROOT_VCPKG_STATIC)  
+HDF5_LIB =	$(HDF5_DIR)\lib\libhdf5.lib $(HDF5_DIR)\lib\libszip.lib $(HDF5_DIR)\lib\zlib.lib
 
 # Needed to define H5_BUILT_AS_DYNAMIC_LIB for windows compilation 
 # scenarios where it is not exported on the target (non-CMake builds)
-HDF5_H5_IS_DLL = YES
+HDF5_H5_IS_DLL = NO
 
 # Uncomment the following and update to enable KEA support.
 #KEA_PLUGIN = NO

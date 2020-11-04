@@ -36,14 +36,16 @@ update: pull_vcpkg
 $(VCPKG_CLEANUP):
     @cmd /c if exist "$(VCPKG_ROOT)\$@\" rmdir /S /Q "$(VCPKG_ROOT)\$@"
 
-
-build_cleanup: $(VCPKG_CLEANUP)
-clean_ALL: build_cleanup
+build_cleanup: $(VCPKG_CLEANUP) 
 
 install_packages:
 	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
-	 do $(VCPKG) install %p:$(VCPKG_RID) --recurse --clean-after-build 
+	 do $(VCPKG) install %p:$(VCPKG_RID) --recurse --clean-after-build  
+	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
+	 do $(VCPKG) install %p:$(VCPKG_RID)-static --recurse --clean-after-build 
 remove_packages:
 	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
-	 do $(VCPKG) remove %p:$(VCPKG_RID) --recurse 
+	 do $(VCPKG) remove %p:$(VCPKG_RID) --recurse  
+	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
+	 do $(VCPKG) remove %p:$(VCPKG_RID)-static --recurse 
 
