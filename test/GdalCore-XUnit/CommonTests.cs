@@ -38,6 +38,7 @@ namespace GdalCore_XUnit
                 var driverByName = Gdal.GetDriverByName(driver);
                 _outputHelper.WriteLine(
                     driverByName != default ? $"{driver} loaded successfully" : $"Failed to load {driver}");
+                Assert.NotNull(driverByName);
             }
 
         }

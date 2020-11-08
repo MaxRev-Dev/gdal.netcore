@@ -23,15 +23,27 @@ install_vcpkg:
     $(VCPKG_ROOT)\bootstrap-vcpkg.bat
 !ENDIF
 
-install_requirements: install_vcpkg install_packages   
+install_requirements: install_vcpkg patch_vcpkg_triplets install_packages   
 
+VCPKG_WINDOWS_DEFAULT_TRIPLET = $(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake
+
+patch_vcpkg_triplets:
+	@if not exist "$(VPCKG_CUSTOM_TRIPLETS)" md "$(VPCKG_CUSTOM_TRIPLETS)"
+
+#   this is defailt x64-windows (dynamic) triplet
+	@echo set(VCPKG_TARGET_ARCHITECTURE x64) > $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
+	@echo set(VCPKG_CRT_LINKAGE dynamic) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
+	@echo set(VCPKG_LIBRARY_LINKAGE dynamic) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
+	@echo set(VCPKG_BUILD_TYPE release) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
 
 pull_vcpkg:
-    cd $(VCPKG_ROOT) && git pull origin master   
+	cd $(VCPKG_ROOT) && git pull origin master   
 upgrade: pull_vcpkg
-    $(VCPKG) upgrade
+	$(VCPKG) upgrade $(VCPKG_TRIPLETS_OVERLAY)
+upgrade-force: pull_vcpkg 
+	$(VCPKG) upgrade --no-dry-run $(VCPKG_TRIPLETS_OVERLAY)
 update: pull_vcpkg 
-    $(VCPKG) update
+	$(VCPKG) update $(VCPKG_TRIPLETS_OVERLAY)
 
 $(VCPKG_CLEANUP):
     @cmd /c if exist "$(VCPKG_ROOT)\$@\" rmdir /S /Q "$(VCPKG_ROOT)\$@"
@@ -40,12 +52,14 @@ build_cleanup: $(VCPKG_CLEANUP)
 
 install_packages:
 	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
-	 do $(VCPKG) install %p:$(VCPKG_RID) --recurse --clean-after-build  
+	 do $(VCPKG) install %p:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL)
 	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
-	 do $(VCPKG) install %p:$(VCPKG_RID)-static --recurse --clean-after-build 
+	 do $(VCPKG) install %p:$(VCPKG_RID)-static $(VCPKG_PARAMS_INSTALL)
+remove:  
+	$(VCPKG) remove $(r):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE)
 remove_packages:
 	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
-	 do $(VCPKG) remove %p:$(VCPKG_RID) --recurse  
+	 do $(VCPKG) remove %p:$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE)
 	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
-	 do $(VCPKG) remove %p:$(VCPKG_RID)-static --recurse 
+	 do $(VCPKG) remove %p:$(VCPKG_RID)-static $(VCPKG_PARAMS_REMOVE)
 

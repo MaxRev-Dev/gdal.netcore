@@ -536,12 +536,12 @@ TD_LIBS = $(TD_LIBS) \
 # Uncomment for Expat support (required for KML, GPX and GeoRSS read support).
 EXPAT_DIR = $(BUILD_ROOT_VCPKG)
 EXPAT_INCLUDE = -I$(EXPAT_DIR)\include
-EXPAT_LIB = $(EXPAT_DIR)\lib\expat.lib
+EXPAT_LIB = $(EXPAT_DIR)\lib\libexpat.lib
 
 # Uncomment for Xerces based GML and ILI support.
 XERCES_DIR =	$(BUILD_ROOT_VCPKG)
 XERCES_INCLUDE = -I$(XERCES_DIR)\include -I$(XERCES_DIR)\include\xercesc
-XERCES_LIB =$(XERCES_DIR)/lib/xerces-c_3.lib
+XERCES_LIB =$(XERCES_DIR)\lib\xerces-c_3.lib
 
 # Uncomment the following for Interlis support.  Note that a Xercex 3.x
 # is also required (see above).  Also, Interlis support only works with
@@ -746,7 +746,7 @@ CURL_INC = -I$(BUILD_ROOT_VCPKG)\include -I$(BUILD_ROOT_VCPKG)\include\curl
 # Uncomment following line to use libcurl as dynamic library
 #CURL_LIB = $(CURL_DIR)/libcurl_imp.lib wsock32.lib wldap32.lib winmm.lib
 # Uncomment following two lines to use libcurl as static library
-CURL_LIB = $(CURL_DIR)/libcurl.lib wsock32.lib wldap32.lib winmm.lib
+CURL_LIB = $(CURL_DIR)\libcurl.lib wsock32.lib wldap32.lib winmm.lib
 CURL_CFLAGS = -DCURL_STATICLIB
 
 # Uncomment for DODS / OPeNDAP support

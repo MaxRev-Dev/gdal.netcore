@@ -6,7 +6,7 @@ set bindir=%_buildroot_%/%key%-build
 
 if not exist "%_buildroot_%/%key%-source" git clone %PROJ_REPO% "%_buildroot_%/%key%-source"
 
-nmake -f gdal-makefile.vc fetch-proj
+nmake -f makefile.vc fetch-proj
 cd "%_buildroot_%/%key%-source"
 mkdir build
 cd build 

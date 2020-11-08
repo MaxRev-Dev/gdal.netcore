@@ -11,12 +11,13 @@ ifeq ($(RID),)
 RID=linux-x64
 endif
 
-BUILD_BASE_LIB=$(GDAL_BUILD_)/lib
+BUILD_BASE_LIB=$(realpath $(GDAL_BUILD_)/lib)
 GDAL_SO_VER_=so.$(LIBGDAL_CURRENT)
 
 # suppress warnings..
 _suprf_=-Wno-missing-prototypes -Wno-missing-declarations -Wno-deprecated-declarations -Wno-unused-parameter -Wno-unused-function
 
+# output helper
 define \n
 
 
@@ -62,8 +63,10 @@ linkall: clean_runtimes initdirs copygdalout makesolocal copyalldepso
 	
 clean_runtimes:
 	rm -rvf $(OUTPUT)/*.* 
+
 echo:
 	echo $(CXX)
+
 clean:
 	(cd $(BUILD_BASE) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
 	(cd $(PWD) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
@@ -77,8 +80,6 @@ cleangdal:
 	
 cleanpackages:
 	(cd $(PWD) && rm -f -R $(NUGET_))
-	
-generate: interface
 
 interface:
 	$(MAKE) -f ./mkinterface
@@ -86,9 +87,6 @@ interface:
 prebuild: interface 
 
 build: ${CSHARP_OBJECTS} ${CSHARP_MODULES} gdal_csharp
-
-sign:
-	(cd $(BASE) && sn -k gdal.snk)
 
 install:
 	@echo "No installation to be done"
@@ -109,6 +107,9 @@ copyalldepso:
 gdal_csharp: 
 	$(MAKE) linkall
 
+
+## Creating packages for testing and publishing
+# https://github.com/dotnet/core/issues/4404
 export MSBUILDSINGLELOADCONTEXT = 1
 
 packc:
@@ -127,3 +128,9 @@ packdr:
 	
 packdev: packdc packdr
 	
+
+###	Testing linux libraries (from nuget build output)
+test: 
+	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core)
+	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal)
+	(cd $(TEST_DIR) && dotnet test)

@@ -17,6 +17,7 @@ First of all I wish you to be patient & bring your snacks. Compilation from scra
 
 1.  `yum install tcl tcl-devel -y`   - for building sqlite3 
 2.  `yum install patchelf -y` - dynamic linking
+3.  `scl enable devtoolset-7 bash` - install dev tools > [link](https://github.com/microsoft/vcpkg#installing-linux-developer-tools)
 
 Set a root variable for convenience 
 ``export gc_root=`pwd` ``
@@ -28,19 +29,22 @@ Set a root variable for convenience
 Assuming you have `tclsh` for compiling `sqlite3` 
 
 ```shell
+# don't forget to enable ONCE dev tools on CentOS 
+scl enable devtoolset-7 bash
+# make all 
 make -f gdal-makefile
 ```
 
 this will compile `sqlite3, proj6, geos` and `gdal` from scratch
 
-##  Alternate way
+##  Alternate way (deprecated)
 
 ### 1. Install prerequisite packages 
 
 ```shell
   `yum install xz-devel hdf hdf5-devel libtiff sqlite-devel expat curl-devel -y` - LZMA, HDF4, HDF5 
 ```
-   
+
 
 ### 2. Compile PROJ6 
 

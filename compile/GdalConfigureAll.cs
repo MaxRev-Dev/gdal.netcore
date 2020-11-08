@@ -99,6 +99,9 @@ namespace MaxRev.Gdal.Core
                 OSGeo.GDAL.Gdal.AllRegister();
                 OSGeo.OGR.Ogr.RegisterAll();
                 Proj6.Configure();
+				
+				// set flag only on success
+            	IsConfigured = true;
             }
             catch (Exception ex)
             {
@@ -106,8 +109,6 @@ namespace MaxRev.Gdal.Core
                 Console.WriteLine(ex);
                 throw;
             }
-
-            IsConfigured = true;
         }
     }
 }

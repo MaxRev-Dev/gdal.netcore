@@ -8,13 +8,6 @@ COPY = xcopy /y /r /d /f /I
 TARGETS = proj geos gdal
 all: $(TARGETS) build collect interface pack
 
-!INCLUDE RID.opt
-!INCLUDE ..\shared\GdalCore.opt
-
-OUTPUT = ..\runtimes\win-x64\native
-
-PRE = [gdal.netcore]
-
 $(TARGETS): build-$@
 
 pre-vcpkg:
@@ -95,6 +88,7 @@ veryclean:
 	$(MAKE) -f vcpkg-makefile.vc build_cleanup
 	$(MAKE) -f gdal-makefile.vc clean
 
+# https://github.com/dotnet/core/issues/4404
 hostfix31:
 	set MSBUILDSINGLELOADCONTEXT=1
 
@@ -103,3 +97,10 @@ pack: hostfix31
 
 packdev: hostfix31
 	dotnet pack -c Debug -o $(ROOTDIR_)\nuget $(ROOTDIR_)\gdalcore.windowsruntime.csproj
+
+test: 
+	cd $(TEST_DIR)
+	dotnet add package MaxRev.Gdal.Core
+	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal
+	dotnet test
+	cd $(MAKEDIR)

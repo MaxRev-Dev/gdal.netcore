@@ -3,6 +3,6 @@
 # 
 #    Windows Runtime Identifier 
 #
-BASE=$(PWD)
+BASE=$(MAKEDIR)
 BASE_RUNTIME_RID=win
 VCPKG_RID=x64-windows

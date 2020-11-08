@@ -7,7 +7,6 @@ include ../shared/GdalCore.opt
 
 # default targets on linux
 TARGETS = proj geos gdal
-PRE = [gdal.netcore]
 
 all: $(TARGETS)
 	@echo "$(PRE) Everything looks good. Linux libraries for GDAL is ready to packaging!"
@@ -69,31 +68,82 @@ init_%:
 
 configure_gdal:
 	@echo "$(TO) GDAL Configuring..."
-	./configuregdal.sh 
+	(cd ${GDAL_ROOT} && chmod +x ./configure)
+	(cd ${GDAL_ROOT} && ./configure  --prefix=${BUILD_ROOT}/gdal-build  \
+CFLAGS="-fPIC" \
+ --with-geos=${BUILD_ROOT}/geos-build/bin/geos-config \
+ --with-proj=${BUILD_ROOT}/proj-build \
+ --with-liblzma \
+ --with-libtool \
+ --with-geotiff=internal \
+ --with-hide-internal-symbols \
+ --with-threads \
+ --with-curl=${VCPKG_INSTALLED} \
+ --with-png  \
+ --with-sqlite3 \
+ --with-hdf4 \
+ --with-hdf5=${VCPKG_INSTALLED_DYNAMIC} \
+ --with-libz=${VCPKG_INSTALLED} \
+ --with-jpeg=${VCPKG_INSTALLED}  \
+ --with-expat=${VCPKG_INSTALLED} \
+ --with-libtiff=${VCPKG_INSTALLED} \
+ --with-xerces=${VCPKG_INSTALLED} \
+ --without-cfitsio \
+ --without-cryptopp \
+ --without-ecw \
+ --without-fme \
+ --without-freexl \
+ --without-gif \
+ --without-gnm \
+ --without-grass \
+ --without-idb \
+ --without-ingres \
+ --without-jasper \
+ --without-jp2mrsid \
+ --without-kakadu \
+ --without-libgrass \
+ --without-libkml \
+ --without-mrsid \
+ --without-mysql \
+ --without-netcdf \
+ --without-odbc \
+ --without-ogdi \
+ --without-openjpeg \
+ --without-pcidsk \
+ --without-pcraster \
+ --without-pcre \
+ --without-perl \
+ --without-pg \
+ --without-python \
+ --without-qhull \
+ --without-sde \
+ --without-webp \
+ --without-xml2 \
+ --without-poppler \
+ --without-crypto)
 	@echo "$(TO) GDAL Configured!"
 	
-configure_%:
-	@echo "$(TO) Configuring..."
-	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
-	@cd $(PROJ_ROOT) &&	./autogen.sh 
-	@cd $(PROJ_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/$(LW)-build
-	@echo "$(TO) Configured!"
-
 configure_proj: 
 	@echo "$(TO) PROJ Configuring..."
 	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
 	@cd $(PROJ_ROOT) &&	./autogen.sh 
 
-# 1. --with-curl=[path] does not work because curl-config not found
-# 2. vcpkg's tiff_x64-linux default location in pkg-config also not found
+# 1. --with-curl=[path] does not work because curl-config not found 
 
-	@cd $(PROJ_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/proj-build \
-	LIBS="-L$(VCPKG_INSTALLED)/lib -lsqlite3 -L$(VCPKG_INSTALLED)/lib -ltiff -L$(VCPKG_INSTALLED)/lib -llzma -L$(VCPKG_INSTALLED)/lib -ljpeg" \
+	@cd $(PROJ_ROOT) &&	./configure \
+	--with-curl=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/curl-config \
+	--prefix=$(BUILD_ROOT)/proj-build \
+	LIBS="-L$(VCPKG_INSTALLED)/lib -lsqlite3 \
+	 -L$(VCPKG_INSTALLED)/lib -ltiff \
+	 -L$(VCPKG_INSTALLED)/lib -llzma \
+	 -L$(VCPKG_INSTALLED)/lib -ljpeg" \
+	CURL_INCLUDE_DIR=-I$(VCPKG_INSTALLED_DYNAMIC)/include \
+	CURL_LIBRARY="$(VCPKG_INSTALLED_DYNAMIC)/lib/libcurl.so" \
 	TIFF_INCLUDE_DIR=-I$(VCPKG_INSTALLED)/include \
 	TIFF_CFLAGS=-L$(VCPKG_INSTALLED)/lib \
+	TIFF_LIBRARY_RELEASE=$(VCPKG_INSTALLED)/lib/libtiff.a \
 	SQLITE3_CFLAGS=-I$(VCPKG_INSTALLED)/include \
-	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib \
-	TIFF_LIBRARY_RELEASE=$(VCPKG_INSTALLED)/lib/libtiff.a
+	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib 
 	@echo "$(TO) PROJ Configured!"
 
 configure_geos: 
@@ -105,6 +155,13 @@ configure_geos:
 	SQLITE3_CFLAGS=-I$(VCPKG_INSTALLED)/include \
 	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib
 	@echo "$(TO) GEOS Configured!"
+
+configure_%:
+	@echo "$(TO) Configuring..."
+	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
+	@cd $(PROJ_ROOT) &&	./autogen.sh 
+	@cd $(PROJ_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/$(LW)-build
+	@echo "$(TO) Configured!"
 
 build_%:
 	@echo "$(TO) Building..."
@@ -120,5 +177,5 @@ reset_%:
 	@echo "$(TO) Reset is complete"
 
 .EXPORT_ALL_VARIABLES:
-
+ 
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig
