@@ -69,6 +69,8 @@ init_%:
 configure_gdal:
 	@echo "$(TO) GDAL Configuring..."
 	(cd ${GDAL_ROOT} && chmod +x ./configure)
+
+#   https://trac.osgeo.org/gdal/wiki/BuildingOnUnixWithMinimizedDrivers
 	(cd ${GDAL_ROOT} && ./configure  --prefix=${BUILD_ROOT}/gdal-build  \
 CFLAGS="-fPIC" \
  --with-geos=${BUILD_ROOT}/geos-build/bin/geos-config \
@@ -78,7 +80,7 @@ CFLAGS="-fPIC" \
  --with-geotiff=internal \
  --with-hide-internal-symbols \
  --with-threads \
- --with-curl=${VCPKG_INSTALLED} \
+ --with-curl \
  --with-png  \
  --with-sqlite3 \
  --with-hdf4 \
@@ -128,20 +130,17 @@ configure_proj:
 	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
 	@cd $(PROJ_ROOT) &&	./autogen.sh 
 
-# 1. --with-curl=[path] does not work because curl-config not found 
-
 	@cd $(PROJ_ROOT) &&	./configure \
-	--with-curl=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/curl-config \
+	--with-curl=$(VCPKG_INSTALLED)/share/curl/curl-config \
 	--prefix=$(BUILD_ROOT)/proj-build \
 	LIBS="-L$(VCPKG_INSTALLED)/lib -lsqlite3 \
 	 -L$(VCPKG_INSTALLED)/lib -ltiff \
 	 -L$(VCPKG_INSTALLED)/lib -llzma \
-	 -L$(VCPKG_INSTALLED)/lib -ljpeg" \
-	CURL_INCLUDE_DIR=-I$(VCPKG_INSTALLED_DYNAMIC)/include \
-	CURL_LIBRARY="$(VCPKG_INSTALLED_DYNAMIC)/lib/libcurl.so" \
+	 -L$(VCPKG_INSTALLED)/lib -ljpeg \
+	 -L$(VCPKG_INSTALLED)/lib -lz" \
 	TIFF_INCLUDE_DIR=-I$(VCPKG_INSTALLED)/include \
 	TIFF_CFLAGS=-L$(VCPKG_INSTALLED)/lib \
-	TIFF_LIBRARY_RELEASE=$(VCPKG_INSTALLED)/lib/libtiff.a \
+	TIFF_LIBRARY_RELEASE="$(VCPKG_INSTALLED)/lib/libtiff.a" \
 	SQLITE3_CFLAGS=-I$(VCPKG_INSTALLED)/include \
 	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib 
 	@echo "$(TO) PROJ Configured!"

@@ -15,7 +15,7 @@
 *.exp
 *.lib
 .libs/
-shared/
+!shared/
 const/
 gdal/
 ogr/

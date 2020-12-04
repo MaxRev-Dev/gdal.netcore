@@ -11,19 +11,20 @@ VCPKG_RID = x64-windows
 VCPKG_CLEANUP = buildtrees downloads packages installed
 
 !INCLUDE ..\shared\GdalCore.opt
-VCPKG_ROOT = $(BASE)\..\build-$(BASE_RUNTIME_RID)\vcpkg
+VCPKG_ROOT = $(BUILD_ROOT)\vcpkg
 VCPKG = $(VCPKG_ROOT)\vcpkg.exe
 
 install_vcpkg:
-!IF !EXISTS($(VCPKG_ROOT))
-    git clone https://github.com/microsoft/vcpkg $(VCPKG_ROOT)
-!ENDIF
-!IF !EXISTS($(VCPKG))
-    cd $(VCPKG_ROOT) && git pull origin master
-    $(VCPKG_ROOT)\bootstrap-vcpkg.bat
-!ENDIF
+	@IF NOT EXIST "$(VCPKG_ROOT)\" git clone $(VCPKG_REPO) $(VCPKG_ROOT)
+	@echo "$(PRE) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
+	@echo "$(PRE) Checking for remote changes..." 
+	@cd $(VCPKG_ROOT) && git fetch
+	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
 
-install_requirements: install_vcpkg patch_vcpkg_triplets install_packages   
+bootstrap: pull_vcpkg
+	call "$(VCPKG_ROOT)/bootstrap-vcpkg.bat"; 
+
+install_requirements: install_vcpkg bootstrap patch_vcpkg_triplets install_packages   
 
 VCPKG_WINDOWS_DEFAULT_TRIPLET = $(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake
 

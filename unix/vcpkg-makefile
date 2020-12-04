@@ -16,6 +16,9 @@ LW = $(shell echo '$*' | tr A-Z a-z)
 # add support for [-force] param
 REP = $(shell echo '$*' | sed "s/-force//g")
 
+# target pretty output
+TO = $(PRE) VCPKG |
+
 all: install_vcpkg install_requirements
 	@exit 0
 force: $(addsuffix -force, $(TARGETS))
@@ -39,20 +42,26 @@ endif
 
 pull:
 	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
-		git clone https://github.com/microsoft/vcpkg $(VCPKG_ROOT); \
+		git clone $(VCPKG_REPO) $(VCPKG_ROOT); \
 	fi;
-bootstrap:
-	@if [ ! -f "$(VCPKG)" ]; then \
-		$(MAKE) pull_vcpkg; \
-		(cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh); \
-	fi;
+	@echo "$(TO) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
+	@echo "$(TO) Checking for remote changes..." 
+	@cd $(VCPKG_ROOT) && git fetch
+	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
+
+bootstrap: pull_vcpkg
+	(cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh); 
 
 install_vcpkg: pull bootstrap
-
-install_requirements: install_vcpkg patch_vcpkg_triplets install_packages 
 	@exit 0
+install_requirements: install_vcpkg patch_vcpkg_triplets install_packages 
+	@exit 0 
+install_requirements_only: patch_vcpkg_triplets install_packages 
+	@exit 0
+
 pull_vcpkg:
-	cd $(VCPKG_ROOT) && git pull origin master  
+	@cd $(VCPKG_ROOT) && git fetch
+	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
  
 upgrade: pull_vcpkg
 	$(VCPKG) upgrade $(VCPKG_TRIPLETS_OVERLAY)
