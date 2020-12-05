@@ -12,7 +12,7 @@ VCPKG_CLEANUP = buildtrees downloads packages installed
 
 !INCLUDE ..\shared\GdalCore.opt
 VCPKG_ROOT = $(BUILD_ROOT)\vcpkg
-VCPKG = $(VCPKG_ROOT)\vcpkg.exe
+VCPKG = "$(VCPKG_ROOT)\vcpkg.exe"
 
 install_vcpkg:
 	@IF NOT EXIST "$(VCPKG_ROOT)\" git clone $(VCPKG_REPO) $(VCPKG_ROOT)

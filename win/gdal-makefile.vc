@@ -49,8 +49,8 @@ gdal_csharp:
 		$(EXTERNAL_LIBS) $(GDALLIB)\
 		 /out:osr_wrap.dll $(LINKER_FLAGS)
 	if exist osr_wrap.dll.manifest mt -manifest osr_wrap.dll.manifest -outputresource:osr_wrap.dll;2
-	-md $(OUTPUT)
-	move *.dll $(OUTPUT)
+	-mkdir "$(OUTPUT)"
+	move *.dll "$(OUTPUT)"
     
 ogr_dir:
 	cd $(source)\ogr

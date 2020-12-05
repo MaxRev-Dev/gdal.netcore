@@ -273,7 +273,7 @@ PROJ_LIBRARY = $(BUILD_ROOT)\proj-build\lib\proj.lib  shell32.lib ole32.lib
 # ICONV_CONST=const otherwise leave it empty.
 LIBICONV_DIR = $(BUILD_ROOT_VCPKG)
 LIBICONV_INCLUDE = -I$(LIBICONV_DIR)\include
-LIBICONV_LIBRARY = $(LIBICONV_DIR)\lib\libiconv.lib
+LIBICONV_LIBRARY = $(LIBICONV_DIR)\lib\iconv.lib
 LIBICONV_CFLAGS = -DICONV_CONST=
 
 # Comment out the following to disable BSB support.

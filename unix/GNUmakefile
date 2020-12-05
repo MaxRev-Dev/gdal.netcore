@@ -112,6 +112,10 @@ gdal_csharp:
 # https://github.com/dotnet/core/issues/4404
 export MSBUILDSINGLELOADCONTEXT = 1
 
+# make's .EXPORT_ALL_VARIABLES does not work here
+# using exprt to add dynamic labraries location
+export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
+
 packc:
 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
 	
@@ -130,7 +134,7 @@ packdev: packdc packdr
 	
 
 ###	Testing linux libraries (from nuget build output)
-test: 
-	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core)
-	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal)
+test:  
+	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core -s $(NUGET_) ) 
+	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_) )
 	(cd $(TEST_DIR) && dotnet test)

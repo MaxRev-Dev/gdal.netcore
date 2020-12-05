@@ -63,15 +63,15 @@ build-geos:
 	call getgeos.bat
 	@echo $(PRE) GEOS was built successfully!
 
-build-gdal: pre-vcpkg configure-gdal
+build-gdal: configure-gdal
 	@echo $(PRE) building GDAL...
 	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc MSVC_VER=1920 WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
 	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc install WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
 	@echo $(PRE) GDAL was built successfully!
 
-build: build-gdal
+build: pre-vcpkg build-gdal
 	
-build-gdal-only: build collect interface pack
+build-gdal-only: build-gdal collect interface pack
 	
 interface:
 	$(MAKE) /f gdal-makefile.vc interface
@@ -93,14 +93,14 @@ hostfix31:
 	set MSBUILDSINGLELOADCONTEXT=1
 
 pack: hostfix31
-	dotnet pack -c Release -o $(ROOTDIR_)\nuget $(ROOTDIR_)\gdalcore.windowsruntime.csproj
+	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
 
 packdev: hostfix31
-	dotnet pack -c Debug -o $(ROOTDIR_)\nuget $(ROOTDIR_)\gdalcore.windowsruntime.csproj
+	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
 
 test: 
 	cd $(TEST_DIR)
-	dotnet add package MaxRev.Gdal.Core
-	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal
+	dotnet add package MaxRev.Gdal.Core -s $(NUGET_)
+	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) 
 	dotnet test
 	cd $(MAKEDIR)

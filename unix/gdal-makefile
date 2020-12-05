@@ -69,8 +69,8 @@ init_%:
 configure_gdal:
 	@echo "$(TO) GDAL Configuring..."
 	(cd ${GDAL_ROOT} && chmod +x ./configure)
-
-#   https://trac.osgeo.org/gdal/wiki/BuildingOnUnixWithMinimizedDrivers
+	 
+#   based on https://trac.osgeo.org/gdal/wiki/BuildingOnUnixWithMinimizedDrivers
 	(cd ${GDAL_ROOT} && ./configure  --prefix=${BUILD_ROOT}/gdal-build  \
 CFLAGS="-fPIC" \
  --with-geos=${BUILD_ROOT}/geos-build/bin/geos-config \
@@ -80,7 +80,7 @@ CFLAGS="-fPIC" \
  --with-geotiff=internal \
  --with-hide-internal-symbols \
  --with-threads \
- --with-curl \
+ --with-curl=${VCPKG_INSTALLED_DYNAMIC}/share/curl/curl-config \
  --with-png  \
  --with-sqlite3 \
  --with-hdf4 \
@@ -176,5 +176,5 @@ reset_%:
 	@echo "$(TO) Reset is complete"
 
 .EXPORT_ALL_VARIABLES:
- 
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig
+LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
