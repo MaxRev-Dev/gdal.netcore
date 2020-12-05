@@ -18,22 +18,37 @@ namespace MaxRev.Gdal.Core
         {
             try
             {
-                var h = Assembly.GetAssembly(typeof(OSGeo.OSR.Osr)).Location;
-                var di = new FileInfo(h).Directory;
-                var sh = "maxrev.gdal.core.libshared";
-                string f = default;
-                if (di.GetDirectories().Any(x => x.Name == sh))
+                var projectLocation = Assembly.GetAssembly(typeof(OSGeo.OSR.Osr)).Location;
+                var projectRoot = new FileInfo(projectLocation).Directory;
+                var libshared = "maxrev.gdal.core.libshared";
+
+                // Possible locations of package contents 
+                // [projectRoot]/runtimes/win-x64/native/[libshared]
+                // [projectRoot]/bin/[cfg]/[libshared]
+
+                string finalFolder;
+                if (projectRoot!.GetDirectories().Any(x =>
+                    string.Equals(x.Name, libshared, 
+                        StringComparison.InvariantCultureIgnoreCase)))
                 {
-                    f = Path.Combine(di.FullName, sh);
+                    finalFolder = Path.Combine(projectRoot.FullName, libshared);
                 }
                 else
                 {
-                    var root = di.Parent.Parent;
-                    f = Path.Combine(root.FullName, sh);
+                    var root = projectRoot.Parent!.Parent;
+                    finalFolder = Path.Combine(root!.FullName, libshared);
                 }
 
-                var e = Path.Combine(new FileInfo(Assembly.GetEntryAssembly().Location).Directory.FullName, sh);
-                OSGeo.OSR.Osr.SetPROJSearchPaths(new[] { f, e });
+                // some environments may have flat structure
+                // try search in root directory
+                var outputRoot =
+                    new FileInfo(Assembly.GetEntryAssembly()!.Location)
+                        .Directory!.FullName;
+
+                var inProjectFolder = Path.Combine(outputRoot, libshared);
+
+                OSGeo.OSR.Osr.SetPROJSearchPaths(
+                    new[] { finalFolder, outputRoot, inProjectFolder });
             }
             catch (Exception ex)
             {
