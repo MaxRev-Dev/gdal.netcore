@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Platform>x64</Platform>
     <DebugType>portable</DebugType>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp2.1;netcoreapp2.2;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
     <Copyright>MaxRev © 2020</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -13,8 +13,8 @@
     <RepositoryType>git</RepositoryType>  
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.1.0.100</Version>
-    <Description>GDAL (3.1.0) bindings for dotnet core (now linux-x64 and win-x64).
+    <Version>3.1.2.110</Version>
+    <Description>GDAL (3.1.2) bindings for dotnet core (now linux-x64 and win-x64).
 Bridge between gdal and netcore.
 Use dependency package for target runtime to get drivers.
 Works in docker containers without pkg installations!!
@@ -22,7 +22,11 @@ Just call - GdalBase.ConfigureAll()
 </Description>
     <RootNamespace></RootNamespace>
     <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
-    <PackageReleaseNotes>GDAL Version 3.1.0</PackageReleaseNotes>
+    <PackageReleaseNotes>
+- built on CentOS 7 (glibc - 2.17) 
+- GDAL Version 3.1.2
+- built with vcpkg</PackageReleaseNotes>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   
   <PropertyGroup Condition="$(Configuration) == 'Debug'">
@@ -58,11 +62,10 @@ Just call - GdalBase.ConfigureAll()
       <PackageCopyToOutput>true</PackageCopyToOutput> 
   </Content>
  </ItemGroup>
-  
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup> 
+  </ItemGroup>
 </Project>

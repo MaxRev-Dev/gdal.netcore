@@ -1,0 +1,180 @@
+#
+#  gdal.netcore package automation
+#
+
+include RID.opt 
+include ../shared/GdalCore.opt 
+
+# default targets on linux
+TARGETS = proj geos gdal
+
+all: $(TARGETS)
+	@echo "$(PRE) Everything looks good. Linux libraries for GDAL is ready to packaging!"
+	@echo "$(PRE) Configured libraries (vcpkg): $(VCPKG_REQUIRE_UNIX)"
+	@echo "$(PRE) Configured libraries: $(TARGETS)"
+
+pre_vcpkg:
+	@echo "$(PRE) Precheck for VCPKG libraries installation..."
+	$(MAKE) -f vcpkg-makefile
+	@echo "$(PRE) VCPKG libraries precheck complete"
+
+complete: pre_vcpkg all
+	@exit 0
+
+# forcing targets to execute	
+force: $(addsuffix -force, $(TARGETS))
+	@exit 0
+
+# lower and uppercase funcs
+UP  = $(shell echo '$*' | tr a-z A-Z)
+LW = $(shell echo '$*' | tr A-Z a-z)
+
+# add support for [-force] param
+REP = $(shell echo '$(LW)' | sed "s/-force//g")
+
+# target pretty output
+TO = $(PRE) $(UP) |
+
+# accepts any user params
+% : 
+ifneq ($(filter $(REP),$(TARGETS)),'')
+	@echo "$(TO) trying to make stuff for => $(REP)"
+	@if [ ! -d "$(BUILD_ROOT)/$(REP)-build" ] || [[ "$(LW)" == *"-force"* ]] ; then \
+		$(MAKE) -f gdal-makefile  init_$(REP); \
+		$(MAKE) -f gdal-makefile  configure_$(REP); \
+		$(MAKE) -f gdal-makefile  build_$(REP); \
+	else \
+		echo "$(PRE) Build folder exists $(BUILD_ROOT)/$(REP)-build"; \
+		echo "$(PRE) To rebuild add '$(LW)-force'"; \
+	fi;
+else
+	@echo "$(PRE) Can not make $(REP)"
+endif 
+
+
+init_%: 
+	@if [ ! -d "$($(UP)_ROOT)" ]; then \
+		git clone $($(UP)_REPO) $($(UP)_ROOT); \
+	fi;
+	@echo "$(TO) Restoring $(LW) sources version to $($(UP)_COMMIT_VER)"
+	@echo "$(TO) Checking for remote changes..." 
+	@cd $($(UP)_ROOT) && git fetch
+	@cd $($(UP)_ROOT) && git checkout -q $($(UP)_COMMIT_VER) --force
+	@echo "$(TO) Resetting sources..." 
+	@cd $($(UP)_ROOT) && git reset --hard
+	@echo "$(TO) Cleaning the repo before compiling from scratch..." 
+	@cd $($(UP)_ROOT) && $(GIT_CLEAN)
+	@echo "$(TO) Sources restore complete"
+
+configure_gdal:
+	@echo "$(TO) GDAL Configuring..."
+	(cd ${GDAL_ROOT} && chmod +x ./configure)
+	 
+#   based on https://trac.osgeo.org/gdal/wiki/BuildingOnUnixWithMinimizedDrivers
+	(cd ${GDAL_ROOT} && ./configure  --prefix=${BUILD_ROOT}/gdal-build  \
+CFLAGS="-fPIC" \
+ --with-geos=${BUILD_ROOT}/geos-build/bin/geos-config \
+ --with-proj=${BUILD_ROOT}/proj-build \
+ --with-liblzma \
+ --with-libtool \
+ --with-geotiff=internal \
+ --with-hide-internal-symbols \
+ --with-threads \
+ --with-curl=${VCPKG_INSTALLED_DYNAMIC}/share/curl/curl-config \
+ --with-png  \
+ --with-sqlite3 \
+ --with-hdf4 \
+ --with-hdf5=${VCPKG_INSTALLED_DYNAMIC} \
+ --with-libz=${VCPKG_INSTALLED} \
+ --with-jpeg=${VCPKG_INSTALLED}  \
+ --with-expat=${VCPKG_INSTALLED} \
+ --with-libtiff=${VCPKG_INSTALLED} \
+ --with-xerces=${VCPKG_INSTALLED} \
+ --without-cfitsio \
+ --without-cryptopp \
+ --without-ecw \
+ --without-fme \
+ --without-freexl \
+ --without-gif \
+ --without-gnm \
+ --without-grass \
+ --without-idb \
+ --without-ingres \
+ --without-jasper \
+ --without-jp2mrsid \
+ --without-kakadu \
+ --without-libgrass \
+ --without-libkml \
+ --without-mrsid \
+ --without-mysql \
+ --without-netcdf \
+ --without-odbc \
+ --without-ogdi \
+ --without-openjpeg \
+ --without-pcidsk \
+ --without-pcraster \
+ --without-pcre \
+ --without-perl \
+ --without-pg \
+ --without-python \
+ --without-qhull \
+ --without-sde \
+ --without-webp \
+ --without-xml2 \
+ --without-poppler \
+ --without-crypto)
+	@echo "$(TO) GDAL Configured!"
+	
+configure_proj: 
+	@echo "$(TO) PROJ Configuring..."
+	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
+	@cd $(PROJ_ROOT) &&	./autogen.sh 
+
+	@cd $(PROJ_ROOT) &&	./configure \
+	--with-curl=$(VCPKG_INSTALLED)/share/curl/curl-config \
+	--prefix=$(BUILD_ROOT)/proj-build \
+	LIBS="-L$(VCPKG_INSTALLED)/lib -lsqlite3 \
+	 -L$(VCPKG_INSTALLED)/lib -ltiff \
+	 -L$(VCPKG_INSTALLED)/lib -llzma \
+	 -L$(VCPKG_INSTALLED)/lib -ljpeg \
+	 -L$(VCPKG_INSTALLED)/lib -lz" \
+	TIFF_INCLUDE_DIR=-I$(VCPKG_INSTALLED)/include \
+	TIFF_CFLAGS=-L$(VCPKG_INSTALLED)/lib \
+	TIFF_LIBRARY_RELEASE="$(VCPKG_INSTALLED)/lib/libtiff.a" \
+	SQLITE3_CFLAGS=-I$(VCPKG_INSTALLED)/include \
+	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib 
+	@echo "$(TO) PROJ Configured!"
+
+configure_geos: 
+	@echo "$(TO) GEOS Configuring..."
+	@cd $(GEOS_ROOT) && chmod +x ./autogen.sh 
+	@cd $(GEOS_ROOT) &&	./autogen.sh 
+# geos requires sqlite3 > 3.17
+	@cd $(GEOS_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/geos-build \
+	SQLITE3_CFLAGS=-I$(VCPKG_INSTALLED)/include \
+	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib
+	@echo "$(TO) GEOS Configured!"
+
+configure_%:
+	@echo "$(TO) Configuring..."
+	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
+	@cd $(PROJ_ROOT) &&	./autogen.sh 
+	@cd $(PROJ_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/$(LW)-build
+	@echo "$(TO) Configured!"
+
+build_%:
+	@echo "$(TO) Building..."
+	@cd $($(UP)_ROOT) &&  $(MAKE) &&  $(MAKE) install
+	@echo "$(TO) Built successfully!"
+
+reset: reset_proj reset_gdal reset_geos 
+	@echo "$(TO) Reset ALL is complete" 
+
+reset_%:
+	@echo "$(TO) Resetting..."
+	@cd $($(UP)_ROOT) && git checkout -q $($(UP)_COMMIT_VER) && git reset --hard && git clean -fqdx; 
+	@echo "$(TO) Reset is complete"
+
+.EXPORT_ALL_VARIABLES:
+PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig
+LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib

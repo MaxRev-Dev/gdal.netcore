@@ -1,0 +1,8 @@
+#
+#  gdal.netcore package automation
+# 
+#    Windows Runtime Identifier 
+#
+BASE=$(MAKEDIR)
+BASE_RUNTIME_RID=win
+VCPKG_RID=x64-windows

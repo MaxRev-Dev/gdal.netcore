@@ -15,7 +15,7 @@
 *.exp
 *.lib
 .libs/
-shared/
+!shared/
 const/
 gdal/
 ogr/
@@ -352,3 +352,5 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+.ionide

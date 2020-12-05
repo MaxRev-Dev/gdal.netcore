@@ -14,7 +14,7 @@ namespace MaxRev.Gdal.Core
         /// <summary>
         /// Shows if gdal is already initialized.
         /// </summary>
-        public static bool IsConfigured { get; set; }
+        public static bool IsConfigured { get; private set; }
 
         /// <summary>
         /// Setups gdalplugins and calls Gdal.AllRegister(), Ogr.RegisterAll(), Proj6.Configure(). 
@@ -68,9 +68,10 @@ namespace MaxRev.Gdal.Core
                             // here hdf4 driver requires jpeg library to be loaded
                             // and I won't copy all libraries on each startup
                             var targetJpeg = Path.Combine(executingDir.FullName, "jpeg.dll");
-                            if (!File.Exists(targetJpeg))
+							var sourceJpeg = Path.Combine(cdir.FullName, "jpeg.dll");
+                            if (!File.Exists(targetJpeg) &&File.Exists(sourceJpeg))
                             {
-                                File.Copy(Path.Combine(cdir.FullName, "jpeg.dll"), Path.Combine(executingDir.FullName, "jpeg.dll"));
+                                File.Copy(sourceJpeg, Path.Combine(executingDir.FullName, "jpeg.dll"));
                             }
 
                             OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", targetDrivers);
@@ -98,6 +99,9 @@ namespace MaxRev.Gdal.Core
                 OSGeo.GDAL.Gdal.AllRegister();
                 OSGeo.OGR.Ogr.RegisterAll();
                 Proj6.Configure();
+				
+				// set flag only on success
+            	IsConfigured = true;
             }
             catch (Exception ex)
             {
@@ -105,8 +109,6 @@ namespace MaxRev.Gdal.Core
                 Console.WriteLine(ex);
                 throw;
             }
-
-            IsConfigured = true;
         }
     }
 }

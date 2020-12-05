@@ -1,0 +1,85 @@
+
+##### ----------- gdal.netcore ----------- #####
+##### ------- SHARED CONFIGURATION ------- ##### 
+ 
+##### repo root
+ROOTDIR_=$(BASE)/..
+### build (drivers) root
+BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
+
+GDAL_ROOT=$(BUILD_ROOT)/gdal-source
+GDAL_REPO=https://github.com/OSGeo/gdal.git
+GDAL_COMMIT_VER=v3.1.2
+
+PROJ_ROOT=$(BUILD_ROOT)/proj-source
+PROJ_REPO=https://github.com/OSGeo/PROJ.git
+PROJ_COMMIT_VER=dd91c93ca44cbe3cf4f6f7c94a8f225aefa4b408
+
+GEOS_ROOT=$(BUILD_ROOT)/geos-source
+GEOS_REPO=https://github.com/libgeos/geos.git 
+GEOS_COMMIT_VER=ff05d9755d189771147acb3105bd9c9cfff730ff
+ 
+# ---------------------- VCPKG ----------------------
+
+VCPKG_ROOT = $(BUILD_ROOT)/vcpkg
+VCPKG_REPO=https://github.com/microsoft/vcpkg.git
+VCPKG_COMMIT_VER=5dc53211caedebf4387d590155ed53ee44161f10
+
+# we won't use these for now (too many boost deps): 
+# -----: libgeotiff libhdfs3 libkml netcdf-c 
+VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib
+
+# windows runtime requires more packages and tools
+# because they are not preinstalled like on linux
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) sqlite3[tool]  curl
+VCPKG_REQUIRE_WIN_STATIC=hdf5 
+
+# the default configuration is static
+# no collisions with sibling libraries in projects
+VCPKG_REQUIRE_UNIX=$(VCPKG_REQUIRE) sqlite3
+VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl
+
+VCPKG_CLEANUP=buildtrees downloads packages installed
+
+VCPKG_INSTALLED = $(VCPKG_ROOT)/installed/$(VCPKG_RID)
+VCPKG_INSTALLED_STATIC = $(VCPKG_ROOT)/installed/$(VCPKG_RID)-static
+VCPKG_INSTALLED_DYNAMIC = $(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
+# triplets
+VPCKG_CUSTOM_TRIPLETS = $(VCPKG_ROOT)/custom-triplets
+VCPKG_TRIPLETS_OVERLAY = --overlay-triplets=$(VCPKG_ROOT)/custom-triplets
+VCPKG_PARAMS_INSTALL = $(VCPKG_TRIPLETS_OVERLAY) --recurse --clean-after-build  
+VCPKG_PARAMS_REMOVE = $(VCPKG_TRIPLETS_OVERLAY) --recurse 
+
+# --------------------- !VCPKG! --------------------
+
+
+# ---------------------- CONFIG ---------------------
+
+PRE=[gdal.netcore]
+
+##### GDAL source extended location
+GDAL_ROOT=$(BUILD_ROOT)/gdal-source/gdal
+BASE_GDAL_=$(GDAL_ROOT)
+
+##### SWIG executable and interface
+BASE_SWIG_=$(BASE_GDAL_)/swig
+BASE_CSHARP_=$(BASE_SWIG_)/csharp
+SWIG_INCLUDE_=$(BASE_SWIG_)/include
+
+##### GDAL build location
+GDAL_BUILD_=$(BUILD_ROOT)/gdal-build
+
+##### PROJ6 libraries path required by gdal
+BASE_PROJ=$(BUILD_ROOT)/proj-build
+
+#### enabling wildcards expand for gdal
+GDAL_SETARGV="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\lib\x64\wsetargv.obj"
+
+##### NUGET output folder
+NUGET_=$(ROOTDIR_)/nuget
+
+### Shared .NET Core Tests
+TEST_DIR=$(ROOTDIR_)/test/GdalCore-XUnit
+
+GIT_CLEAN=git clean -fqdx
+# --------------------- !CONFIG! --------------------
