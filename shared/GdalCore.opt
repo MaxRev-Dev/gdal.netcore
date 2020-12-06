@@ -9,15 +9,15 @@ BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
-GDAL_COMMIT_VER=v3.1.2
+GDAL_COMMIT_VER=v3.2.0
 
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
-PROJ_COMMIT_VER=dd91c93ca44cbe3cf4f6f7c94a8f225aefa4b408
+PROJ_COMMIT_VER=7.2.0
 
 GEOS_ROOT=$(BUILD_ROOT)/geos-source
 GEOS_REPO=https://github.com/libgeos/geos.git 
-GEOS_COMMIT_VER=ff05d9755d189771147acb3105bd9c9cfff730ff
+GEOS_COMMIT_VER=3.9.0beta2
  
 # ---------------------- VCPKG ----------------------
 
