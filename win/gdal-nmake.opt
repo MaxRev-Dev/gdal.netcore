@@ -321,8 +321,9 @@ PNGDIR = $(BUILD_ROOT_VCPKG)\include
 PNG_LIB = $(BUILD_ROOT_VCPKG)\lib\libpng16.lib
 
 # if using an external libtiff library. Must be libtiff >= 4.0
-TIFF_INC =	-I$(BUILD_ROOT_VCPKG)\include
-TIFF_LIB =	$(BUILD_ROOT_VCPKG)\lib\tiff.lib
+# WARN: this was disabled to make sync build with linux
+#TIFF_INC =	-I$(BUILD_ROOT_VCPKG)\include
+#TIFF_LIB =	$(BUILD_ROOT_VCPKG)\lib\tiff.lib
 
 # if using an external libgeotiff library
 #GEOTIFF_INC =   -Ic:/warmerda/libgeotiff -Ic:/warmerda/libgeotiff/libxtiff

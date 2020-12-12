@@ -88,7 +88,7 @@ CFLAGS="-fPIC" \
  --with-libz=${VCPKG_INSTALLED} \
  --with-jpeg=${VCPKG_INSTALLED}  \
  --with-expat=${VCPKG_INSTALLED} \
- --with-libtiff=${VCPKG_INSTALLED} \
+ --with-libtiff=internal \
  --with-xerces=${VCPKG_INSTALLED} \
  --without-cfitsio \
  --without-cryptopp \
@@ -131,7 +131,7 @@ configure_proj:
 	@cd $(PROJ_ROOT) &&	./autogen.sh 
 
 	@cd $(PROJ_ROOT) &&	./configure \
-	--with-curl=$(VCPKG_INSTALLED)/share/curl/curl-config \
+	--with-curl=$(VCPKG_INSTALLED_DYNAMIC)/share/curl/curl-config \
 	--prefix=$(BUILD_ROOT)/proj-build \
 	LIBS="-L$(VCPKG_INSTALLED)/lib -lsqlite3 \
 	 -L$(VCPKG_INSTALLED)/lib -ltiff \

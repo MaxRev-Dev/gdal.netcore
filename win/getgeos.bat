@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion enableextensions
 set back=%cd%
 call %~dp0configvars
 set key=geos
-nmake -f gdal-makefile.vc fetch-geos
+nmake -f makefile.vc fetch-geos
 cd %_buildroot_%/%key%-source
 set bindir=%_buildroot_%/%key%-build
 if exist "%bindir%" rd /s /q "%bindir%"

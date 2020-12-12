@@ -34,6 +34,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
       - [Can't compile on Windows](#q-cant-compile-on-windows)
       - [Can I compile it on Ubuntu or another unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system)
       - [In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
+      - [OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q--osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)
   * [About and Contacts](#about-and-contacts)
 
 
@@ -80,9 +81,9 @@ It's quite tricky. Enter [win](win/) directory to find out how.
 
 ## How to compile on Unix
 
-Current version targets **GDAL 3.1.0** with **minimal drivers**
+Current version targets **GDAL 3.2.0** with **minimal drivers**
 
-Drivers included PROJ6, SQLITE3, GEOS(3.8), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC, CURL
+Drivers included PROJ(7.2.0), SQLITE3, GEOS(3.9.0beta2), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC, CURL
 
 <details>
   <summary>Configure summary of current version</summary>
@@ -185,14 +186,13 @@ Drivers included PROJ6, SQLITE3, GEOS(3.8), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ
 
 ## Building runtime libraries
 
-Current version is targeting GDAL 3.1.0 version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdalcore package) are build from **linux**.
+Current version is targeting **GDAL 3.2.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdalcore package) are build from **linux**.
 
 To make everything work smoothly, each configuration targets same drivers and their versions respectively.
 
-- Configuration files of unix runtime - `unix/GdalCore.opt`
-- Configuration of windows runtime - `win/CONFIGVARS.bat`
-- - Patched configuration - `win/presource/gdal-nmake.opt` 
-  - Patched makefile - `win/presource/gdal-makefile.vc`
+- After **VCPKG** integration finished  configuration is shared between runtimes - `shared/GdalCore.opt`
+- Overrides for `nmake.opt` on windows - `win/presource/gdal-nmake.opt` 
+- Patched makefile - `win/presource/gdal-makefile.vc`
 
 To build for a specific runtime, see the **README.md** in respective directory.
 
@@ -205,16 +205,11 @@ To build for a specific runtime, see the **README.md** in respective directory.
 
 ### Packaging
 
-1. I'm using debian for example:
+1. I'm using [CentOS 7](https://docs.microsoft.com/en-us/dotnet/core/install/linux-centos#centos-7-) for example:
 
 ```bash
-wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.asc.gpg
-sudo mv microsoft.asc.gpg /etc/apt/trusted.gpg.d/
-wget -q https://packages.microsoft.com/config/debian/9/prod.list
-sudo mv prod.list /etc/apt/sources.list.d/microsoft-prod.list
-sudo chown root:root /etc/apt/trusted.gpg.d/microsoft.asc.gpg
-sudo chown root:root /etc/apt/sources.list.d/microsoft-prod.list
-sudo apt-get install apt-transport-https && apt-get update && apt-get install dotnet-sdk-2.2
+rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+sudo apt-get install apt-transport-https && apt-get update && apt-get install dotnet-sdk-5.0
 ```
 
 2. And then just 
@@ -249,6 +244,10 @@ A: The main reason I'm compiling it on CentOS - glibc of version 2.17. It's the 
 
 A: Use of [older version](https://github.com/MaxRev-Dev/gdal.netcore/issues/1) of GLIBC might be [a reason](https://github.com/MaxRev-Dev/gdal.netcore/issues/6). But It's not a fault of build engine.
 
+#### Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception
+
+A: That's a problem with swig bindings. Please, use **SpatialReference** type from **OSR** namespace. More info [here](https://github.com/MaxRev-Dev/gdal.netcore/issues/2#issuecomment-539716268) and [here](https://github.com/MaxRev-Dev/gdal.netcore/issues/11#issuecomment-651465581).
+
 
 ## About and Contacts
 
@@ -257,3 +256,4 @@ based on https://github.com/OSGeo/gdal && https://github.com/jgoday/gdal
 Contact me: [Telegram - MaxRev](http://t.me/maxrev)
 
 Enjoy!
+

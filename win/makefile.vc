@@ -100,7 +100,7 @@ packdev: hostfix31
 
 test: 
 	cd $(TEST_DIR)
-	dotnet add package MaxRev.Gdal.Core -s $(NUGET_)
 	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) 
+	dotnet add package MaxRev.Gdal.Core -s $(NUGET_)
 	dotnet test
 	cd $(MAKEDIR)
