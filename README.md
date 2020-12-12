@@ -1,6 +1,6 @@
 # gdal.netcore
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.1 library for [.NET Core](https://dotnet.microsoft.com/download). 
+A simple (as is) build engine of [GDAL](https://gdal.org/) 3.2 library for [.NET Core](https://dotnet.microsoft.com/download). 
 
 ## Packages
 
