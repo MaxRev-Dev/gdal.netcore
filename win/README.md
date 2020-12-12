@@ -31,16 +31,16 @@ In this folder you can find bat scripts to fetch sources and build some GDAL dri
 
 1. `init.bat` - calls initializer **vcvars64.bat**
 2. `nmake -f vcpkg-makefile.vc` - installs libraries specified in `GdalCore.opt` .
-3. `nmake build-proj` - configures and builds PROJ
-4. `nmake build-geos` - configures and builds GEOS
-5. `nmake build-gdal` - configures and builds GDAL
-6. `nmake collect interface` - generates bindings and creates packages
+3. `nmake -f makefile.vc build-proj` - configures and builds PROJ
+4. `nmake -f makefile.vc build-geos` - configures and builds GEOS
+5. `nmake -f makefile.vc build-gdal` - configures and builds GDAL
+6. `nmake -f makefile.vc collect interface` - generates bindings and creates packages
 
 
    Optional (build PCL)
 
-6. `nmake pack` - generates bindings and creates packages
-7. `nmake test` - run tests for created packages
+6. `nmake -f makefile.vc pack` - generates bindings and creates packages
+7. `nmake -f makefile.vc test` - run tests for created packages
 
 And finally.
 
