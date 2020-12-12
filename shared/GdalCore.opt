@@ -27,7 +27,8 @@ VCPKG_COMMIT_VER=5dc53211caedebf4387d590155ed53ee44161f10
 
 # we won't use these for now (too many boost deps): 
 # -----: libgeotiff libhdfs3 libkml netcdf-c 
-VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib
+# tiff was disabled (gdal on linux can't link v3.2.0) 
+VCPKG_REQUIRE=expat xerces-c libpng libiconv zlib
 
 # windows runtime requires more packages and tools
 # because they are not preinstalled like on linux
