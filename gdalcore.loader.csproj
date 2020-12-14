@@ -13,7 +13,7 @@
     <RepositoryType>git</RepositoryType>  
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.2.0.100</Version>
+    <Version>3.2.0.110</Version>
     <Description>GDAL (3.2.0) bindings for dotnet core (now linux-x64 and win-x64).
 Bridge between gdal and netcore.
 Use dependency package for target runtime to get drivers.
@@ -25,7 +25,8 @@ Just call - GdalBase.ConfigureAll()
     <PackageReleaseNotes>
 - built on CentOS 7 (glibc - 2.17) 
 - GDAL Version 3.2.0
-- built with vcpkg</PackageReleaseNotes>
+- built with vcpkg
+- rebuilt broken linux bindings</PackageReleaseNotes>
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   
