@@ -13,9 +13,9 @@ namespace GdalCore_XUnit
     public class CommonTests
     {
         private readonly ITestOutputHelper _outputHelper;
-		private readonly string _tiffSample = "sample_1mb.tiff";
-		
-		public CommonTests(ITestOutputHelper outputHelper)
+        private readonly string _tiffSample = "sample_1mb.tiff";
+
+        public CommonTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
             GdalBase.ConfigureAll();
@@ -49,10 +49,10 @@ namespace GdalCore_XUnit
 
         }
 
-		[Fact]
-		public void GetProjString()
+        [Fact]
+        public void GetProjString()
         { 
-			var sample = Path.Combine(GetTestDataFolder("samples"), _tiffSample);
+            var sample = Path.Combine(GetTestDataFolder("samples"), _tiffSample);
             using var dataset = Gdal.Open(sample, Access.GA_ReadOnly);
 
             string wkt = dataset.GetProjection();
@@ -64,7 +64,7 @@ namespace GdalCore_XUnit
             Assert.NotNull(projString);
         }
 
-		
+
         private static string GetTestDataFolder(string testDataFolder)
         {
             var startupPath = AppContext.BaseDirectory;
