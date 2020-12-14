@@ -134,7 +134,11 @@ packdev: packdc packdr
 	
 
 ###	Testing linux libraries (from nuget build output)
-test:  
+test-update-packages:
 	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core -s $(NUGET_) ) 
 	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_) )
+run-tests:
 	(cd $(TEST_DIR) && dotnet test)
+
+test: test-update-packages run-tests
+	exit 0
