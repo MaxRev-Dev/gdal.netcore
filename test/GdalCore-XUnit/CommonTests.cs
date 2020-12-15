@@ -1,13 +1,19 @@
+using System;
+using System.IO;
 using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
+using OSGeo.OSR;
 using Xunit;
 using Xunit.Abstractions;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GdalCore_XUnit
 {
     public class CommonTests
     {
         private readonly ITestOutputHelper _outputHelper;
+        private readonly string _tiffSample = "sample_1mb.tiff";
 
         public CommonTests(ITestOutputHelper outputHelper)
         {
@@ -41,6 +47,32 @@ namespace GdalCore_XUnit
                 Assert.NotNull(driverByName);
             }
 
+        }
+
+        [Fact]
+        public void GetProjString()
+        { 
+            var sample = Path.Combine(GetTestDataFolder("samples"), _tiffSample);
+            using var dataset = Gdal.Open(sample, Access.GA_ReadOnly);
+
+            string wkt = dataset.GetProjection();
+
+            using var spatialReference = new SpatialReference(wkt);
+
+            spatialReference.ExportToProj4(out string projString);
+
+            Assert.False(string.IsNullOrWhiteSpace(projString));
+        }
+
+
+        private static string GetTestDataFolder(string testDataFolder)
+        {
+            var startupPath = AppContext.BaseDirectory;
+            var pathItems = startupPath.Split(Path.DirectorySeparatorChar);
+            var pos = pathItems.Reverse().ToList().FindIndex(x => string.Equals("bin", x));
+            var projectPath = string.Join(Path.DirectorySeparatorChar.ToString(),
+                pathItems.Take(pathItems.Length - pos - 1));
+            return Path.Combine(projectPath, testDataFolder);
         }
     }
 }
