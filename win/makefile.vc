@@ -77,13 +77,17 @@ interface:
 	$(MAKE) /f gdal-makefile.vc interface
 	$(MAKE) /f gdal-makefile.vc 
 
-collect:
+collect: copyprojdb
 	$(COPY) "$(VCPKG_INSTALLED)/bin/*.dll" "$(OUTPUT)\"
 	$(COPY) "$(BUILD_ROOT)\libshared\bin" "$(OUTPUT)\"
 	$(COPY) "$(BUILD_ROOT)\gdal-build\bin\gdalplugins" "$(OUTPUT)\gdalplugins\"
 	$(COPY) "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\*.dll" "$(OUTPUT)\"
 	
 	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" ) 
+
+copyprojdb:
+	$(COPY) "$(BASE_PROJ)/share/proj/proj.db" "$(LIBSHARED)\"
+
 veryclean:
 	$(MAKE) -f vcpkg-makefile.vc build_cleanup
 	$(MAKE) -f gdal-makefile.vc clean
@@ -98,9 +102,16 @@ pack: hostfix31
 packdev: hostfix31
 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
 
-test: 
-	cd $(TEST_DIR)
+test-restore:
+	-cd $(TEST_DIR)
 	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) 
 	dotnet add package MaxRev.Gdal.Core -s $(NUGET_)
+	-cd $(MAKEDIR)
+
+test-only: 
+	-cd $(TEST_DIR)
 	dotnet test
-	cd $(MAKEDIR)
+	-cd $(MAKEDIR)
+
+test: test-restore test-only
+	

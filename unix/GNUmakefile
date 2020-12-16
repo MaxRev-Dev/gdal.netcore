@@ -56,7 +56,7 @@ $(CSHARP_MODULES): lib%csharp.$(SO_EXT): %_wrap.$(OBJ_EXT)
 link_so:
 	$(echo ok $< && patchelf --set-rpath '$$ORIGIN' $<)
 
-linkall: clean_runtimes initdirs copygdalout makesolocal copyalldepso 
+linkall: clean_runtimes initdirs copygdalout makesolocal copyalldepso copyprojdb
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
 	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN' $(lib); fi;${\n})
 	@echo "Libraries patched successfully"
@@ -103,6 +103,10 @@ makesolocal:
 	
 copyalldepso:
 	ldd $(BUILD_BASE_LIB)/libgdal.so | grep "=> /" | awk '{print $$3}' | xargs -I {} cp -v {} $(OUTPUT) 
+	
+copyprojdb:
+	-mkdir -p $(LIBSHARED)
+	cp -f $(BASE_PROJ)/share/proj/proj.db $(LIBSHARED)
 
 gdal_csharp: 
 	$(MAKE) linkall
@@ -134,11 +138,10 @@ packdev: packdc packdr
 	
 
 ###	Testing linux libraries (from nuget build output)
-test-update-packages:
+test-restore:
 	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core -s $(NUGET_) ) 
 	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_) )
-run-tests:
+test-only:
 	(cd $(TEST_DIR) && dotnet test)
-
-test: test-update-packages run-tests
-	exit 0
+	
+test: test-restore test-only

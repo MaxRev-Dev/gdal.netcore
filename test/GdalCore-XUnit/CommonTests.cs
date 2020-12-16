@@ -12,8 +12,7 @@ namespace GdalCore_XUnit
 {
     public class CommonTests
     {
-        private readonly ITestOutputHelper _outputHelper;
-        private readonly string _tiffSample = "sample_1mb.tiff";
+        private readonly ITestOutputHelper _outputHelper; 
 
         public CommonTests(ITestOutputHelper outputHelper)
         {
@@ -49,11 +48,11 @@ namespace GdalCore_XUnit
 
         }
 
-        [Fact]
-        public void GetProjString()
-        { 
-            var sample = Path.Combine(GetTestDataFolder("samples"), _tiffSample);
-            using var dataset = Gdal.Open(sample, Access.GA_ReadOnly);
+        [Theory]
+        [MemberData(nameof(ValidTestData))]
+        public void GetProjString(string file)
+        {
+            using var dataset = Gdal.Open(file, Access.GA_ReadOnly);
 
             string wkt = dataset.GetProjection();
 
@@ -61,7 +60,7 @@ namespace GdalCore_XUnit
 
             spatialReference.ExportToProj4(out string projString);
 
-            Assert.NotNull(projString);
+            Assert.False(string.IsNullOrWhiteSpace(projString));
         }
 
 
@@ -73,6 +72,14 @@ namespace GdalCore_XUnit
             var projectPath = string.Join(Path.DirectorySeparatorChar.ToString(),
                 pathItems.Take(pathItems.Length - pos - 1));
             return Path.Combine(projectPath, testDataFolder);
+        }
+
+        public static IEnumerable<object[]> ValidTestData
+        {
+            get {
+                var names = Directory.EnumerateFiles(GetTestDataFolder("samples"), "*_valid.tif");
+                return names.Select(x => new[] { x });
+            }
         }
     }
 }
