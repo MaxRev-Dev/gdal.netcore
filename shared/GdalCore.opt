@@ -58,6 +58,9 @@ VCPKG_PARAMS_REMOVE = $(VCPKG_TRIPLETS_OVERLAY) --recurse
 
 PRE=[gdal.netcore]
 
+__libshared=maxrev.gdal.core.libshared
+LIBSHARED=$(ROOTDIR_)/$(__libshared)/$(RID)/$(__libshared)
+
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source/gdal
 BASE_GDAL_=$(GDAL_ROOT)

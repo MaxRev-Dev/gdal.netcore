@@ -6,3 +6,6 @@
 BASE=$(PWD)
 BASE_RUNTIME_RID=unix
 VCPKG_RID=x64-linux
+
+# .NET RID
+RID=linux-x64

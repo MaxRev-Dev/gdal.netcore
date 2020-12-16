@@ -6,3 +6,6 @@
 BASE=$(MAKEDIR)
 BASE_RUNTIME_RID=win
 VCPKG_RID=x64-windows
+
+# .NET RID
+RID=win-x64

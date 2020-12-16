@@ -12,7 +12,7 @@ namespace GdalCore_XUnit
 {
     public class CommonTests
     {
-        private readonly ITestOutputHelper _outputHelper;
+        private readonly ITestOutputHelper _outputHelper; 
 
         public CommonTests(ITestOutputHelper outputHelper)
         {

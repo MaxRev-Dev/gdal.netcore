@@ -10,10 +10,9 @@
     <PackageId>MaxRev.Gdal.Core</PackageId>
     <PackageTags>gdal;netcore;docker</PackageTags>    
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryType>git</RepositoryType>  
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <RepositoryType>git</RepositoryType>   
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.2.0.100</Version>
+    <Version>3.2.0.200</Version>
     <Description>GDAL (3.2.0) bindings for dotnet core (now linux-x64 and win-x64).
 Bridge between gdal and netcore.
 Use dependency package for target runtime to get drivers.
@@ -25,7 +24,8 @@ Just call - GdalBase.ConfigureAll()
     <PackageReleaseNotes>
 - built on CentOS 7 (glibc - 2.17) 
 - GDAL Version 3.2.0
-- built with vcpkg</PackageReleaseNotes>
+- built with vcpkg
+- PROJ.DB now ships with target runtime</PackageReleaseNotes>
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
   
@@ -40,28 +40,19 @@ Just call - GdalBase.ConfigureAll()
 </PropertyGroup>
 
 <ItemGroup>
-  <Compile Remove="./*.cs" />
   <None Remove="build-win/**" />
   <None Remove="build-unix/**" />
-  <Compile Remove="test\**" />
-  <None Remove="./*.cs" />
-  <None Remove="build-win/**" />
-  <None Remove="build-unix/**" />
+  <None Remove="./*.cs" /> 
   <None Remove="build/**" />
-  <Compile Remove="build/**" />
+  <None Remove="test/**" />
   <Compile Remove="./*.cs" />
+  <Compile Remove="build/**" />
+  <Compile Remove="test/**" /> 
   <Compile Remove="build-win/**" />
   <Compile Remove="build-unix/**" />
-  <EmbeddedResource Remove="test\**" />
-  <None Remove="test\**" />
-  <Content Include="maxrev.gdal.core.libshared/**">
-      <Pack>true</Pack>
-      <CopyToOutput>true</CopyToOutput>
-      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <PackageCopyToOutput>true</PackageCopyToOutput> 
-  </Content>
+  <EmbeddedResource Remove="test/**" />
  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2">
       <PrivateAssets>all</PrivateAssets>

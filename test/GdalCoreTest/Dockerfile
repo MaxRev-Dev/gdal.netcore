@@ -1,9 +1,9 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1
+FROM mcr.microsoft.com/dotnet/sdk:5.0
 
 WORKDIR /src
 COPY ["GdalCoreTest/GdalCoreTest.csproj", "GdalCoreTest/"]
-COPY ./nuget/ ./GdalCoreTest/nuget
-RUN dotnet restore "GdalCoreTest/GdalCoreTest.csproj"  -s ./nuget -s "https://api.nuget.org/v3/index.json"
+COPY nuget nuget
+RUN dotnet restore "GdalCoreTest/GdalCoreTest.csproj"  -s ../nuget -s "https://api.nuget.org/v3/index.json"
 COPY . .
 
 WORKDIR "/src/GdalCoreTest"
