@@ -17,7 +17,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v1.7.2
         with:
-          dotnet-version: 5.0
+          dotnet-version: 3.1
       - name: Run tests from nuget packages
         run: |
-          dotnet test tests/GdalCore-XUnit.csproj
+          dotnet test test/GdalCore-XUnit/GdalCore-XUnit.csproj -s nuget.org

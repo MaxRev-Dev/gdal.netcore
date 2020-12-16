@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <RootNamespace>GdalCore_XUnit</RootNamespace>
     <NoWarn>NU1605</NoWarn>
     <IsPackable>false</IsPackable>
