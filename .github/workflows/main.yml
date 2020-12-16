@@ -20,4 +20,4 @@ jobs:
           dotnet-version: 3.1
       - name: Run tests from nuget packages
         run: |
-          dotnet test test/GdalCore-XUnit/GdalCore-XUnit.csproj -s nuget.org
+          dotnet test test/GdalCore-XUnit/GdalCore-XUnit.csproj
