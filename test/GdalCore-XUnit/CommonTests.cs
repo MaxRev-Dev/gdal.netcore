@@ -64,6 +64,17 @@ namespace GdalCore_XUnit
         }
 
 
+        [Theory]
+        [MemberData(nameof(ValidTestData))]
+        public void GetGdalInfo(string file)
+        {
+            using var inputDataset = Gdal.Open(file, Access.GA_ReadOnly);
+
+            var info = Gdal.GDALInfo(inputDataset, new GDALInfoOptions(null));
+
+            Assert.NotNull(info);
+        }
+
         private static string GetTestDataFolder(string testDataFolder)
         {
             var startupPath = AppContext.BaseDirectory;
