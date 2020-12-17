@@ -1,12 +1,12 @@
-using System;
-using System.IO;
 using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
 using OSGeo.OSR;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace GdalCore_XUnit
 {
@@ -17,7 +17,7 @@ namespace GdalCore_XUnit
         public CommonTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            GdalBase.ConfigureAll();
+            GdalBase.ConfigureAll();  
         }
 
         [Fact]
