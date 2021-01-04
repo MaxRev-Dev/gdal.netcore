@@ -11,7 +11,7 @@ ifeq ($(RID),)
 RID=linux-x64
 endif
 
-BUILD_BASE_LIB=$(realpath $(GDAL_BUILD_)/lib)
+BUILD_BASE_LIB=$(GDAL_BUILD_)/lib
 GDAL_SO_VER_=so.$(LIBGDAL_CURRENT)
 
 # suppress warnings..
@@ -35,9 +35,9 @@ LINK_EXTRAFLAGS = -no-undefined -version-info $(LIBGDAL_CURRENT):$(LIBGDAL_REVIS
 OBJ_EXT = lo
 endif
 
-OUTPUT = $(realpath $(ROOTDIR_)/runtimes/$(RID)/native)
+OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
 
-BUILD_BASE =  $(realpath $(BASE))
+BUILD_BASE =  $(BASE)
 CSHARP_MODULES = libgdalcsharp.$(SO_EXT) libogrcsharp.$(SO_EXT) libgdalconstcsharp.$(SO_EXT) libosrcsharp.$(SO_EXT)
 CSHARP_OBJECTS = $(BUILD_BASE)/const/gdalconst_wrap.$(OBJ_EXT) $(BUILD_BASE)/gdal/gdal_wrap.$(OBJ_EXT) $(BUILD_BASE)/osr/osr_wrap.$(OBJ_EXT) $(BUILD_BASE)/ogr/ogr_wrap.$(OBJ_EXT)
 
@@ -76,7 +76,7 @@ veryclean: clean
 	(cd $(PWD) && rm -f -R *.so *.o ./*.cs gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs *.c *.cpp .libs/ const/ ogr/ osr/ gdal/ obj/ runtimes/ bin/)
 	
 cleangdal:
-	(cd $(BASE_GDAL_) && git clean -fdxq)
+	(cd $(BUILD_BASE) && git clean -fdxq)
 	
 cleanpackages:
 	(cd $(PWD) && rm -f -R $(NUGET_))
@@ -138,10 +138,15 @@ packdev: packdc packdr
 	
 
 ###	Testing linux libraries (from nuget build output)
-test-restore:
+test-update:
 	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core -s $(NUGET_) ) 
 	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_) )
-test-only:
+
+###	Testing linux libraries (from nuget build output)
+test-restore:
+	(cd $(TEST_DIR) && dotnet restore -s $(NUGET_) )  
+
+test-only: test-restore
 	(cd $(TEST_DIR) && dotnet test)
 	
-test: test-restore test-only
+test: test-update test-only

@@ -1,4 +1,4 @@
-# gdal.netcore
+# gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) ![Packages CI](https://github.com/MaxRev-Dev/gdal.netcore/workflows/CI/badge.svg?branch=master)
 
 A simple (as is) build engine of [GDAL](https://gdal.org/) 3.2 library for [.NET Core](https://dotnet.microsoft.com/download). 
 
@@ -13,30 +13,30 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 ## Table Of Contents
 
 - [gdal.netcore](#gdalnetcore)
-  * [Table Of Contents](#table-of-contents)
   * [Packages](#packages)
+  * [Table Of Contents](#table-of-contents)
   * [About this library](#about-this-library)
     + [What is this library](#what-is-this-library)
     + [What is not](#what-is-not)
   * [How to use](#how-to-use)
   * [How to compile on Windows](#how-to-compile-on-windows)
   * [How to compile on Unix](#how-to-compile-on-unix)
-    
-    + [Prerequisites](#prerequisites)
+  * [About build configuration](#about-build-configuration)
   * [Building runtime libraries](#building-runtime-libraries)
   * [Building Nuget Packages](#building-nuget-packages)
-    + [Prerequisites](#prerequisites-1)
+    + [Prerequisites](#prerequisites)
     + [Packaging](#packaging)
   * [FAQ](#faq)
-      - [Missing {some} drivers, can you add more?](#q-missing-some-drivers-can-you-add-more)
-      - [GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
-      - [Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
-      - [Can't compile on Windows](#q-cant-compile-on-windows)
-      - [Can I compile it on Ubuntu or another unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system)
-      - [In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
-      - [OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q--osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)
+      - [Q: Missing {some} drivers, can you add more?](#q-missing--some--drivers--can-you-add-more-)
+      - [Q: GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
+      - [Q: Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
+      - [Q: Can't compile on Windows](#q-can-t-compile-on-windows)
+      - [Q: Can I compile it on Ubuntu or another Unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system-)
+      - [Q: In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
+      - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)
   * [About and Contacts](#about-and-contacts)
 
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ## About this library
 
@@ -77,13 +77,17 @@ GdalBase.ConfigureAll();
 
 ## How to compile on Windows
 
-It's quite tricky. Enter [win](win/) directory to find out how.
+Enter [win](win/) directory to find out how.
 
 ## How to compile on Unix
 
+Detailed guide is here - [unix](unix/).
+
+## About build configuration
+
 Current version targets **GDAL 3.2.0** with **minimal drivers**
 
-Drivers included PROJ(7.2.0), SQLITE3, GEOS(3.9.0beta2), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC, CURL
+Drivers included PROJ(7.2.0), SQLITE3, GEOS(3.9.0), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC, CURL
 
 <details>
   <summary>Configure summary of current version</summary>
@@ -190,7 +194,7 @@ Current version is targeting **GDAL 3.2.0** version. Each runtime has to be buil
 
 To make everything work smoothly, each configuration targets same drivers and their versions respectively.
 
-- After **VCPKG** integration finished  configuration is shared between runtimes - `shared/GdalCore.opt`
+- After **VCPKG** integration finished, configuration is shared between runtimes - `shared/GdalCore.opt`
 - Overrides for `nmake.opt` on windows - `win/presource/gdal-nmake.opt` 
 - Patched makefile - `win/presource/gdal-makefile.vc`
 
@@ -200,7 +204,7 @@ To build for a specific runtime, see the **README.md** in respective directory.
 
 ### Prerequisites
 
-1. Install [.NET Core SDK](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install)  and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages
+1. Install [.NET Core SDK](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install)  (3.1 or 5.0) and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages
 2. You have already built everything 
 
 ### Packaging
