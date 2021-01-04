@@ -15,9 +15,9 @@ In this folder you can find bat scripts to fetch sources and build some GDAL dri
 
 1. [Visual Studio Build Tools (with ATL)](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16). Recommended versions - vs15.6 (2017) and vs16.5(2019) (**nmake** and to retarget **libpng** to v142 toolset)
 
-2. [CMake](https://cmake.org/download/) and MinGW-w64 must be installed and available in PATH. I'm using [x86_x64_posix_seh](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-posix/seh/x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z) (required almost all drivers)
+2. [CMake](https://cmake.org/download/) and **MinGW-w64** must be installed and available in PATH. I'm using [x86_x64_posix_seh](https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-posix/seh/x86_64-8.1.0-release-posix-seh-rt_v6-rev0.7z)
 
-3. [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet/5.0)  and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages
+3. [.NET Core SDK](https://dotnet.microsoft.com/download/dotnet/5.0) and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages
 
 6. Check build-output folders in **gdal-nmake.opt**. For example: 
 
@@ -31,10 +31,8 @@ In this folder you can find bat scripts to fetch sources and build some GDAL dri
 
 1. `init.bat` - calls initializer **vcvars64.bat**
 2. `nmake -f vcpkg-makefile.vc` - installs libraries specified in `GdalCore.opt` .
-3. `nmake -f makefile.vc build-proj` - configures and builds PROJ
-4. `nmake -f makefile.vc build-geos` - configures and builds GEOS
-5. `nmake -f makefile.vc build-gdal` - configures and builds GDAL
-6. `nmake -f makefile.vc collect interface` - generates bindings and creates packages
+3. `nmake -f makefile.vc` - builds default targets
+4. `nmake -f makefile.vc build-pack` - generates bindings and creates packages
 
 
    Optional (build PCL)
