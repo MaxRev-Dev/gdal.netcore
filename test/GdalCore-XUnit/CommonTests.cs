@@ -1,6 +1,7 @@
 using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
-using OSGeo.OSR; 
+using OSGeo.OGR;
+using OSGeo.OSR;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,12 +13,12 @@ namespace GdalCore_XUnit
 {
     public class CommonTests
     {
-        private readonly ITestOutputHelper _outputHelper; 
+        private readonly ITestOutputHelper _outputHelper;
 
         public CommonTests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
-            GdalBase.ConfigureAll();  
+            GdalBase.ConfigureAll();
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace GdalCore_XUnit
 
             string wkt = dataset.GetProjection();
 
-            using var spatialReference = new SpatialReference(wkt);
+            using var spatialReference = new OSGeo.OSR.SpatialReference(wkt);
 
             spatialReference.ExportToProj4(out string projString);
 
@@ -67,7 +68,7 @@ namespace GdalCore_XUnit
         [Theory]
         [MemberData(nameof(ValidTestData))]
         public void GetGdalInfoRaster(string file)
-        {           
+        {
             using var inputDataset = Gdal.Open(file, Access.GA_ReadOnly);
 
             var info = Gdal.GDALInfo(inputDataset, new GDALInfoOptions(null));
@@ -81,14 +82,27 @@ namespace GdalCore_XUnit
         public void GetGdalInfoVector(string file)
         {
             var f = OSGeo.OGR.Ogr.Open(file, 0);
-            
+
             Assert.NotNull(f);
-            
+
             for (var i = 0; i < f.GetLayerCount(); i++)
             {
                 Assert.NotNull(f.GetLayerByIndex(i));
             }
         }
+        
+        [Fact]
+        public void GdalDoesNotFailOnMakeValid()
+        {
+            var wkt = _staticWkt;
+            var geom = Geometry.CreateFromWkt(wkt);
+            Assert.False(geom.IsValid());
+            var valid = geom.MakeValid();
+            Assert.True(valid.IsValid());
+        }
+
+        private string _staticWkt =
+                "POLYGON((8.39475541866082 18.208975124406155,24.390849168660818 39.41962323304138,43.19944291866082 27.430752179449893,3.9123335436608198 22.736137385695233,8.39475541866082 18.208975124406155))";
 
         private static string GetTestDataFolder(string testDataFolder)
         {
@@ -102,15 +116,17 @@ namespace GdalCore_XUnit
 
         public static IEnumerable<object[]> ValidTestData
         {
-            get {
+            get
+            {
                 var names = Directory.EnumerateFiles(GetTestDataFolder("samples-raster"), "*_valid.tif");
                 return names.Select(x => new[] { x });
             }
         }
-        
+
         public static IEnumerable<object[]> ValidTestDataVector
         {
-            get {
+            get
+            {
                 var names = Directory.EnumerateFiles(GetTestDataFolder("samples-vector"), "*.shp");
                 return names.Select(x => new[] { x });
             }
