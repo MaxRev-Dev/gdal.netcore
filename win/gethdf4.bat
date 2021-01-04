@@ -17,16 +17,16 @@ if exist "%bindir%" rd /s /q "%bindir%"
 if not exist build mkdir build
 cd build
 
-cmake -S .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON^
+cmake -S ..  -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_SHARED_LIBS=ON^
  -DHDF_CFG_NAME=Release^
  -DJPEG_LIBRARY=%LIBRARIES%/lib/jpeg.lib^
  -DJPEG_DIR=%LIBRARIES%^
  -DJPEG_INCLUDE_DIR=%LIBRARIES%/include^
  -DZLIB_LIBRARY=%LIBRARIES%/lib/zlib.lib^
- -DZLIB_INCLUDE_DIR=%LIBRARIES%/include^ 
- -DHDF4_BUILD_FORTRAN=OFF 
-cmake --build . --config Release
-cmake --install . --prefix %key%-build
+ -DZLIB_INCLUDE_DIR=%LIBRARIES%/include^
+ -DHDF4_BUILD_FORTRAN:BOOL=OFF || goto :error
+cmake --build . --config Release || goto :error
+cmake --install . --prefix %key%-build || goto :error
 move /Y %key%-build %bindir%/..
 
 call  %__%\copyrecursive %bindir%
@@ -34,3 +34,8 @@ call  %__%\copyrecursive %bindir%
 if defined _rmsource_ rd /s /q %_buildroot_%/%key%-source
 cd %back%
 echo %key% installation complete!
+goto :EOF
+
+:error
+echo Failed with error #%errorlevel%.
+exit /b %errorlevel%
