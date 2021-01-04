@@ -17,7 +17,7 @@ PROJ_COMMIT_VER=7.2.0
 
 GEOS_ROOT=$(BUILD_ROOT)/geos-source
 GEOS_REPO=https://github.com/libgeos/geos.git 
-GEOS_COMMIT_VER=3.9.0beta2
+GEOS_COMMIT_VER=3.9.0
  
 # ---------------------- VCPKG ----------------------
 
@@ -67,7 +67,7 @@ GDAL_ROOT_BASE=$(BUILD_ROOT)/gdal-source
 GDAL_ROOT=$(GDAL_ROOT_BASE)/gdal
 
 ##### SWIG executable and interface
-BASE_SWIG_=$(BASE_GDAL_)/swig
+BASE_SWIG_=$(GDAL_ROOT)/swig
 BASE_CSHARP_=$(BASE_SWIG_)/csharp
 SWIG_INCLUDE_=$(BASE_SWIG_)/include
 

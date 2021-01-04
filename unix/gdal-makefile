@@ -57,11 +57,12 @@ clone_%:
 	fi;
 	
 clone_gdal:
-	@if [ ! -d "$(GDAL_ROOT_BASE)" ]; then \
+	@if [ ! -d "$(BASE_SWIG_)" ]; then \ 
 		git clone $(GDAL_REPO) $(GDAL_ROOT_BASE); \
 	fi;
 
 init_%: clone_%
+	exit 0;
 	@echo "$(TO) Restoring $(LW) sources version to $($(UP)_COMMIT_VER)"
 	@echo "$(TO) Checking for remote changes..." 
 	@cd $($(UP)_ROOT) && git fetch

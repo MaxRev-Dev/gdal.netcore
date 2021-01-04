@@ -5,7 +5,7 @@
 OUTPUT = $(ROOTDIR_)\runtimes\win-x64\native
 COPY = xcopy /y /r /d /f /I
 
-TARGETS = proj geos gdal
+TARGETS = hdf4 proj geos gdal
 all: $(TARGETS) build collect interface pack
 
 $(TARGETS): build-$@
@@ -63,6 +63,11 @@ build-geos:
 	call getgeos.bat
 	@echo $(PRE) GEOS was built successfully!
 
+build-hdf4: 
+	@echo $(PRE) building HDF4...
+	call gethdf4.bat
+	@echo $(PRE) HDF4 was built successfully!
+
 build-gdal: configure-gdal
 	@echo $(PRE) building GDAL...
 	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc MSVC_VER=1920 WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
@@ -71,8 +76,10 @@ build-gdal: configure-gdal
 
 build: pre-vcpkg build-gdal
 	
-build-gdal-only: build-gdal collect interface pack
-	
+build-pack: collect interface pack
+
+build-gdal-only: build-gdal build-pack
+
 interface:
 	$(MAKE) /f gdal-makefile.vc interface
 	$(MAKE) /f gdal-makefile.vc 
@@ -102,16 +109,21 @@ pack: hostfix31
 packdev: hostfix31
 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
 
-test-restore:
+test-update:
 	-cd $(TEST_DIR)
 	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) 
 	dotnet add package MaxRev.Gdal.Core -s $(NUGET_)
 	-cd $(MAKEDIR)
 
-test-only: 
+test-restore:
+	-cd $(TEST_DIR)
+	dotnet restore -s $(NUGET_) 
+	-cd $(MAKEDIR)
+
+test-only: test-restore
 	-cd $(TEST_DIR)
 	dotnet test
 	-cd $(MAKEDIR)
 
-test: test-restore test-only
+test: test-update test-only
 	
