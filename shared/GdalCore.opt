@@ -29,7 +29,7 @@ VCPKG_COMMIT_VER=5dc53211caedebf4387d590155ed53ee44161f10
 # -----: libgeotiff libhdfs3 libkml netcdf-c 
 # tiff was disabled (gdal on linux can't link v3.2.0) 
 # but tiff is still required by proj
-VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib
+VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv libpq zlib
 
 # windows runtime requires more packages and tools
 # because they are not preinstalled like on linux
