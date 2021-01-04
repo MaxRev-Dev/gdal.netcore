@@ -51,11 +51,17 @@ else
 	@echo "$(PRE) Can not make $(REP)"
 endif 
 
-
-init_%: 
+clone_%:
 	@if [ ! -d "$($(UP)_ROOT)" ]; then \
 		git clone $($(UP)_REPO) $($(UP)_ROOT); \
 	fi;
+	
+clone_gdal:
+	@if [ ! -d "$(GDAL_ROOT_BASE)" ]; then \
+		git clone $(GDAL_REPO) $(GDAL_ROOT_BASE); \
+	fi;
+
+init_%: clone_%
 	@echo "$(TO) Restoring $(LW) sources version to $($(UP)_COMMIT_VER)"
 	@echo "$(TO) Checking for remote changes..." 
 	@cd $($(UP)_ROOT) && git fetch

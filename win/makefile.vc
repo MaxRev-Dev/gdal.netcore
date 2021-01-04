@@ -18,7 +18,7 @@ pre-vcpkg:
 fetch-gdal:
 	@echo $(PRE) Fetching GDAL sources...
 !IF !EXISTS($(GDAL_ROOT))
-    git clone $(GDAL_REPO) $(GDAL_ROOT)
+    git clone $(GDAL_REPO) $(GDAL_ROOT_BASE)
 !ENDIF
 	cd $(GDAL_ROOT)
 	git fetch

@@ -28,7 +28,8 @@ VCPKG_COMMIT_VER=5dc53211caedebf4387d590155ed53ee44161f10
 # we won't use these for now (too many boost deps): 
 # -----: libgeotiff libhdfs3 libkml netcdf-c 
 # tiff was disabled (gdal on linux can't link v3.2.0) 
-VCPKG_REQUIRE=expat xerces-c libpng libiconv zlib
+# but tiff is still required by proj
+VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib
 
 # windows runtime requires more packages and tools
 # because they are not preinstalled like on linux
@@ -62,8 +63,8 @@ __libshared=maxrev.gdal.core.libshared
 LIBSHARED=$(ROOTDIR_)/$(__libshared)/$(RID)/$(__libshared)
 
 ##### GDAL source extended location
-GDAL_ROOT=$(BUILD_ROOT)/gdal-source/gdal
-BASE_GDAL_=$(GDAL_ROOT)
+GDAL_ROOT_BASE=$(BUILD_ROOT)/gdal-source
+GDAL_ROOT=$(GDAL_ROOT_BASE)/gdal
 
 ##### SWIG executable and interface
 BASE_SWIG_=$(BASE_GDAL_)/swig
@@ -77,7 +78,7 @@ GDAL_BUILD_=$(BUILD_ROOT)/gdal-build
 BASE_PROJ=$(BUILD_ROOT)/proj-build
 
 #### enabling wildcards expand for gdal
-GDAL_SETARGV="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\lib\x64\wsetargv.obj"
+GDAL_SETARGV="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29333\lib\x64\wsetargv.obj"
 
 ##### NUGET output folder
 NUGET_=$(ROOTDIR_)/nuget

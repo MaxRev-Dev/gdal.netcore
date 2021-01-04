@@ -76,7 +76,7 @@ veryclean: clean
 	(cd $(PWD) && rm -f -R *.so *.o ./*.cs gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs *.c *.cpp .libs/ const/ ogr/ osr/ gdal/ obj/ runtimes/ bin/)
 	
 cleangdal:
-	(cd $(BASE_GDAL_) && git clean -fdxq)
+	(cd $(BUILD_BASE) && git clean -fdxq)
 	
 cleanpackages:
 	(cd $(PWD) && rm -f -R $(NUGET_))
