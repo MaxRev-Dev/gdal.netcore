@@ -1,6 +1,6 @@
 using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
-using OSGeo.OSR;
+using OSGeo.OSR; 
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -66,13 +66,28 @@ namespace GdalCore_XUnit
 
         [Theory]
         [MemberData(nameof(ValidTestData))]
-        public void GetGdalInfo(string file)
-        {
+        public void GetGdalInfoRaster(string file)
+        {           
             using var inputDataset = Gdal.Open(file, Access.GA_ReadOnly);
 
             var info = Gdal.GDALInfo(inputDataset, new GDALInfoOptions(null));
 
             Assert.NotNull(info);
+        }
+
+
+        [Theory]
+        [MemberData(nameof(ValidTestDataVector))]
+        public void GetGdalInfoVector(string file)
+        {
+            var f = OSGeo.OGR.Ogr.Open(file, 0);
+            
+            Assert.NotNull(f);
+            
+            for (var i = 0; i < f.GetLayerCount(); i++)
+            {
+                Assert.NotNull(f.GetLayerByIndex(i));
+            }
         }
 
         private static string GetTestDataFolder(string testDataFolder)
@@ -88,7 +103,15 @@ namespace GdalCore_XUnit
         public static IEnumerable<object[]> ValidTestData
         {
             get {
-                var names = Directory.EnumerateFiles(GetTestDataFolder("samples"), "*_valid.tif");
+                var names = Directory.EnumerateFiles(GetTestDataFolder("samples-raster"), "*_valid.tif");
+                return names.Select(x => new[] { x });
+            }
+        }
+        
+        public static IEnumerable<object[]> ValidTestDataVector
+        {
+            get {
+                var names = Directory.EnumerateFiles(GetTestDataFolder("samples-vector"), "*.shp");
                 return names.Select(x => new[] { x });
             }
         }
