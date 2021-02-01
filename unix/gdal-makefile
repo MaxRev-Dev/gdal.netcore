@@ -96,6 +96,7 @@ CFLAGS="-fPIC" \
  --with-expat=${VCPKG_INSTALLED} \
  --with-libtiff=internal \
  --with-xerces=${VCPKG_INSTALLED} \
+ --with-pg=${VCPKG_INSTALLED} \
  --without-cfitsio \
  --without-cryptopp \
  --without-ecw \
