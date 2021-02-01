@@ -25,7 +25,7 @@ cmake --install . --prefix %bindir%   --config Release || goto :error
 
 call %__%\copyrecursive %bindir% 
 rem copy proj.db to maxrev.gdal.core.libshared
-xcopy /Y /R /F  "%bindir%/share/proj/proj.db" "%BUILD_ENGINE_ROOT%\%NUGET_LIBSHARED%\"
+xcopy /Y /R /F  "%bindir%/share/proj/proj.db" "%BUILD_ENGINE_ROOT%\%NUGET_LIBSHARED%\win-x64"
 
 cd %back%
 if defined _rmsource_ rd /s /q "%_buildroot_%/%key%-source"
