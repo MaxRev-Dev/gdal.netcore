@@ -46,13 +46,25 @@ Just call - GdalBase.ConfigureAll()
   <None Remove="./*.cs" /> 
   <None Remove="build/**" />
   <None Remove="test/**" />
-  <Compile Remove="./*.cs" />
+  <Compile Remove="./**/*.cs" />
   <Compile Remove="build/**" />
   <Compile Remove="test/**" /> 
   <Compile Remove="build-win/**" />
   <Compile Remove="build-unix/**" />
   <EmbeddedResource Remove="test/**" />
- </ItemGroup>
+</ItemGroup>
+
+<ItemGroup>  
+  <Compile Include="compile/**/*.cs" />
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' == 'Unix' AND '$(Platform)'=='x64'">
+  <Compile Include="unix/**/*.cs" />
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT' AND '$(Platform)'=='x64'">
+  <Compile Include="win/**/*.cs" />
+</ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MSBump" Version="2.3.2">
