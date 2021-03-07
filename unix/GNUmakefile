@@ -35,9 +35,11 @@ LINK_EXTRAFLAGS = -no-undefined -version-info $(LIBGDAL_CURRENT):$(LIBGDAL_REVIS
 OBJ_EXT = lo
 endif
 
-OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
+OUTPUT = $(ROOTDIR_)/runtimes/$(RID)\native
+BUILD_BASE =  $(BASE)/bindings
 
-BUILD_BASE =  $(BASE)
+bindings_out = $(BUILD_BASE)
+
 CSHARP_MODULES = libgdalcsharp.$(SO_EXT) libogrcsharp.$(SO_EXT) libgdalconstcsharp.$(SO_EXT) libosrcsharp.$(SO_EXT)
 CSHARP_OBJECTS = $(BUILD_BASE)/const/gdalconst_wrap.$(OBJ_EXT) $(BUILD_BASE)/gdal/gdal_wrap.$(OBJ_EXT) $(BUILD_BASE)/osr/osr_wrap.$(OBJ_EXT) $(BUILD_BASE)/ogr/ogr_wrap.$(OBJ_EXT)
 
@@ -108,9 +110,8 @@ copyprojdb:
 	-mkdir -p $(LIBSHARED)
 	cp -f $(BASE_PROJ)/share/proj/proj.db $(LIBSHARED)
 
-gdal_csharp: 
-	$(MAKE) linkall
-
+gdal_csharp: linkall  
+	@echo "Bindings and drivers are ready to packaging!"
 
 ## Creating packages for testing and publishing
 # https://github.com/dotnet/core/issues/4404
@@ -122,29 +123,28 @@ export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
 packc:
 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
-	
+
 packr: 
 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
-	
+
 pack: packc packr
 
 packdc: 
 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
-	
+
 packdr: 
 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
-	
+
 packdev: packdc packdr
 	
 
 ###	Testing linux libraries (from nuget build output)
 test-update:
-	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core -s $(NUGET_) ) 
-	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_) )
-
-###	Testing linux libraries (from nuget build output)
+	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core -s $(NUGET_)) 
+	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_))
+ 
 test-restore:
-	(cd $(TEST_DIR) && dotnet restore -s $(NUGET_) )  
+	(cd $(TEST_DIR) && dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_))
 
 test-only: test-restore
 	(cd $(TEST_DIR) && dotnet test)

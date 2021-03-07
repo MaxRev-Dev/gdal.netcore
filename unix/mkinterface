@@ -3,7 +3,7 @@ include ../shared/GdalCore.opt
 
 BINDING=csharp
 SWIGARGS=-DSWIG2_CSHARP -Wall -I$(SWIG_INCLUDE_)/include -I$(SWIG_INCLUDE_)/csharp -I$(SWIG_INCLUDE_)/..
-OUTC = $(PWD)
+OUTC = $(PWD)/bindings
 default: all
 
 mkdir: 
