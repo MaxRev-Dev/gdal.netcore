@@ -9,3 +9,4 @@ VCPKG_RID=x64-linux
 
 # .NET RID
 RID=linux-x64
+SWIG=swig

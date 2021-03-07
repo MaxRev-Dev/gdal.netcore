@@ -23,7 +23,7 @@ GEOS_COMMIT_VER=3.9.0
 
 VCPKG_ROOT = $(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=5dc53211caedebf4387d590155ed53ee44161f10
+VCPKG_COMMIT_VER=fc0d6b28006e0607a6b9871641ec48925274e079
 
 # we won't use these for now (too many boost deps): 
 # -----: libgeotiff libhdfs3 libkml netcdf-c 
@@ -33,13 +33,13 @@ VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib
 
 # windows runtime requires more packages and tools
 # because they are not preinstalled like on linux
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) sqlite3[tool]  curl
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) sqlite3[tool] curl libpq 
 VCPKG_REQUIRE_WIN_STATIC=hdf5 
 
 # the default configuration is static
 # no collisions with sibling libraries in projects
 VCPKG_REQUIRE_UNIX=$(VCPKG_REQUIRE) sqlite3
-VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl
+VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl libpq
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 

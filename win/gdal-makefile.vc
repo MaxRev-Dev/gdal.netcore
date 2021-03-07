@@ -7,11 +7,15 @@
 
 back = $(MAKEDIR)
 OUTPUT = $(ROOTDIR_)\runtimes\win-x64\native
-
 source = $(GDAL_ROOT)\swig\csharp 
+OUTC = $(source)
+BINDING = csharp
+SWIGARGS=-DSWIG2_CSHARP -Wall -I$(SWIG_INCLUDE_)/include -I$(SWIG_INCLUDE_)/csharp -I$(SWIG_INCLUDE_)/..
+gdal_swig_include = ..\..\include
+bindings_out = $(back)\bindings
 
-SWIG = "$(MAKEDIR)/swigwin-3.0.12/swig.exe"
 COPY = xcopy /y /r /d /f /I
+COPY_I = xcopy /s /y /r /d /f /i
 
 !INCLUDE $(GDAL_ROOT)\nmake.opt
 !INCLUDE $(GDAL_ROOT)\swig\csharp\csharp.opt
@@ -22,11 +26,11 @@ GDALLIB	= $(GDAL_ROOT)\gdal.lib
 GDALLIB	= $(GDAL_ROOT)\gdal_i.lib
 !ENDIF
 
-OBJ	=	gdal_wrap.obj gdalconst_wrap.obj ogr_wrap.obj osr_wrap.obj
+OBJ	= gdal_wrap.obj gdalconst_wrap.obj ogr_wrap.obj osr_wrap.obj
 
-gdal_swig_include = ..\..\include
 
-all: ogr_dir gdal_dir osr_dir const_dir gdal_csharp
+all: interface ogr_dir gdal_dir osr_dir const_dir gdal_csharp
+
 
 gdal_csharp:
 	$(COPY) "$(GDAL_ROOT)\gdal*.dll" "$(OUTPUT)\"
@@ -73,17 +77,30 @@ osr_dir:
 	cd $(back)
 
 interface:
+# windows makefiles in gdal are hardcoded to source directory.
+# we won't move bindings here, so building all up in sources
 	cd  $(source)\const
-	$(SWIG) -csharp -namespace OSGeo.GDAL -dllimport gdalconst_wrap -o gdalconst_wrap.c $(gdal_swig_include)\gdalconst.i
+	$(SWIG) -$(BINDING) -namespace OSGeo.GDAL -dllimport gdalconst_wrap -o $(source)\const\gdalconst_wrap.c $(gdal_swig_include)\gdalconst.i
 	cd  $(source)\gdal
-	$(SWIG) -c++ -csharp -namespace OSGeo.GDAL  -dllimport gdal_wrap -I$(gdal_swig_include)\csharp -o gdal_wrap.cpp $(gdal_swig_include)\gdal.i
+	$(SWIG)  $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.GDAL  -dllimport gdal_wrap -I$(gdal_swig_include)\$(BINDING) -o $(source)\gdal\gdal_wrap.cpp $(gdal_swig_include)\gdal.i
 	cd  $(source)\osr
-	$(SWIG) -c++ -csharp -namespace OSGeo.OSR  -dllimport osr_wrap -I$(gdal_swig_include)\csharp -o osr_wrap.cpp $(gdal_swig_include)\osr.i
+	$(SWIG)  $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.OSR  -dllimport osr_wrap -I$(gdal_swig_include)\$(BINDING) -o $(source)\osr\osr_wrap.cpp $(gdal_swig_include)\osr.i
 	cd  $(source)\ogr
-	$(SWIG) -c++ -csharp -namespace OSGeo.OGR -dllimport ogr_wrap -I$(gdal_swig_include)\csharp -o ogr_wrap.cpp $(gdal_swig_include)\ogr.i	
+	$(SWIG)  $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.OGR -dllimport ogr_wrap -I$(gdal_swig_include)\$(BINDING) -o $(source)\ogr\ogr_wrap.cpp $(gdal_swig_include)\ogr.i	
 	cd $(back)
-	
+
+# copy generatated c# sources to project directory 
+# to make them available for windows package build
+
+	-del /q /s "$(bindings_out)"
+	@if not exist $(bindings_out) -mkdir $(bindings_out)
+	$(COPY_I) "$(source)\const" "$(bindings_out)\const"
+	$(COPY_I) "$(source)\gdal" "$(bindings_out)\gdal"
+	$(COPY_I) "$(source)\osr" "$(bindings_out)\osr"
+	$(COPY_I) "$(source)\ogr" "$(bindings_out)\ogr"
+
 cleanlocal:
+	-del /q /s "$(bindings_out)"
 	-del gdal.lib
 	-del *_wrap.dll
 	-del *_csharp.dll
@@ -98,17 +115,17 @@ cleanlocal:
 	-del *.manifest
 
 clean: cleanlocal
-	cd  $(source)\gdal
+	cd "$(source)\gdal"
 	$(MAKE) /f makefile.vc clean
-	cd  $(source)\ogr
+	cd "$(source)\ogr"
 	$(MAKE) /f makefile.vc clean
-	cd $(source)\const
+	cd "$(source)\const"
 	$(MAKE) /f makefile.vc clean
-	cd $(source)\osr
+	cd "$(source)\osr"
 	$(MAKE) /f makefile.vc clean
-	cd $(source)
+	cd "$(source)"
 	$(MAKE) /f makefile.vc clean
 	-del /q /s Data
-	-del $(OUTPUT)\*.dll
-	cd $(back)
-	rd /s /q "$(back)\runtimes\"
+	-del "$(OUTPUT)\*.dll"
+	cd "$(back)"
+	-del /s /q "$(back)\runtimes\"

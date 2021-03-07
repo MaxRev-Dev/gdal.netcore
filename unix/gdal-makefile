@@ -55,9 +55,9 @@ clone_%:
 	@if [ ! -d "$($(UP)_ROOT)" ]; then \
 		git clone $($(UP)_REPO) $($(UP)_ROOT); \
 	fi;
-	
+
 clone_gdal:
-	@if [ ! -d "$(BASE_SWIG_)" ]; then \ 
+	@if [ ! -d "$(BASE_SWIG_)" ]; then \
 		git clone $(GDAL_REPO) $(GDAL_ROOT_BASE); \
 	fi;
 
@@ -75,7 +75,7 @@ init_%: clone_%
 configure_gdal:
 	@echo "$(TO) GDAL Configuring..."
 	(cd ${GDAL_ROOT} && chmod +x ./configure)
-	 
+	
 #   based on https://trac.osgeo.org/gdal/wiki/BuildingOnUnixWithMinimizedDrivers
 	(cd ${GDAL_ROOT} && ./configure  --prefix=${BUILD_ROOT}/gdal-build  \
 CFLAGS="-fPIC" \
@@ -87,7 +87,7 @@ CFLAGS="-fPIC" \
  --with-hide-internal-symbols \
  --with-threads \
  --with-curl=${VCPKG_INSTALLED_DYNAMIC}/share/curl/curl-config \
- --with-png  \
+ --with-png=${VCPKG_INSTALLED} \
  --with-sqlite3 \
  --with-hdf4 \
  --with-hdf5=${VCPKG_INSTALLED_DYNAMIC} \
@@ -96,6 +96,8 @@ CFLAGS="-fPIC" \
  --with-expat=${VCPKG_INSTALLED} \
  --with-libtiff=internal \
  --with-xerces=${VCPKG_INSTALLED} \
+ --with-libiconv-prefix=${VCPKG_INSTALLED} \
+ --with-pg=yes \
  --without-cfitsio \
  --without-cryptopp \
  --without-ecw \
@@ -121,10 +123,7 @@ CFLAGS="-fPIC" \
  --without-pcraster \
  --without-pcre \
  --without-perl \
- --without-pg \
  --without-python \
- --without-qhull \
- --without-sde \
  --without-webp \
  --without-xml2 \
  --without-poppler \
@@ -182,5 +181,5 @@ reset_%:
 	@echo "$(TO) Reset is complete"
 
 .EXPORT_ALL_VARIABLES:
-PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig
+PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig:$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
 LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib

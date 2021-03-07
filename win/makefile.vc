@@ -81,7 +81,6 @@ build-pack: collect interface pack
 build-gdal-only: build-gdal build-pack
 
 interface:
-	$(MAKE) /f gdal-makefile.vc interface
 	$(MAKE) /f gdal-makefile.vc 
 
 collect: copyprojdb
@@ -93,7 +92,7 @@ collect: copyprojdb
 	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" ) 
 
 copyprojdb:
-	$(COPY) "$(BASE_PROJ)/share/proj/proj.db" "$(LIBSHARED)\"
+	$(COPY) "$(BASE_PROJ)/share/proj/proj.db" "$(LIBSHARED)"
 
 veryclean:
 	$(MAKE) -f vcpkg-makefile.vc build_cleanup
@@ -103,21 +102,32 @@ veryclean:
 hostfix31:
 	set MSBUILDSINGLELOADCONTEXT=1
 
-pack: hostfix31
+packc: hostfix31
+	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)\gdalcore.loader.csproj
+packr: hostfix31
 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
+pack: hostfix31 packr packc
+	
 
-packdev: hostfix31
+packdc: hostfix31
+	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)\gdalcore.loader.csproj
+
+packdr: hostfix31
 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
+
+packdev: hostfix31 packdr packdc
+
+
+
+test-restore:
+	-cd $(TEST_DIR)
+	dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_) 
+	-cd $(MAKEDIR)
 
 test-update:
 	-cd $(TEST_DIR)
 	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) 
-	dotnet add package MaxRev.Gdal.Core -s $(NUGET_)
-	-cd $(MAKEDIR)
-
-test-restore:
-	-cd $(TEST_DIR)
-	dotnet restore -s $(NUGET_) 
+	dotnet add package MaxRev.Gdal.Core -s $(NUGET_) 
 	-cd $(MAKEDIR)
 
 test-only: test-restore
