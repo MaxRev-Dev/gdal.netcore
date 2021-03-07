@@ -36,7 +36,7 @@ namespace GdalCore_XUnit
                 "arcgen", "bna", "cad", "csv", "dgn", "dxf", "edigeo", "geoconcept", "georss", "gml", "gpsbabel",
                 "gpx", "htf", "jml", "mvt", "openair", "openfilegdb", "pgdump", "rec", "s57", "segukooa", "segy",
                 "selafin", "ESRI Shapefile", "sua", "svg", "sxf", "tiger", "vdv", "wasp", "xplane", "idrisi", "pds",
-                "sdts", "gpkg", "vfk", "osm"
+                "sdts", "gpkg", "vfk", "osm", "PostgreSQL"
             };
 
             foreach (var driver in drivers)
@@ -90,7 +90,7 @@ namespace GdalCore_XUnit
                 Assert.NotNull(f.GetLayerByIndex(i));
             }
         }
-        
+
         [Fact]
         public void GdalDoesNotFailOnMakeValid()
         {
@@ -101,24 +101,14 @@ namespace GdalCore_XUnit
             Assert.True(valid.IsValid());
         }
 
-        private string _staticWkt =
+        private static string _staticWkt =
                 "POLYGON((8.39475541866082 18.208975124406155,24.390849168660818 39.41962323304138,43.19944291866082 27.430752179449893,3.9123335436608198 22.736137385695233,8.39475541866082 18.208975124406155))";
-
-        private static string GetTestDataFolder(string testDataFolder)
-        {
-            var startupPath = AppContext.BaseDirectory;
-            var pathItems = startupPath.Split(Path.DirectorySeparatorChar);
-            var pos = pathItems.Reverse().ToList().FindIndex(x => string.Equals("bin", x));
-            var projectPath = string.Join(Path.DirectorySeparatorChar.ToString(),
-                pathItems.Take(pathItems.Length - pos - 1));
-            return Path.Combine(projectPath, testDataFolder);
-        }
 
         public static IEnumerable<object[]> ValidTestData
         {
             get
             {
-                var names = Directory.EnumerateFiles(GetTestDataFolder("samples-raster"), "*_valid.tif");
+                var names = Directory.EnumerateFiles(Extensions.GetTestDataFolder("samples-raster"), "*_valid.tif");
                 return names.Select(x => new[] { x });
             }
         }
@@ -127,7 +117,7 @@ namespace GdalCore_XUnit
         {
             get
             {
-                var names = Directory.EnumerateFiles(GetTestDataFolder("samples-vector"), "*.shp");
+                var names = Directory.EnumerateFiles(Extensions.GetTestDataFolder("samples-vector"), "*.shp");
                 return names.Select(x => new[] { x });
             }
         }
