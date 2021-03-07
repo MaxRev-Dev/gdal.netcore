@@ -90,7 +90,7 @@ interface:
 	cd $(back)
 
 # copy generatated c# sources to project directory 
-# to make them available for build
+# to make them available for windows package build
 
 	-del /q /s "$(bindings_out)"
 	@if not exist $(bindings_out) -mkdir $(bindings_out)
@@ -115,17 +115,17 @@ cleanlocal:
 	-del *.manifest
 
 clean: cleanlocal
-	cd  $(source)\gdal
+	cd "$(source)\gdal"
 	$(MAKE) /f makefile.vc clean
-	cd  $(source)\ogr
+	cd "$(source)\ogr"
 	$(MAKE) /f makefile.vc clean
-	cd $(source)\const
+	cd "$(source)\const"
 	$(MAKE) /f makefile.vc clean
-	cd $(source)\osr
+	cd "$(source)\osr"
 	$(MAKE) /f makefile.vc clean
-	cd $(source)
+	cd "$(source)"
 	$(MAKE) /f makefile.vc clean
 	-del /q /s Data
-	-del $(OUTPUT)\*.dll
-	cd $(back)
-	rd /s /q "$(back)\runtimes\"
+	-del "$(OUTPUT)\*.dll"
+	cd "$(back)"
+	-del /s /q "$(back)\runtimes\"
