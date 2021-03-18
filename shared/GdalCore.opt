@@ -78,7 +78,7 @@ GDAL_BUILD_=$(BUILD_ROOT)/gdal-build
 BASE_PROJ=$(BUILD_ROOT)/proj-build
 
 #### enabling wildcards expand for gdal
-GDAL_SETARGV="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29333\lib\x64\wsetargv.obj"
+GDAL_SETARGV="%VCToolsInstallDir%\lib\x64\wsetargv.obj"
 
 ##### NUGET output folder
 NUGET_=$(ROOTDIR_)/nuget
