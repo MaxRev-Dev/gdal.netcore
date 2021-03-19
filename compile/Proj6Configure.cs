@@ -35,9 +35,9 @@ namespace MaxRev.Gdal.Core
 
                 const string libshared = "maxrev.gdal.core.libshared";
                 var runtimes = $"runtimes/{rid}/native";
-
+                var entryAsm = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
                 var entryRoot =
-                    new FileInfo(Assembly.GetEntryAssembly()!.Location)
+                    new FileInfo(entryAsm!.Location)
                         .Directory!.FullName;
                 var executingRoot =
                     new FileInfo(Assembly.GetExecutingAssembly()!.Location)
@@ -64,6 +64,7 @@ namespace MaxRev.Gdal.Core
                     runtimes,
                     libshared,
                 }.Select(x => new DirectoryInfo(x).FullName);
+                
                 string found = default;
                 foreach (var item in possibleLocations)
                 {

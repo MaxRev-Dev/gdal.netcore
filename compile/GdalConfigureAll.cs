@@ -43,11 +43,15 @@ namespace MaxRev.Gdal.Core
                     var asmLocation = asm.Location;
                     var assemblyDir = new FileInfo(asmLocation).Directory;
 
-                    var executingDir = new FileInfo(Assembly.GetEntryAssembly().Location).Directory;
+                    // workaround on https://github.com/MaxRev-Dev/gdal.netcore/issues/40 for non-.NET caller dlls 
+                    var asmEntry = Assembly.GetEntryAssembly() ??
+                                    Assembly.GetCallingAssembly();
+
+                    var executingDir = new FileInfo(asmEntry.Location).Directory;
                     var targetDir = new DirectoryInfo(Path.Combine(executingDir.FullName));
                     targetDir.Create();
 
-
+                    string finalDriversPath = default;
                     if (!assemblyDir.EnumerateFiles("gdal_*.dll").Any())
                     {
                         string Sources(string s) => Path.Combine(s, "runtimes", "win-x64", "native");
@@ -68,40 +72,45 @@ namespace MaxRev.Gdal.Core
                             // here hdf4 driver requires jpeg library to be loaded
                             // and I won't copy all libraries on each startup
                             var targetJpeg = Path.Combine(executingDir.FullName, "jpeg.dll");
-							var sourceJpeg = Path.Combine(cdir.FullName, "jpeg.dll");
-                            if (!File.Exists(targetJpeg) &&File.Exists(sourceJpeg))
+                            var sourceJpeg = Path.Combine(cdir.FullName, "jpeg.dll");
+                            if (!File.Exists(targetJpeg) && File.Exists(sourceJpeg))
                             {
                                 File.Copy(sourceJpeg, Path.Combine(executingDir.FullName, "jpeg.dll"));
                             }
 
-                            OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", targetDrivers);
-                        }
-                        else
-                        {
-                            Console.WriteLine($"{thisName}: Can't find runtime libraries");
+                            finalDriversPath = targetDrivers;
                         }
                     }
                     else
                     {
                         var drs = executingDir.EnumerateFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
-                        var tr = Path.Combine(targetDir.FullName, "gdalplugins");
-                        Directory.CreateDirectory(tr);
+                        var targetDrivers = Path.Combine(targetDir.FullName, "gdalplugins");
+                        Directory.CreateDirectory(targetDrivers);
                         foreach (var dr in drs)
                         {
-                            var dest = Path.Combine(tr, dr.Name);
+                            var dest = Path.Combine(targetDrivers, dr.Name);
                             if (File.Exists(dest)) File.Delete(dest);
                             File.Copy(dr.FullName, dest, true);
                         }
-                        OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", tr);
+                        finalDriversPath = targetDrivers;
+                    }
+
+                    if (finalDriversPath != default)
+                    {
+                        OSGeo.GDAL.Gdal.SetConfigOption("GDAL_DRIVER_PATH", finalDriversPath);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{thisName}: Can't find runtime libraries");
                     }
                 }
 
                 OSGeo.GDAL.Gdal.AllRegister();
                 OSGeo.OGR.Ogr.RegisterAll();
                 Proj6.Configure();
-				
-				// set flag only on success
-            	IsConfigured = true;
+
+                // set flag only on success
+                IsConfigured = true;
             }
             catch (Exception ex)
             {
