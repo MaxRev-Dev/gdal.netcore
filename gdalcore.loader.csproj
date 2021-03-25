@@ -12,7 +12,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>   
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.2.0.300</Version>
+    <Version>3.2.0.310</Version>
     <Description>GDAL (3.2.0) bindings for dotnet core (now linux-x64 and win-x64).
 Bridge between gdal and netcore.
 Use dependency package for target runtime to get drivers.
