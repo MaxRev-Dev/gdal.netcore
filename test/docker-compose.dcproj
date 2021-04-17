@@ -5,6 +5,8 @@
     <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectGuid>e82fbdce-730c-4766-a90b-b673983c6281</ProjectGuid>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <ItemGroup>
     <None Include="docker-compose.override.yml">
       <DependentUpon>docker-compose.yml</DependentUpon>

@@ -1,8 +1,6 @@
 using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
 using OSGeo.OGR;
-using OSGeo.OSR;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +9,7 @@ using Xunit.Abstractions;
 
 namespace GdalCore_XUnit
 {
+    [Collection("Sequential")]
     public class CommonTests
     {
         private readonly ITestOutputHelper _outputHelper;
