@@ -56,6 +56,9 @@ namespace MaxRev.Gdal.Core
                     Path.Combine(entryRoot, runtimes, libshared),
                     Path.Combine(entryRoot, libshared),
 
+                    // azure functions
+                    Path.Combine(executingRoot, "..", runtimes, libshared),
+
                     // These cases are last hope solututions: 
                     // some environments may have flat structure
                     // let's try to search in root directories
