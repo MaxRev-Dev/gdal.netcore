@@ -35,7 +35,7 @@ LINK_EXTRAFLAGS = -no-undefined -version-info $(LIBGDAL_CURRENT):$(LIBGDAL_REVIS
 OBJ_EXT = lo
 endif
 
-OUTPUT = $(ROOTDIR_)/runtimes/$(RID)\native
+OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
 BUILD_BASE =  $(BASE)/bindings
 
 bindings_out = $(BUILD_BASE)
