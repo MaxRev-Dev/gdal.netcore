@@ -60,8 +60,8 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
  ```
 2. Install [libraries](#packages) for your runtime. You can install one of them or both with no conflicts. 
 ```powershell
-Install-Package MaxRev.Gdal.Core.WindowsRuntime.Minimal
-Install-Package MaxRev.Gdal.Core.LinuxRuntime.Minimal
+Install-Package MaxRev.Gdal.WindowsRuntime.Minimal
+Install-Package MaxRev.Gdal.LinuxRuntime.Minimal
 ```
 3. Initialize libraries in runtime
 ```csharp
