@@ -234,7 +234,7 @@ STDCALL=YES
 # Version number embedded in DLL name.
 # If GDAL version is X.Y.Z, VERSION = X * 100 + Y
 !IFNDEF VERSION
-VERSION =	302
+VERSION =	303
 !ENDIF
 
 # Comment the following out if you want PAM supported disabled
@@ -587,14 +587,13 @@ KAKADU_7_5_OR_LATER = YES
 !ENDIF
 
 # Uncomment the following and update to enable NCSA HDF Release 4 support.
-# HDF4 library newer than 4.2.5 has a SDreset_maxopenfiles/SDget_maxopenfiles
-# interface which allows opening many HDF files simultaneously (the max
-# number of files was previously hardcoded and too low, smth. like 32).
-
 HDF4_PLUGIN = YES
 HDF4_DIR =	$(BUILD_ROOT)\hdf4-build
 HDF4_LIB = $(HDF4_DIR)\lib\libhdf.lib $(HDF4_DIR)\lib\libmfhdf.lib $(HDF4_DIR)\lib\libxdr.lib  $(BUILD_ROOT_VCPKG)\lib\jpeg.lib  $(BUILD_ROOT_VCPKG)\lib\zlib.lib Ws2_32.lib
 HDF4_INCLUDE = $(HDF4_DIR)\include -I$(BUILD_ROOT_VCPKG)\include 
+# HDF4 library newer than 4.2.5 has a SDreset_maxopenfiles/SDget_maxopenfiles
+# interface which allows opening many HDF files simultaneously (the max
+# number of files was previously hardcoded and too low, smth. like 32).
 # Uncomment following if your library is newer than 4.2.5.
 HDF4_HAS_MAXOPENFILES = YES
 
@@ -641,7 +640,7 @@ PG_INC_DIR = $(BUILD_ROOT_VCPKG)\include
 PG_LIB = $(BUILD_ROOT_VCPKG)\lib\libpq.lib wsock32.lib
 
 # MySQL Libraries
-# NOTE: Need /MT instead of /MD, also enable /EHsc switch. 
+# NOTE: Need /MT instead of /MD, also enable /EHsc switch.
 #MYSQL_INC_DIR = D:\Software\MySQLServer4.1\include
 #MYSQL_LIB = D:\Software\MySQLServer4.1\lib\opt\libmysql.lib advapi32.lib
 
@@ -770,16 +769,20 @@ GEOS_LIB     = $(GEOS_DIR)\lib\libgeos_c.dll.a
 #SOSI_LIBS = e:/sosi/FYBA.lib e:/sosi/GM.lib e:/sosi/UT.lib
 
 # Uncomment for OpenJpeg (release v2.1 or later) support
-#OPENJPEG_ENABLED = YES
+OPENJPEG_ENABLED = YES
 # Note that, contrary to GDAL releases <= 2.2.X, this must point to the
 # directory where openjpeg.h and opj_config.h are set
-#OPENJPEG_CFLAGS = -IC:\openjpeg\include\openjpeg-2.X
-#OPENJPEG_LIB = C:\openjpeg\lib\openjp2.lib
+OPENJPEG_CFLAGS = -I$(BUILD_ROOT_VCPKG)\include
+OPENJPEG_LIB = $(BUILD_ROOT_VCPKG)\lib\openjp2.lib
 
 #if using an external zlib uncomment the following lines
 ZLIB_EXTERNAL_LIB = 1
 ZLIB_INC = -I$(BUILD_ROOT_VCPKG)\include
 ZLIB_LIB = $(BUILD_ROOT_VCPKG)\lib\zlib.lib
+
+# Uncomment for libdeflate support (still requires zlib in some cases)
+#LIBDEFLATE_CFLAGS = -Ie:/dev/install-libdeflate-1.6/include
+#LIBDEFLATE_LIB = e:/dev/install-libdeflate-1.6/lib/libdeflate.lib
 
 # Uncomment for PDF support, and update version numbers (poppler 0.23 or later required)
 #POPPLER_ENABLED = YES
@@ -921,9 +924,16 @@ ADD_LIBS	=
 # bindings.
 #HAVE_NUMPY=1
 
-# Set HAVE_LERC=0 to disable LERC support
+# Uncomment for external liblerc
+# The only use of external liblerc currently is for the LERC codec of internal libtiff
+# The MRF driver requires internal liblerc to have LERC capabilities
+#HAVE_LERC=external
+#LERC_INCLUDE = -Ic:\dev\liblerc\include
+#LERC_LIB = c:\dev\liblerc\lib\liblerc.lib
+
+# Set HAVE_LERC=no to disable LERC support
 !IFNDEF HAVE_LERC
-HAVE_LERC=1
+HAVE_LERC=internal
 !ENDIF
 
 # Comment out the following if you want to build JPEGLS with CHARLS support
@@ -1154,5 +1164,5 @@ EXTERNAL_LIBS =	$(OGDILIB) $(XERCES_LIB) $(EXPAT_LIB) $(OCI_LIB) $(PG_LIB) \
 	$(MRSID_LIDAR_LIB) $(LIBKML_LIBS) $(SOSI_LIBS) $(PDF_LIB_LINK) $(LZMA_LIBS) $(ZSTD_LIBS) \
 	$(LIBICONV_LIBRARY) $(WEBP_LIBS) $(TILEDB_LIBS) $(FGDB_LIB_LINK) $(FREEXL_LIBS) $(GTA_LIBS) \
 	$(INGRES_LIB) $(LIBXML2_LIB) $(PCRE_LIB) $(MONGODB_LIB_LINK) $(MONGODBV3_LIB_LINK) $(CRYPTOPP_LIB) $(OPENSSL_LIB) $(CHARLS_LIB) ws2_32.lib \
-	$(RDB_LIB) $(CRUNCH_LIB) $(OPENEXR_LIB) $(HEIF_LIB) \
+	$(RDB_LIB) $(CRUNCH_LIB) $(OPENEXR_LIB) $(HEIF_LIB) $(LERC_LIB) \
     kernel32.lib psapi.lib wbemuuid.lib
