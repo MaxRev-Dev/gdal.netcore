@@ -12,8 +12,8 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>   
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.2.0.320</Version>
-    <Description>GDAL (3.2.0) bindings for dotnet core (now linux-x64 and win-x64).
+    <Version>3.3.2.100</Version>
+    <Description>GDAL (3.3.2) bindings for dotnet core (now linux-x64 and win-x64).
 Bridge between gdal and netcore.
 Use dependency package for target runtime to get drivers.
 Works in docker containers without pkg installations!!
@@ -23,7 +23,7 @@ Just call - GdalBase.ConfigureAll()
     <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
     <PackageReleaseNotes>
 - built on CentOS 7 (glibc - 2.17) 
-- GDAL Version 3.2.0
+- GDAL Version 3.3.2
 - built with vcpkg
 - PROJ.DB now ships with target runtime
 - fixed proj.db search on azure functions 
