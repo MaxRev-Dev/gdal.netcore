@@ -558,7 +558,7 @@ XERCES_LIB =$(XERCES_DIR)\lib\xerces-c_3.lib
 # Uncomment the following for Interlis support.  Note that a Xercex 3.x
 # is also required (see above).  Also, Interlis support only works with
 # Visual Studio.NET or newer, not VC6.
-#ILI_ENABLED = YES
+ILI_ENABLED = YES
 
 # Uncomment for JasPer based JPEG2000 support
 #JASPER_DIR = d:\projects\jasper-1.700.2.uuid

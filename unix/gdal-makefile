@@ -79,6 +79,7 @@ configure_gdal:
 #   based on https://trac.osgeo.org/gdal/wiki/BuildingOnUnixWithMinimizedDrivers
 	(cd ${GDAL_ROOT} && ./configure  --prefix=${BUILD_ROOT}/gdal-build  \
 CFLAGS="-fPIC" \
+OPENJPEG_LIBS="-L${VCPKG_INSTALLED_DYNAMIC}/lib -lopenjp2" \
  --with-geos=${BUILD_ROOT}/geos-build/bin/geos-config \
  --with-proj=${BUILD_ROOT}/proj-build \
  --with-liblzma \
@@ -97,14 +98,14 @@ CFLAGS="-fPIC" \
  --with-libtiff=internal \
  --with-xerces=${VCPKG_INSTALLED} \
  --with-libiconv-prefix=${VCPKG_INSTALLED} \
+ --with-openjpeg  \
  --with-pg=yes \
  --without-cfitsio \
+ --without-crypto \
  --without-cryptopp \
  --without-ecw \
  --without-fme \
  --without-freexl \
- --without-gif \
- --without-gnm \
  --without-grass \
  --without-idb \
  --without-ingres \
@@ -114,20 +115,17 @@ CFLAGS="-fPIC" \
  --without-libgrass \
  --without-libkml \
  --without-mrsid \
- --without-mysql \
  --without-netcdf \
- --without-odbc \
- --without-ogdi \
- --without-openjpeg \
- --without-pcidsk \
- --without-pcraster \
+ --with-odbc \
+ --with-ogdi \
+ --with-pcidsk \
+ --with-pcraster \
  --without-pcre \
  --without-perl \
  --without-python \
  --without-webp \
  --without-xml2 \
- --without-poppler \
- --without-crypto)
+ --without-poppler)
 	@echo "$(TO) GDAL Configured!"
 	
 configure_proj: 
