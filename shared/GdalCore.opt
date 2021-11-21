@@ -9,7 +9,7 @@ BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
-GDAL_COMMIT_VER=v3.3.2
+GDAL_COMMIT_VER=v3.3.3
 
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
@@ -27,9 +27,9 @@ VCPKG_COMMIT_VER=fc0d6b28006e0607a6b9871641ec48925274e079
 
 # we won't use these for now (too many boost deps): 
 # -----: libgeotiff libhdfs3 libkml netcdf-c 
-# tiff was disabled (gdal on linux can't link v3.3.2) 
+# tiff was disabled (gdal on linux can't link v3.3.3) 
 # but tiff is still required by proj
-VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib openjpeg
+VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib 
 
 # windows runtime requires more packages and tools
 # because they are not preinstalled like on linux
@@ -39,7 +39,7 @@ VCPKG_REQUIRE_WIN_STATIC=hdf5
 # the default configuration is static
 # no collisions with sibling libraries in projects
 VCPKG_REQUIRE_UNIX=$(VCPKG_REQUIRE) sqlite3
-VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl libpq
+VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl libpq openjpeg
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
