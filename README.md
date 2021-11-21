@@ -85,9 +85,9 @@ Detailed guide is here - [unix](unix/).
 
 ## About build configuration
 
-Current version targets **GDAL 3.2.0** with **minimal drivers**
+Current version targets **GDAL 3.3.3** with **minimal drivers**
 
-Drivers included PROJ(7.2.0), SQLITE3, GEOS(3.9.0), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC, CURL
+Drivers included PROJ(7.2.1), SQLITE3, GEOS(3.9.0), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC, CURL
 
 <details>
   <summary>Configure summary of current version</summary>
@@ -190,7 +190,7 @@ Drivers included PROJ(7.2.0), SQLITE3, GEOS(3.9.0), HDF4, HDF5, GEOTIFF, JPEG, P
 
 ## Building runtime libraries
 
-Current version is targeting **GDAL 3.2.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdalcore package) are build from **linux**.
+Current version is targeting **GDAL 3.3.3** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdalcore package) are build from **linux**.
 
 To make everything work smoothly, each configuration targets same drivers and their versions respectively.
 
