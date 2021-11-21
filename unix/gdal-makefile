@@ -167,6 +167,7 @@ configure_%:
 
 build_%:
 	@echo "$(TO) Building..."
+	$(DEL_DIR) "$(BUILD_ROOT)/$(LW)-build"
 	@cd $($(UP)_ROOT) &&  $(MAKE) &&  $(MAKE) install
 	@echo "$(TO) Built successfully!"
 
