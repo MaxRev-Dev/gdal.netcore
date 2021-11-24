@@ -16,3 +16,4 @@ COPY_I = xcopy /s /y /r /d /f /i
 
 DEL_FILE = -del
 DEL_DIR = -del /q /s
+CRT_VERSION = 143
