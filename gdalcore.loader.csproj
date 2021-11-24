@@ -3,34 +3,35 @@
   <PropertyGroup>
     <Platform>x64</Platform>
     <DebugType>portable</DebugType>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp2.1;netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <Copyright>MaxRev © 2021</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>MaxRev.Gdal.Core</PackageId>
-    <PackageTags>gdal;netcore;docker</PackageTags>    
+    <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
+    <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryType>git</RepositoryType>   
+    <RepositoryType>git</RepositoryType>
+    <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>3.3.3.100</Version>
-    <Description>GDAL (3.3.3) bindings for dotnet core (now linux-x64 and win-x64).
-Bridge between gdal and netcore.
-Use dependency package for target runtime to get drivers.
-Works in docker containers without pkg installations!!
-Just call - GdalBase.ConfigureAll()
-</Description>
+    <Description>
+      GDAL (3.3.3) bindings for dotnet core (now linux-x64 and win-x64).
+      Bridge between gdal and netcore.
+      Use dependency package for target runtime to get drivers.
+      Works in docker containers without pkg installations!!
+      Just call - GdalBase.ConfigureAll()
+    </Description>
     <RootNamespace></RootNamespace>
-    <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
     <PackageReleaseNotes>
-- built on CentOS 7 (glibc - 2.17) 
-- GDAL Version 3.3.3
-- built with vcpkg
-- PROJ.DB now ships with target runtime
-- fixed proj.db search on azure functions 
-</PackageReleaseNotes>
-    <LangVersion>8.0</LangVersion>
+      - built on CentOS 7 (glibc - 2.17)
+      - GDAL Version 3.3.3
+      - built with vcpkg
+      - PROJ.DB now ships with target runtime
+      - fixed proj.db search on azure functions
+    </PackageReleaseNotes>
   </PropertyGroup>
-  
+
   <PropertyGroup Condition="$(Configuration) == 'Debug'">
     <BumpLabel>dev</BumpLabel>
     <BumpLabelDigits>3</BumpLabelDigits>
@@ -44,23 +45,20 @@ Just call - GdalBase.ConfigureAll()
   <ItemGroup>
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
-    <None Remove="./*.cs" /> 
+    <None Remove="./*.cs" />
     <None Remove="build/**" />
     <None Remove="test/**" />
     <Compile Remove="./**/*.cs" />
     <Compile Remove="build/**" />
-    <Compile Remove="test/**" /> 
+    <Compile Remove="test/**" />
     <Compile Remove="win/**" />
     <Compile Remove="unix/**" />
     <Compile Remove="build-win/**" />
     <Compile Remove="build-unix/**" />
     <EmbeddedResource Remove="test/**" />
-  </ItemGroup>
-
-  <ItemGroup>  
     <Compile Include="compile/**/*.cs" />
   </ItemGroup>
-  
+
   <ItemGroup Condition="'$(OS)' == 'Unix' AND '$(Platform)'=='x64'">
     <Compile Include="unix/**/*.cs" />
   </ItemGroup>
