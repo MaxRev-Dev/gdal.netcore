@@ -5,43 +5,52 @@ using System.Linq;
 
 namespace MaxRev.Gdal.Core
 {
+    [Obsolete]
     /// <summary>
-    ///  Configurator for Proj6. Use with <see cref="OSGeo.OGR.Ogr.RegisterAll"/> 
+    ///  Configurator for Proj. Use with <see cref="OSGeo.OGR.Ogr.RegisterAll"/> 
     /// </summary>
     public static class Proj6
     {
+
+        [Obsolete]
         /// <summary>
-        ///  Configures Proj6 search paths 
+        /// Performs search for proj.db in project directories and sets search paths for Proj. 
+        /// You can call <see cref="OSGeo.OSR.Osr.SetPROJSearchPaths"/> alternatively.
         /// </summary>
-        public static void Configure()
+        /// <param name="additionalSearchPaths">optional additional paths</param>
+        public static void Configure(params string[] additionalSearchPaths)
         {
+            Proj.Configure(additionalSearchPaths);
+        }
+    }
+
+    /// <summary>
+    ///  Configurator for Proj. Use with <see cref="OSGeo.OGR.Ogr.RegisterAll"/> 
+    /// </summary>
+    public static class Proj
+    {
+        /// <summary>
+        /// Performs search for proj.db in project directories and sets search paths for Proj. 
+        /// You can call <see cref="OSGeo.OSR.Osr.SetPROJSearchPaths"/> alternatively.
+        /// </summary>
+        /// <param name="additionalSearchPaths">optional additional paths</param>
+        public static void Configure(params string[] additionalSearchPaths)
+        {
+            const string libshared = "maxrev.gdal.core.libshared";
+            var runtimes = $"runtimes/{GdalBaseExtensions.GetEnvRID()}/native";
+            var entryAsm = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+
             try
             {
-                string rid;
-                switch (Environment.OSVersion.Platform)
-                {
-                    case PlatformID.MacOSX:
-                        rid = "osx-x64";
-                        break;
-                    case PlatformID.Unix:
-                        rid = "linux-x64";
-                        break;
-                    case PlatformID.Win32NT:
-                        rid = "win-x64";
-                        break;
-                    default:
-                        throw new PlatformNotSupportedException();
-                }
-
-                const string libshared = "maxrev.gdal.core.libshared";
-                var runtimes = $"runtimes/{rid}/native";
-                var entryAsm = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
+                // assembly location can be empty with bundled assemblies
                 var entryRoot =
-                    new FileInfo(entryAsm!.Location)
+                    new FileInfo(entryAsm.GetSourceLocation())
                         .Directory!.FullName;
+
                 var executingRoot =
-                    new FileInfo(Assembly.GetExecutingAssembly()!.Location)
+                    new FileInfo(Assembly.GetExecutingAssembly().GetSourceLocation())
                         .Directory!.FullName;
+
 
                 // this list is sorted according to expected 
                 // contents location related to
@@ -67,8 +76,8 @@ namespace MaxRev.Gdal.Core
                     runtimes,
                     libshared,
                 }.Select(x => new DirectoryInfo(x).FullName);
-                
-                string found = default;
+
+                string found = "";
                 foreach (var item in possibleLocations)
                 {
                     if (!Directory.Exists(item))
@@ -80,17 +89,19 @@ namespace MaxRev.Gdal.Core
                         break;
                     }
                 }
-                if (found != default)
-                    OSGeo.OSR.Osr.SetPROJSearchPaths(new[] { found });
-                else
+
+                if (found != "")
                 {
-                    throw new FileNotFoundException($"Can't find proj.db. Tried to search in {string.Join(", ", possibleLocations)}");
+                    OSGeo.OSR.Osr.SetPROJSearchPaths(new[] { found }.Concat(additionalSearchPaths).ToArray());
+                    return;
                 }
+
+                // we did not found anything
+                throw new FileNotFoundException($"Can't find proj.db. Tried to search in {string.Join(", ", possibleLocations)}");
             }
-            catch (FileNotFoundException) { throw; }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not FileNotFoundException)
             {
-                Console.WriteLine("Failed to configure PROJ search paths");
+                Console.WriteLine($"Failed to configure PROJ search paths. {ex.GetType().Name} was thrown");
                 Console.WriteLine(ex.Message);
             }
         }
