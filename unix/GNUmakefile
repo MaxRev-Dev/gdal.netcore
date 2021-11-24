@@ -77,9 +77,6 @@ veryclean: clean
 	(cd $(BUILD_BASE) && rm -f -R const/*.cs const/*.c gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs ogr/*.cpp Data)
 	(cd $(PWD) && rm -f -R *.so *.o ./*.cs gdal/*.cs gdal/*.cpp osr/*.cs osr/*.cpp ogr/*.cs *.c *.cpp .libs/ const/ ogr/ osr/ gdal/ obj/ runtimes/ bin/)
 	
-cleangdal:
-	(cd $(BUILD_BASE) && git clean -fdxq)
-	
 cleanpackages:
 	(cd $(PWD) && rm -f -R $(NUGET_))
 
