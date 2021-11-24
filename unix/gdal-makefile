@@ -100,6 +100,10 @@ OPENJPEG_LIBS="-L${VCPKG_INSTALLED_DYNAMIC}/lib -lopenjp2" \
  --with-libiconv-prefix=${VCPKG_INSTALLED} \
  --with-openjpeg  \
  --with-pg=yes \
+ --with-odbc \
+ --with-ogdi \
+ --with-pcidsk \
+ --with-pcraster \
  --without-cfitsio \
  --without-crypto \
  --without-cryptopp \
@@ -116,10 +120,6 @@ OPENJPEG_LIBS="-L${VCPKG_INSTALLED_DYNAMIC}/lib -lopenjp2" \
  --without-libkml \
  --without-mrsid \
  --without-netcdf \
- --with-odbc \
- --with-ogdi \
- --with-pcidsk \
- --with-pcraster \
  --without-pcre \
  --without-perl \
  --without-python \
