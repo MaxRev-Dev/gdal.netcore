@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -17,7 +18,8 @@ namespace MaxRev.Gdal.Core
         public static bool IsConfigured { get; private set; }
 
         /// <summary>
-        /// Performs search for gdalplugins and calls <see cref="OSGeo.GDAL.Gdal.AllRegister"/> and <see cref="OSGeo.OGR.Ogr.RegisterAll"/>
+        /// Performs search for gdalplugins and calls 
+        /// <see cref="OSGeo.GDAL.Gdal.AllRegister"/> and <see cref="OSGeo.OGR.Ogr.RegisterAll"/>
         /// </summary>
         public static void ConfigureGdalDrivers()
         {
@@ -56,14 +58,21 @@ namespace MaxRev.Gdal.Core
                     var targetDir = new DirectoryInfo(Path.Combine(executingDir.FullName));
 
                     string finalDriversPath = null!;
+                    bool driversFound = false;
 
+                    // if project output does not contain packages
+                    // this could be a debug environment
                     if (!assemblyDir.EnumerateFiles("gdal_*.dll").Any())
                     {
-                        finalDriversPath = TryFindDriversInPackages(assemblyDir, executingDir);
+                        if (TryFindDriversInPackages(assemblyDir, executingDir, out finalDriversPath))
+                        {
+                            driversFound = true;
+                        }
                     }
-                    else
+
+                    if (!driversFound)
                     {
-                        finalDriversPath = TryFindDriversInExecutingDirectory(executingDir, targetDir);
+                        driversFound = TryFindDriversInExecutingDirectory(targetDir, executingDir, out finalDriversPath);
                     }
 
                     if (finalDriversPath != null)
@@ -72,7 +81,7 @@ namespace MaxRev.Gdal.Core
                     }
                     else
                     {
-                        Console.WriteLine($"{thisName}: Can't find runtime libraries");
+                        Console.WriteLine($"{thisName}: Can't find GDAL driver libraries");
                         return;
                     }
                 }
@@ -91,70 +100,70 @@ namespace MaxRev.Gdal.Core
             IsConfigured = true;
         }
 
-        private static string TryFindDriversInExecutingDirectory(DirectoryInfo executingDir, DirectoryInfo targetDir)
+        private static bool TryFindDriversInExecutingDirectory
+            (DirectoryInfo targetDir, DirectoryInfo executingDir, out string targetDrivers)
         {
-            var drs = executingDir.EnumerateFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
-            var targetDrivers = Path.Combine(targetDir.FullName, "gdalplugins");
-            bool hasDirectory = false;
+            var drivers = executingDir.GetGdalPlugins();
+            
+            if (!drivers.Any())
+            { 
+                throw new InvalidOperationException("Can't find drivers in executing directory.");
+            }
+
+            targetDrivers = Path.Combine(targetDir.FullName, "gdalplugins");
+
+            MoveDriversTo(drivers, targetDrivers);
+
+            return true;
+        }
+
+        private static void MoveDriversTo(IEnumerable<FileInfo> drivers, string targetDrivers)
+        {
             try
             {
                 Directory.CreateDirectory(targetDrivers);
-                hasDirectory = true;
             }
             catch (UnauthorizedAccessException)
             {
-                Console.WriteLine("The directory is not writable to move drivers.");
-                Console.WriteLine("Gdal by default searches for gdalplugins/{driverName}.dll");
+                // create folder in a writable location
+                targetDrivers = Path.Combine(Path.GetTempPath(), "gdalplugins");
+                Directory.CreateDirectory(targetDrivers);
             }
 
-            if (!hasDirectory)
-                return null;
-
-            foreach (var dr in drs)
+            foreach (var driver in drivers)
             {
-                var dest = Path.Combine(targetDrivers, dr.Name);
-                if (File.Exists(dest)) File.Delete(dest);
-                File.Copy(dr.FullName, dest, true);
+                var destDriverPath = Path.Combine(targetDrivers, driver.Name);
+                if (File.Exists(destDriverPath)) File.Delete(destDriverPath);
+                File.Copy(driver.FullName, destDriverPath, true);
             }
-            return targetDrivers;
         }
 
-        private static string TryFindDriversInPackages(DirectoryInfo assemblyDir, DirectoryInfo executingDir)
+        private static bool TryFindDriversInPackages
+            (DirectoryInfo assemblyDir, DirectoryInfo executingDir, out string targetOrigin)
         {
             static string Sources(string s) => Path.Combine(s, "runtimes", GdalBaseExtensions.GetEnvRID(), "native");
 
+            // origin directory is package root
             var originDir = new DirectoryInfo(Sources(assemblyDir.FullName));
             if (!originDir.Exists)
             {
+                // search in nuget cache directory '{packageRoot}/lib/{tmf}/**'
                 var primarySource = assemblyDir.Parent!.Parent!.FullName;
                 originDir = new DirectoryInfo(Sources(primarySource));
-                if (!originDir.Exists)
-                {
-                    originDir = new DirectoryInfo(Sources(executingDir.FullName));
-                }
             }
 
+            // if nuget cache dir does not exists, weirdo but...
             if (!originDir.Exists)
-                return null;
-                
-            var targetDrivers = Path.Combine(originDir.FullName, "gdalplugins");
-            // here hdf4 driver requires jpeg library to be loaded
-            // and I won't copy all libraries on each startup
-            var targetJpeg = Path.Combine(executingDir.FullName, "jpeg.dll");
-            var sourceJpeg = Path.Combine(originDir.FullName, "jpeg.dll");
-            try
             {
-                if (!File.Exists(targetJpeg) && File.Exists(sourceJpeg))
-                {
-                    File.Copy(sourceJpeg, Path.Combine(executingDir.FullName, "jpeg.dll"));
-                }
+                // fallback to executing directory
+                originDir = new DirectoryInfo(Sources(executingDir.FullName));
             }
-            catch (UnauthorizedAccessException)
-            {
-                Console.WriteLine("Can't move jpeg driver. " +
-                    "It should be in location relative to the executable e.g. gdalplugins/jpeg.dll");
-            }
-            return targetDrivers;
+
+            targetOrigin = Path.Combine(originDir.FullName, "gdalplugins");
+            if (Directory.Exists(targetOrigin) && Directory.EnumerateFiles(targetOrigin).Any())
+                return true; 
+            
+            return false;
         }
 
         /// <summary>

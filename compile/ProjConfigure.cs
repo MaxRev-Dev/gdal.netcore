@@ -5,14 +5,14 @@ using System.Linq;
 
 namespace MaxRev.Gdal.Core
 {
-    [Obsolete]
+    [Obsolete("Use simplified Proj class. Library version is incrementing frequently. This class will be removed in the next release")]
     /// <summary>
     ///  Configurator for Proj. Use with <see cref="OSGeo.OGR.Ogr.RegisterAll"/> 
     /// </summary>
     public static class Proj6
     {
 
-        [Obsolete]
+        [Obsolete("Use simplified Proj.Configure. Library version is incrementing frequently")]
         /// <summary>
         /// Performs search for proj.db in project directories and sets search paths for Proj. 
         /// You can call <see cref="OSGeo.OSR.Osr.SetPROJSearchPaths"/> alternatively.
@@ -33,7 +33,7 @@ namespace MaxRev.Gdal.Core
         /// Performs search for proj.db in project directories and sets search paths for Proj. 
         /// You can call <see cref="OSGeo.OSR.Osr.SetPROJSearchPaths"/> alternatively.
         /// </summary>
-        /// <param name="additionalSearchPaths">optional additional paths</param>
+        /// <param name="additionalSearchPaths">optional additional paths</param> 
         public static void Configure(params string[] additionalSearchPaths)
         {
             const string libshared = "maxrev.gdal.core.libshared";
@@ -50,7 +50,6 @@ namespace MaxRev.Gdal.Core
                 var executingRoot =
                     new FileInfo(Assembly.GetExecutingAssembly().GetSourceLocation())
                         .Directory!.FullName;
-
 
                 // this list is sorted according to expected 
                 // contents location related to
@@ -78,6 +77,7 @@ namespace MaxRev.Gdal.Core
                 }.Select(x => new DirectoryInfo(x).FullName);
 
                 string found = "";
+
                 foreach (var item in possibleLocations)
                 {
                     if (!Directory.Exists(item))
