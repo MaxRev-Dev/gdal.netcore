@@ -34,13 +34,13 @@ VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib
 
 # windows runtime requires more packages and tools
 # because they are not preinstalled like on linux
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) sqlite3[tool] curl libpq 
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) sqlite3[tool] curl libpq libkml openjpeg
 VCPKG_REQUIRE_WIN_STATIC=hdf5 
 
 # the default configuration is static
 # no collisions with sibling libraries in projects
 VCPKG_REQUIRE_UNIX=$(VCPKG_REQUIRE) sqlite3
-VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl libpq openjpeg
+VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl libpq openjpeg libkml
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
