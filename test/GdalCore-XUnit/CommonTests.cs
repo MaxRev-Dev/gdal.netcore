@@ -20,32 +20,14 @@ namespace GdalCore_XUnit
             GdalBase.ConfigureAll();
         }
 
-        [Fact]
-        public void AllDriversAvailable()
+        [Theory]
+        [MemberData(nameof(DriversInCurrentVersion))]
+        public void AllDriversAvailable(string driver)
         {
-            // list of common drivers
-            var drivers = new[]
-            {
-                "hdf4", "hdf5", "gtiff", "aaigrid", "adrg", "airsar", "arg", "blx", "bmp", "bsb", "cals", "ceos",
-                "coasp", "cosar", "ctg", "dimap", "dted", "e00grid", "elas", "ers", "fit", "gff", "gxf", "hf2",
-                "idrisi", "ignfheightasciigrid", "ilwis", "ingr", "iris", "jaxapalsar", "jdem", "kmlsuperoverlay",
-                "l1b", "leveller", "map", "mrf", "msgn", "ngsgeoid", "nitf", "pds", "prf", "r", "rmf", "rs2",
-                "safe", "saga", "sdts", "sentinel2", "sgi", "sigdem", "srtmhgt", "terragen", "til", "tsx",
-                "usgsdem", "xpm", "xyz", "zmap", "rik", "ozi", "grib", "rasterlite", "mbtiles", "pdf", "aeronavfaa",
-                "arcgen", "bna", "cad", "csv", "dgn", "dxf", "edigeo", "geoconcept", "georss", "gml", "gpsbabel",
-                "gpx", "htf", "jml", "mvt", "openair", "openfilegdb", "pgdump", "rec", "s57", "segukooa", "segy",
-                "selafin", "ESRI Shapefile", "sua", "svg", "sxf", "tiger", "vdv", "wasp", "xplane", "idrisi", "pds",
-                "sdts", "gpkg", "vfk", "osm", "PostgreSQL"
-            };
-
-            foreach (var driver in drivers)
-            {
-                var driverByName = Gdal.GetDriverByName(driver);
-                _outputHelper.WriteLine(
-                    driverByName != default ? $"{driver} loaded successfully" : $"Failed to load {driver}");
-                Assert.NotNull(driverByName);
-            }
-
+            var driverByName = Gdal.GetDriverByName(driver);
+            _outputHelper.WriteLine(
+                driverByName != default ? $"{driver} loaded successfully" : $"Failed to load {driver}");
+            Assert.NotNull(driverByName);
         }
 
         [Theory]
@@ -112,6 +94,19 @@ namespace GdalCore_XUnit
             }
         }
 
+        public static IEnumerable<object[]> DriversInCurrentVersion
+        {
+            get
+            {
+                return new[]
+                {
+                    "AAIGrid","ACE2","ADRG","AIG","AirSAR","AmigoCloud","ARCGEN",
+                    "ARG","AVCBin","AVCE00","BAG","BIGGIF","BLX","BMP","BSB","BT",
+                    "BYN","CAD","CALS","Carto","CEOS","Cloudant","COASP","COG","COSAR",
+                    "CouchDB","CPG","CSV","CSW","CTable2","CTG","DAAS","DERIVED","DGN","DIMAP","DIPEx","DOQ1","DOQ2","DTED","DXF","ECRGTOC","EDIGEO","EEDA","EEDAI","EHdr","EIR","ELAS","Elasticsearch","ENVI","ERS","ESAT","ESRI Shapefile","ESRIC","ESRIJSON","FAST","FIT","FlatGeobuf","FujiBAS","GenBin","Geoconcept","GeoJSON","GeoJSONSeq","Geomedia","GeoRSS","GFF","GIF","GML","GMLAS","GNMDatabase","GNMFile","GPKG","GPSBabel","GPSTrackMaker","GPX","GRASSASCIIGrid","GRIB","GS7BG","GSAG","GSBG","GSC","GTiff","GTX","GXF","HDF4","HDF4Image","HDF5","HDF5Image","HF2","HFA","HTTP","IDA","Idrisi","ILWIS","INGR","Interlis 1","Interlis 2","IRIS","ISCE","ISG","ISIS2","ISIS3","JAXAPALSAR","JDEM","JML","JP2OpenJPEG","JPEG","KML","KMLSUPEROVERLAY","KRO","L1B","LAN","LCP","Leveller","LOSLAS","LVBAG","MAP","MapInfo File","MapML","MBTiles","MEM","Memory","MFF","MFF2","MRF","MSGN","MSSQLSpatial","MVT","NAS","NDF","NGSGEOID","NGW","NITF","NTv2","NWT_GRC","NWT_GRD","OAPIF","ODBC","ODS","OGCAPI","OGR_GMT","OGR_PDS","OGR_SDTS","OGR_VRT","OpenFileGDB","OSM","OZI","PAux","PCIDSK","PCRaster","PDF","PDS","PDS4","PGDUMP","PGeo","PLMOSAIC","PLSCENES","PNG","PNM","PostGISRaster","PostgreSQL","PRF","R","Rasterlite","RDA","REC","RIK","RMF","ROI_PAC","RPFTOC","RRASTER","RS2","RST","S57","SAFE","SAGA","SAR_CEOS","SDTS","Selafin","SENTINEL2","SGI","SIGDEM","SNODAS","SQLite","SRP","SRTMHGT","STACTA","SVG","SXF","Terragen","TGA","TIGER","TIL","TopoJSON","TSX","UK .NTF","USGSDEM","VDV","VFK","VICAR","VRT","Walk","WAsP","WCS","WFS","WMS","WMTS","XLSX","XPM","XYZ","ZMap"
+                }.Select(x => new[] { x });
+            }
+        }
         public static IEnumerable<object[]> ValidTestDataVector
         {
             get

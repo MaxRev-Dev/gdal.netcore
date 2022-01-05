@@ -44,30 +44,28 @@ pull:
 	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
 		git clone $(VCPKG_REPO) $(VCPKG_ROOT); \
 	fi;
-	@echo "$(TO) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
-	@echo "$(TO) Checking for remote changes..." 
-	@cd $(VCPKG_ROOT) && git fetch
-	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
 
-bootstrap: pull_vcpkg
+bootstrap: checkout_ver
 	(cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh); 
 
 install_vcpkg: pull bootstrap
 	@exit 0
-install_requirements: install_vcpkg patch_vcpkg_triplets install_packages 
+install_requirements: install_vcpkg checkout_ver patch_vcpkg_triplets install_packages 
 	@exit 0 
 install_requirements_only: patch_vcpkg_triplets install_packages 
 	@exit 0
 
-pull_vcpkg:
+checkout_ver:
+	@echo "$(TO) Checking for remote changes..." 
 	@cd $(VCPKG_ROOT) && git fetch
+	@echo "$(TO) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
 	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
  
-upgrade: pull_vcpkg
+upgrade: checkout_ver
 	$(VCPKG) upgrade $(VCPKG_TRIPLETS_OVERLAY)
-upgrade-force: pull_vcpkg 
+upgrade-force: checkout_ver 
 	$(VCPKG) upgrade --no-dry-run $(VCPKG_TRIPLETS_OVERLAY)
-update: pull_vcpkg 
+update: checkout_ver 
 	$(VCPKG) update $(VCPKG_TRIPLETS_OVERLAY)
 
 $(VCPKG_CLEANUP):

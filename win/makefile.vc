@@ -3,7 +3,6 @@
 !INCLUDE ..\shared\GdalCore.opt
 
 OUTPUT = $(ROOTDIR_)\runtimes\win-x64\native
-COPY = xcopy /y /r /d /f /I
 
 TARGETS = hdf4 proj geos gdal
 all: $(TARGETS) build collect interface pack
@@ -70,6 +69,7 @@ build-hdf4:
 
 build-gdal: configure-gdal
 	@echo $(PRE) building GDAL...
+	$(DEL_DIR) "$(BUILD_ROOT)\gdal-build"
 	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc MSVC_VER=1920 WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
 	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc install WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
 	@echo $(PRE) GDAL was built successfully!
@@ -87,7 +87,7 @@ collect: copyprojdb
 	$(COPY) "$(VCPKG_INSTALLED)/bin/*.dll" "$(OUTPUT)\"
 	$(COPY) "$(BUILD_ROOT)\libshared\bin" "$(OUTPUT)\"
 	$(COPY) "$(BUILD_ROOT)\gdal-build\bin\gdalplugins" "$(OUTPUT)\gdalplugins\"
-	$(COPY) "%VCToolsRedistDir%x64\Microsoft.VC142.CRT\*.dll" "$(OUTPUT)\"
+	$(COPY) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).CRT\*.dll" "$(OUTPUT)\"
 	
 	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" ) 
 
@@ -116,7 +116,6 @@ packdr: hostfix31
 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
 
 packdev: hostfix31 packdr packdc
-
 
 
 test-restore:
