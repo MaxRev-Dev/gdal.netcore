@@ -16,34 +16,34 @@ VCPKG = "$(VCPKG_ROOT)\vcpkg.exe"
 
 install_vcpkg:
 	@IF NOT EXIST "$(VCPKG_ROOT)\" git clone $(VCPKG_REPO) $(VCPKG_ROOT)
-	@echo "$(PRE) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
+
+checkout_ver:
 	@echo "$(PRE) Checking for remote changes..." 
 	@cd $(VCPKG_ROOT) && git fetch
+	@echo "$(PRE) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
 	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
 
-bootstrap: pull_vcpkg
+bootstrap: 
 	call "$(VCPKG_ROOT)/bootstrap-vcpkg.bat"; 
 
-install_requirements: install_vcpkg bootstrap patch_vcpkg_triplets install_packages   
+install_requirements: install_vcpkg checkout_ver bootstrap patch_vcpkg_triplets install_packages   
 
 VCPKG_WINDOWS_DEFAULT_TRIPLET = $(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake
 
 patch_vcpkg_triplets:
 	@if not exist "$(VPCKG_CUSTOM_TRIPLETS)" md "$(VPCKG_CUSTOM_TRIPLETS)"
 
-#   this is defailt x64-windows (dynamic) triplet
+#   this is default x64-windows (dynamic) triplet
 	@echo set(VCPKG_TARGET_ARCHITECTURE x64) > $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
 	@echo set(VCPKG_CRT_LINKAGE dynamic) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
 	@echo set(VCPKG_LIBRARY_LINKAGE dynamic) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
 	@echo set(VCPKG_BUILD_TYPE release) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
 
-pull_vcpkg:
-	cd $(VCPKG_ROOT) && git pull origin master   
-upgrade: pull_vcpkg
+upgrade: checkout_ver
 	$(VCPKG) upgrade $(VCPKG_TRIPLETS_OVERLAY)
-upgrade-force: pull_vcpkg 
+upgrade-force: checkout_ver 
 	$(VCPKG) upgrade --no-dry-run $(VCPKG_TRIPLETS_OVERLAY)
-update: pull_vcpkg 
+update: checkout_ver 
 	$(VCPKG) update $(VCPKG_TRIPLETS_OVERLAY)
 
 $(VCPKG_CLEANUP):
