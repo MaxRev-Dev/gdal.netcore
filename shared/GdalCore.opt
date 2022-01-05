@@ -21,7 +21,7 @@ GEOS_COMMIT_VER=3.9.0
  
 # ---------------------- VCPKG ----------------------
 
-VCPKG_ROOT = $(BUILD_ROOT)/vcpkg
+VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
 VCPKG_COMMIT_VER=1085a57da0725c19e19586025438e8c16f34c890 
 # latest on Dec 31, 2021
@@ -44,14 +44,14 @@ VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl libpq openjpeg
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
-VCPKG_INSTALLED = $(VCPKG_ROOT)/installed/$(VCPKG_RID)
-VCPKG_INSTALLED_STATIC = $(VCPKG_ROOT)/installed/$(VCPKG_RID)-static
-VCPKG_INSTALLED_DYNAMIC = $(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
+VCPKG_INSTALLED=$(VCPKG_ROOT)/installed/$(VCPKG_RID)
+VCPKG_INSTALLED_STATIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-static
+VCPKG_INSTALLED_DYNAMIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
 # triplets
-VPCKG_CUSTOM_TRIPLETS = $(VCPKG_ROOT)/custom-triplets
-VCPKG_TRIPLETS_OVERLAY = --overlay-triplets=$(VCPKG_ROOT)/custom-triplets
-VCPKG_PARAMS_INSTALL = $(VCPKG_TRIPLETS_OVERLAY) --recurse --clean-after-build  
-VCPKG_PARAMS_REMOVE = $(VCPKG_TRIPLETS_OVERLAY) --recurse 
+VPCKG_CUSTOM_TRIPLETS=$(VCPKG_ROOT)/custom-triplets
+VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets
+VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --clean-after-build  
+VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse 
 
 # --------------------- !VCPKG! --------------------
 
