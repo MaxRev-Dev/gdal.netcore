@@ -1,6 +1,6 @@
 # gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) ![Packages CI](https://github.com/MaxRev-Dev/gdal.netcore/workflows/CI/badge.svg?branch=master)
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.2 library for [.NET Core](https://dotnet.microsoft.com/download). 
+A simple (as is) build engine of [GDAL](https://gdal.org/) 3.3.3 library for [.NET Core](https://dotnet.microsoft.com/download). 
 
 ## Packages
 
@@ -204,7 +204,7 @@ To build for a specific runtime, see the **README.md** in respective directory.
 
 ### Prerequisites
 
-1. Install [.NET Core SDK](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install)  (3.1 or 5.0) and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages
+1. Install [.NET Core SDK](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install)  (3.1 or 6.0) and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages
 2. You have already built everything 
 
 ### Packaging
@@ -213,7 +213,7 @@ To build for a specific runtime, see the **README.md** in respective directory.
 
 ```bash
 rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
-sudo apt-get install apt-transport-https && apt-get update && apt-get install dotnet-sdk-5.0
+sudo apt-get install apt-transport-https && apt-get update && apt-get install dotnet-sdk-6.0
 ```
 
 2. And then just 
