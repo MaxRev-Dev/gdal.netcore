@@ -101,7 +101,9 @@ makesolocal:
 	$(foreach lib, $(local_o),  g++ -shared -o $(OUTPUT)/$(basename $(lib)).so $(lib) $(OUTPUT)/libgdal.$(GDAL_SO_VER_);${\n})
 	
 copyalldepso:
-	ldd $(BUILD_BASE_LIB)/libgdal.so | grep "=> /" | awk '{print $$3}' | xargs -I {} cp -v {} $(OUTPUT) 
+#   include all deps installed in this repo
+#   and some external dependencies (odbc,ltdl)
+	ldd "$(BUILD_BASE_LIB)/libgdal.so" | grep -E "$(ROOTDIR_)/build-unix|odbc|ltdl" | awk '{print $$3}' | xargs -I {} cp -v {} $(OUTPUT) 
 	
 copyprojdb:
 	-mkdir -p $(LIBSHARED)
