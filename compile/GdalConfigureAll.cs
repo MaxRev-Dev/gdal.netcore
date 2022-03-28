@@ -104,20 +104,26 @@ namespace MaxRev.Gdal.Core
             (DirectoryInfo targetDir, DirectoryInfo executingDir, out string targetDrivers)
         {
             var drivers = executingDir.GetGdalPlugins();
-            
+
             if (!drivers.Any())
-            { 
+            {
                 throw new InvalidOperationException("Can't find drivers in executing directory.");
             }
 
             targetDrivers = Path.Combine(targetDir.FullName, "gdalplugins");
-
-            MoveDriversTo(drivers, targetDrivers);
+            
+            // check if this folder is already populated with drivers
+            var targetDirInfo = new DirectoryInfo(targetDrivers);
+            if (!targetDirInfo.Exists ||
+                !targetDirInfo.EnumerateFiles().Any())
+            {
+                MoveDriversTo(drivers, ref targetDrivers);
+            }
 
             return true;
         }
 
-        private static void MoveDriversTo(IEnumerable<FileInfo> drivers, string targetDrivers)
+        private static void MoveDriversTo(IEnumerable<FileInfo> drivers, ref string targetDrivers)
         {
             try
             {
@@ -161,8 +167,8 @@ namespace MaxRev.Gdal.Core
 
             targetOrigin = Path.Combine(originDir.FullName, "gdalplugins");
             if (Directory.Exists(targetOrigin) && Directory.EnumerateFiles(targetOrigin).Any())
-                return true; 
-            
+                return true;
+
             return false;
         }
 
