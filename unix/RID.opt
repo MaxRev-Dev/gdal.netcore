@@ -16,4 +16,4 @@ SWIG=swig
 # Used to ship runtime libraries along with packages
 CRT_VERSION=143
 
-DEL_DIR=rm -r
+DEL_DIR=rm -rf
