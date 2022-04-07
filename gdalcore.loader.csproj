@@ -14,7 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.3.3.110</Version>
+    <Version>3.3.3.120</Version>
     <Description>
       GDAL (3.3.3) bindings for dotnet core (now linux-x64 and win-x64).
       Bridge between gdal and netcore.
@@ -27,8 +27,7 @@
       - built on CentOS 7 (glibc - 2.17)
       - GDAL Version 3.3.3
       - built with vcpkg
-      - PROJ.DB now ships with target runtime
-      - fixed proj.db search on azure functions
+      - fixed drivers lookup algorithm
     </PackageReleaseNotes>
   </PropertyGroup>
 
