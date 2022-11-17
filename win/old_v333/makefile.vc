@@ -1,0 +1,138 @@
+
+!INCLUDE RID.opt
+!INCLUDE ..\shared\GdalCore.opt
+
+OUTPUT = $(ROOTDIR_)\runtimes\win-x64\native
+
+TARGETS = hdf4 proj geos gdal
+all: $(TARGETS) build collect interface pack
+
+$(TARGETS): build-$@
+
+pre-vcpkg:
+	@echo $(PRE) Precheck for VCPKG libraries installation...
+	$(MAKE) -f vcpkg-makefile.vc
+	@echo $(PRE) VCPKG libraries precheck complete
+	
+fetch-gdal:
+	@echo $(PRE) Fetching GDAL sources...
+!IF !EXISTS($(GDAL_ROOT))
+    git clone $(GDAL_REPO) $(GDAL_ROOT_BASE)
+!ENDIF
+	cd $(GDAL_ROOT)
+	git fetch
+	git checkout -fq $(GDAL_COMMIT_VER) 
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE) 
+
+fetch-geos:
+!IF !EXISTS($(GEOS_ROOT))
+    git clone $(GEOS_REPO) $(GEOS_ROOT)
+!ENDIF
+	cd $(GEOS_ROOT)
+	git fetch
+	git checkout -fq $(GEOS_COMMIT_VER) 
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE)
+	
+fetch-proj:
+!IF !EXISTS($(PROJ_ROOT))
+    git clone $(PROJ_REPO) $(PROJ_ROOT)
+!ENDIF
+	cd $(PROJ_ROOT)
+	git fetch
+	git checkout -fq $(PROJ_COMMIT_VER)
+	git reset --hard
+	$(GIT_CLEAN)
+	cd $(BASE)
+
+configure-gdal: fetch-gdal
+	@echo $(PRE) Populating gdal source with makefile.vc..
+	-copy /y "$(BASE)\presource\gdal-makefile.vc" "$(GDAL_ROOT)\makefile.vc"
+
+build-proj:
+	@echo $(PRE) building PROJ...
+	call getproj.bat
+	@echo $(PRE) PROJ was built successfully!
+
+build-geos:
+	@echo $(PRE) building GEOS...
+	call getgeos.bat
+	@echo $(PRE) GEOS was built successfully!
+
+build-hdf4: 
+	@echo $(PRE) building HDF4...
+	call gethdf4.bat
+	@echo $(PRE) HDF4 was built successfully!
+
+build-gdal: configure-gdal
+	@echo $(PRE) building GDAL...
+	$(DEL_DIR) "$(BUILD_ROOT)\gdal-build"
+	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc MSVC_VER=1920 WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
+	cd $(GDAL_ROOT) && $(MAKE) /f makefile.vc install WIN64=1 EXT_NMAKE_OPT="$(BASE)\gdal-nmake.opt"
+	@echo $(PRE) GDAL was built successfully!
+
+build: pre-vcpkg build-gdal
+	
+build-pack: collect interface pack
+
+build-gdal-only: build-gdal build-pack
+
+interface:
+	$(MAKE) /f gdal-makefile.vc 
+
+collect: copyprojdb
+	$(COPY) "$(VCPKG_INSTALLED)/bin/*.dll" "$(OUTPUT)\"
+	$(COPY) "$(BUILD_ROOT)\libshared\bin" "$(OUTPUT)\"
+	$(COPY) "$(BUILD_ROOT)\gdal-build\bin\gdalplugins" "$(OUTPUT)\gdalplugins\"
+	$(COPY) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).CRT\*.dll" "$(OUTPUT)\"
+	
+	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" ) 
+
+copyprojdb:
+	$(COPY) "$(BASE_PROJ)/share/proj/proj.db" "$(LIBSHARED)"
+
+veryclean:
+	$(MAKE) -f vcpkg-makefile.vc build_cleanup
+	$(MAKE) -f gdal-makefile.vc clean
+
+# https://github.com/dotnet/core/issues/4404
+hostfix31:
+	set MSBUILDSINGLELOADCONTEXT=1
+
+packc: hostfix31
+	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)\gdalcore.loader.csproj
+packr: hostfix31
+	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
+pack: hostfix31 packr packc
+	
+
+packdc: hostfix31
+	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)\gdalcore.loader.csproj
+
+packdr: hostfix31
+	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)\gdalcore.windowsruntime.csproj
+
+packdev: hostfix31 packdr packdc
+
+
+test-restore:
+	-cd $(TEST_DIR)
+	dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_) 
+	-cd $(MAKEDIR)
+
+test-update:
+	-cd $(TEST_DIR)
+	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) 
+	dotnet add package MaxRev.Gdal.Core -s $(NUGET_) 
+	-cd $(MAKEDIR)
+
+test-only: test-restore
+	-cd $(TEST_DIR)
+	dotnet test
+	-cd $(MAKEDIR)
+
+test: test-update test-only
+	

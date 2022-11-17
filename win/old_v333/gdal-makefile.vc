@@ -1,0 +1,128 @@
+#
+#  gdal.netcore package automation
+#
+
+!INCLUDE RID.opt
+!INCLUDE ..\shared\GdalCore.opt
+
+back = $(MAKEDIR)
+OUTPUT = $(ROOTDIR_)\runtimes\win-x64\native
+source = $(GDAL_ROOT)\swig\csharp 
+OUTC = $(source)
+BINDING = csharp
+SWIGARGS=-DSWIG2_CSHARP -Wall -I$(SWIG_INCLUDE_)/include -I$(SWIG_INCLUDE_)/csharp -I$(SWIG_INCLUDE_)/..
+gdal_swig_include = ..\..\include
+bindings_out = $(back)\bindings
+
+!INCLUDE $(GDAL_ROOT)\nmake.opt
+!INCLUDE $(GDAL_ROOT)\swig\csharp\csharp.opt
+
+!IFDEF CSHARP_STATIC_LINKAGE
+GDALLIB	= $(GDAL_ROOT)\gdal.lib
+!ELSE
+GDALLIB	= $(GDAL_ROOT)\gdal_i.lib
+!ENDIF
+
+OBJ	= gdal_wrap.obj gdalconst_wrap.obj ogr_wrap.obj osr_wrap.obj
+
+
+all: interface ogr_dir gdal_dir osr_dir const_dir gdal_csharp
+
+
+gdal_csharp:
+	$(COPY) "$(GDAL_ROOT)\gdal*.dll" "$(OUTPUT)\"
+	link /dll $(OGR_INCLUDE) $(BASE_INCLUDE) $(source)\ogr_wrap.obj \
+		$(EXTERNAL_LIBS) $(GDALLIB)\
+		 /out:ogr_wrap.dll $(LINKER_FLAGS)
+	if exist ogr_wrap.dll.manifest mt -manifest ogr_wrap.dll.manifest -outputresource:ogr_wrap.dll;2
+	
+	link /dll $(OGR_INCLUDE) $(BASE_INCLUDE)  $(source)\gdal_wrap.obj \
+		$(EXTERNAL_LIBS) $(GDALLIB)\
+		 /out:gdal_wrap.dll $(LINKER_FLAGS)
+	if exist gdal_wrap.dll.manifest mt -manifest gdal_wrap.dll.manifest -outputresource:gdal_wrap.dll;2
+	
+	link /dll $(OGR_INCLUDE) $(BASE_INCLUDE)  $(source)\gdalconst_wrap.obj \
+		$(EXTERNAL_LIBS) $(GDALLIB)\
+		 /out:gdalconst_wrap.dll $(LINKER_FLAGS)
+	if exist gdalconst_wrap.dll.manifest mt -manifest gdalconst_wrap.dll.manifest -outputresource:gdalconst_wrap.dll;2
+	
+	link /dll $(OGR_INCLUDE) $(BASE_INCLUDE)  $(source)\osr_wrap.obj \
+		$(EXTERNAL_LIBS) $(GDALLIB)\
+		 /out:osr_wrap.dll $(LINKER_FLAGS)
+	if exist osr_wrap.dll.manifest mt -manifest osr_wrap.dll.manifest -outputresource:osr_wrap.dll;2
+	-mkdir "$(OUTPUT)"
+	move *.dll "$(OUTPUT)"
+    
+ogr_dir:
+	cd "$(source)\ogr"
+	$(MAKE) /f makefile.vc
+	cd $(back)
+
+gdal_dir:
+	cd "$(source)\gdal"
+	$(MAKE) /f makefile.vc
+	cd $(back)
+
+const_dir:
+	cd "$(source)\const"
+	$(MAKE) /f makefile.vc
+	cd $(back)
+
+osr_dir:
+	cd "$(source)\osr"
+	$(MAKE) /f makefile.vc
+	cd $(back)
+
+interface:
+# windows makefiles in gdal are hardcoded to source directory.
+# we won't move bindings here, so building all up in sources
+	cd  "$(source)\const"
+	$(SWIG) -$(BINDING) -namespace OSGeo.GDAL -dllimport gdalconst_wrap -o $(source)\const\gdalconst_wrap.c $(gdal_swig_include)\gdalconst.i
+	cd  "$(source)\gdal"
+	$(SWIG)  $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.GDAL  -dllimport gdal_wrap -I$(gdal_swig_include)\$(BINDING) -o $(source)\gdal\gdal_wrap.cpp $(gdal_swig_include)\gdal.i
+	cd  "$(source)\osr"
+	$(SWIG)  $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.OSR  -dllimport osr_wrap -I$(gdal_swig_include)\$(BINDING) -o $(source)\osr\osr_wrap.cpp $(gdal_swig_include)\osr.i
+	cd  "$(source)\ogr"
+	$(SWIG)  $(SWIGARGS) -c++ -$(BINDING) -namespace OSGeo.OGR -dllimport ogr_wrap -I$(gdal_swig_include)\$(BINDING) -o $(source)\ogr\ogr_wrap.cpp $(gdal_swig_include)\ogr.i	
+	cd $(back)
+
+# copy generatated c# sources to project directory 
+# to make them available for windows package build
+
+	$(DEL_DIR) "$(bindings_out)"
+	@if not exist "$(bindings_out)" -mkdir "$(bindings_out)"
+	$(COPY_I) "$(source)\const" "$(bindings_out)\const"
+	$(COPY_I) "$(source)\gdal" "$(bindings_out)\gdal"
+	$(COPY_I) "$(source)\osr" "$(bindings_out)\osr"
+	$(COPY_I) "$(source)\ogr" "$(bindings_out)\ogr"
+
+cleanlocal:
+	$(DEL_DIR) "$(bindings_out)"
+	$(DEL_FILE) gdal.lib
+	$(DEL_FILE) *_wrap.dll
+	$(DEL_FILE) *_csharp.dll
+	$(DEL_FILE) *.obj
+	$(DEL_FILE) *.exp
+	$(DEL_FILE) *.ilk
+	$(DEL_FILE) *.pdb
+	$(DEL_FILE) *.tlb
+	$(DEL_FILE) *.lib
+	$(DEL_FILE) *.mdb
+	$(DEL_FILE) *.exe
+	$(DEL_FILE) *.manifest
+
+clean: cleanlocal
+	cd "$(source)\gdal"
+	$(MAKE) /f makefile.vc clean
+	cd "$(source)\ogr"
+	$(MAKE) /f makefile.vc clean
+	cd "$(source)\const"
+	$(MAKE) /f makefile.vc clean
+	cd "$(source)\osr"
+	$(MAKE) /f makefile.vc clean
+	cd "$(source)"
+	$(MAKE) /f makefile.vc clean
+	$(DEL_DIR) Data
+	$(DEL_FILE) "$(OUTPUT)\*.dll"
+	cd "$(back)"
+	$(DEL_DIR) "$(back)\runtimes\"

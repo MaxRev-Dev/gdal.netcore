@@ -1,0 +1,66 @@
+#
+# gdal-makefile.vc - gdal.netcore package automation
+#
+
+all: install_vcpkg install_requirements
+
+BASE = $(MAKEDIR)
+BASE_RUNTIME_RID = win
+VCPKG_RID = x64-windows
+
+VCPKG_CLEANUP = buildtrees downloads packages installed
+
+!INCLUDE ..\shared\GdalCore.opt
+VCPKG_ROOT = $(BUILD_ROOT)\vcpkg
+VCPKG = "$(VCPKG_ROOT)\vcpkg.exe"
+
+install_vcpkg:
+	@IF NOT EXIST "$(VCPKG_ROOT)\" git clone $(VCPKG_REPO) $(VCPKG_ROOT)
+
+checkout_ver:
+	@echo "$(PRE) Checking for remote changes..." 
+	@cd $(VCPKG_ROOT) && git fetch
+	@echo "$(PRE) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
+	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
+
+bootstrap: 
+	call "$(VCPKG_ROOT)/bootstrap-vcpkg.bat"; 
+
+install_requirements: install_vcpkg checkout_ver bootstrap patch_vcpkg_triplets install_packages   
+
+VCPKG_WINDOWS_DEFAULT_TRIPLET = $(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake
+
+patch_vcpkg_triplets:
+	@if not exist "$(VPCKG_CUSTOM_TRIPLETS)" md "$(VPCKG_CUSTOM_TRIPLETS)"
+
+#   this is default x64-windows (dynamic) triplet
+	@echo set(VCPKG_TARGET_ARCHITECTURE x64) > $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
+	@echo set(VCPKG_CRT_LINKAGE dynamic) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
+	@echo set(VCPKG_LIBRARY_LINKAGE dynamic) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
+	@echo set(VCPKG_BUILD_TYPE release) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
+
+upgrade: checkout_ver
+	$(VCPKG) upgrade $(VCPKG_TRIPLETS_OVERLAY)
+upgrade-force: checkout_ver 
+	$(VCPKG) upgrade --no-dry-run $(VCPKG_TRIPLETS_OVERLAY)
+update: checkout_ver 
+	$(VCPKG) update $(VCPKG_TRIPLETS_OVERLAY)
+
+$(VCPKG_CLEANUP):
+    @cmd /c if exist "$(VCPKG_ROOT)\$@\" rmdir /S /Q "$(VCPKG_ROOT)\$@"
+
+build_cleanup: $(VCPKG_CLEANUP) 
+
+install_packages:
+	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
+	 do $(VCPKG) install %p:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL)
+	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
+	 do $(VCPKG) install %p:$(VCPKG_RID)-static $(VCPKG_PARAMS_INSTALL)
+remove:  
+	$(VCPKG) remove $(r):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE)
+remove_packages:
+	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
+	 do $(VCPKG) remove %p:$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE)
+	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
+	 do $(VCPKG) remove %p:$(VCPKG_RID)-static $(VCPKG_PARAMS_REMOVE)
+
