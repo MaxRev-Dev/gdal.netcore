@@ -9,9 +9,9 @@ VCPKG_RID=x64-windows
 
 # .NET RID
 RID=win-x64
-SWIG = "$(BASE)/swigwin-3.0.12/swig.exe"
+SWIG = "swig"
 
-COPY = xcopy /y /r /d /f
+COPY = copy 
 COPY_I = xcopy /s /y /r /d /f /i
 
 DEL_FILE = -del

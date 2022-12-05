@@ -28,7 +28,7 @@ bootstrap:
 
 install_requirements: install_vcpkg checkout_ver bootstrap patch_vcpkg_triplets install_packages   
 
-VCPKG_WINDOWS_DEFAULT_TRIPLET = $(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake
+VCPKG_WINDOWS_DEFAULT_TRIPLET = "$(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake"
 
 patch_vcpkg_triplets:
 	@if not exist "$(VPCKG_CUSTOM_TRIPLETS)" md "$(VPCKG_CUSTOM_TRIPLETS)"

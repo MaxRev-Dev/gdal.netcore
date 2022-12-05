@@ -3,44 +3,38 @@
 ##### ------- SHARED CONFIGURATION ------- ##### 
  
 ##### repo root
-ROOTDIR_=$(BASE)/..
+ROOTDIR_=$(abspath $(BASE)\..)
+
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
-GDAL_COMMIT_VER=v3.3.3
+GDAL_COMMIT_VER=v3.6.0
 
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
 PROJ_COMMIT_VER=7.2.1
 
-GEOS_ROOT=$(BUILD_ROOT)/geos-source
-GEOS_REPO=https://github.com/libgeos/geos.git 
-GEOS_COMMIT_VER=3.9.0
- 
 # ---------------------- VCPKG ----------------------
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=1085a57da0725c19e19586025438e8c16f34c890 
-# latest on Dec 31, 2021
+VCPKG_COMMIT_VER=8b8196f0f81123c928165f9740120e10e8510340 
+# latest on Nov 23, 2022
 
-# we won't use these for now (too many boost deps): 
-# -----: libgeotiff libhdfs3 libkml netcdf-c 
-# tiff was disabled (gdal on linux can't link v3.3.3) 
-# but tiff is still required by proj
-VCPKG_REQUIRE=tiff expat xerces-c libpng libiconv zlib 
+# base requirements for both runtimes
+VCPKG_REQUIRE=geos "sqlite3[tool,rtree]" tiff curl
 
-# windows runtime requires more packages and tools
-# because they are not preinstalled like on linux
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) sqlite3[tool] curl libpq libkml openjpeg
-VCPKG_REQUIRE_WIN_STATIC=hdf5 
+# windows runtime now depends on GisInternals SDK
+# we have nothing to install except custom geos and proj 
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) 
+VCPKG_REQUIRE_WIN_STATIC= 
 
 # the default configuration is static
 # no collisions with sibling libraries in projects
-VCPKG_REQUIRE_UNIX=$(VCPKG_REQUIRE) sqlite3
-VCPKG_REQUIRE_UNIX_DYNAMIC=hdf5 curl libpq openjpeg libkml
+VCPKG_REQUIRE_UNIX=$(VCPKG_REQUIRE)  expat xerces-c libpng libiconv zlib sqlite3 hdf5  libpq openjpeg libkml
+VCPKG_REQUIRE_UNIX_DYNAMIC=
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
@@ -86,6 +80,7 @@ NUGET_=$(ROOTDIR_)/nuget
 
 ### Shared .NET Core Tests
 TEST_DIR=$(ROOTDIR_)/test/GdalCore-XUnit
+TEST_DIR_ALT=$(ROOTDIR_)/test/GdalCoreTest
 
 GIT_CLEAN=git clean -fqdx
 # --------------------- !CONFIG! --------------------
