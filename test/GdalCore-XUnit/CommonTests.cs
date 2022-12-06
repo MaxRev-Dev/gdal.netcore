@@ -78,7 +78,7 @@ namespace GdalCore_XUnit
             var wkt = _staticWkt;
             var geom = Geometry.CreateFromWkt(wkt);
             Assert.False(geom.IsValid());
-            var valid = geom.MakeValid();
+            var valid = geom.MakeValid(null);
             Assert.True(valid.IsValid());
         }
 
@@ -100,10 +100,33 @@ namespace GdalCore_XUnit
             {
                 return new[]
                 {
-                    "AAIGrid","ACE2","ADRG","AIG","AirSAR","AmigoCloud","ARCGEN",
-                    "ARG","AVCBin","AVCE00","BAG","BIGGIF","BLX","BMP","BSB","BT",
-                    "BYN","CAD","CALS","Carto","CEOS","Cloudant","COASP","COG","COSAR",
-                    "CouchDB","CPG","CSV","CSW","CTable2","CTG","DAAS","DERIVED","DGN","DIMAP","DIPEx","DOQ1","DOQ2","DTED","DXF","ECRGTOC","EDIGEO","EEDA","EEDAI","EHdr","EIR","ELAS","Elasticsearch","ENVI","ERS","ESAT","ESRI Shapefile","ESRIC","ESRIJSON","FAST","FIT","FlatGeobuf","FujiBAS","GenBin","Geoconcept","GeoJSON","GeoJSONSeq","Geomedia","GeoRSS","GFF","GIF","GML","GMLAS","GNMDatabase","GNMFile","GPKG","GPSBabel","GPSTrackMaker","GPX","GRASSASCIIGrid","GRIB","GS7BG","GSAG","GSBG","GSC","GTiff","GTX","GXF","HDF4","HDF4Image","HDF5","HDF5Image","HF2","HFA","HTTP","IDA","Idrisi","ILWIS","INGR","Interlis 1","Interlis 2","IRIS","ISCE","ISG","ISIS2","ISIS3","JAXAPALSAR","JDEM","JML","JP2OpenJPEG","JPEG","KML","KMLSUPEROVERLAY","KRO","L1B","LAN","LCP","Leveller","LOSLAS","LVBAG","MAP","MapInfo File","MapML","MBTiles","MEM","Memory","MFF","MFF2","MRF","MSGN","MSSQLSpatial","MVT","NAS","NDF","NGSGEOID","NGW","NITF","NTv2","NWT_GRC","NWT_GRD","OAPIF","ODBC","ODS","OGCAPI","OGR_GMT","OGR_PDS","OGR_SDTS","OGR_VRT","OpenFileGDB","OSM","OZI","PAux","PCIDSK","PCRaster","PDF","PDS","PDS4","PGDUMP","PGeo","PLMOSAIC","PLSCENES","PNG","PNM","PostGISRaster","PostgreSQL","PRF","R","Rasterlite","RDA","REC","RIK","RMF","ROI_PAC","RPFTOC","RRASTER","RS2","RST","S57","SAFE","SAGA","SAR_CEOS","SDTS","Selafin","SENTINEL2","SGI","SIGDEM","SNODAS","SQLite","SRP","SRTMHGT","STACTA","SVG","SXF","Terragen","TGA","TIGER","TIL","TopoJSON","TSX","UK .NTF","USGSDEM","VDV","VFK","VICAR","VRT","Walk","WAsP","WCS","WFS","WMS","WMTS","XLSX","XPM","XYZ","ZMap"
+                   "AAIGrid","ACE2","ADRG","AIG","AirSAR","AmigoCloud","ARG",
+                   "AVCBin","AVCE00","BAG","BIGGIF","BLX","BMP","BSB","BT",
+                   "BYN","CAD","CALS","Carto","CEOS","COASP","COG","COSAR",
+                   "CPG","CSV","CSW","CTable2","CTG","DAAS","DERIVED","DGN",
+                   "DIMAP","DIPEx","DOQ1","DOQ2","DTED","DXF","ECRGTOC","EDIGEO",
+                   "EEDA","EEDAI","EHdr","EIR","ELAS","Elasticsearch","ENVI","ERS",
+                   "ESAT","ESRI Shapefile","ESRIC","ESRIJSON","FAST","FIT","FITS",
+                   "FlatGeobuf","GenBin","Geoconcept","GeoJSON","GeoJSONSeq","GeoRSS",
+                   "GFF","GIF","GML","GMLAS","GNMDatabase","GNMFile","GPKG","GPSBabel",
+                   "GPX","GRASSASCIIGrid","GRIB","GS7BG","GSAG","GSBG","GSC","GTiff",
+                   "GTX","GXF","HDF4","HDF4Image","HDF5","HDF5Image","HF2","HFA",
+                   "HTTP","Idrisi","ILWIS","Interlis 1","Interlis 2","IRIS","ISCE",
+                   "ISG","ISIS2","ISIS3","JAXAPALSAR","JDEM","JML","JP2OpenJPEG",
+                   "JPEG","KML","KMLSUPEROVERLAY","KRO","L1B","LAN","LCP","Leveller",
+                   "LIBKML","LOSLAS","LVBAG","MAP","MapInfo File","MapML","MBTiles",
+                   "MEM","Memory","MFF","MFF2","MRF","MSGN","MSSQLSpatial","MVT",
+                   "MySQL","NAS","NDF","netCDF","NGSGEOID","NGW","NITF","NTv2",
+                   "NWT_GRC","NWT_GRD","OAPIF","ODBC","ODS","OGCAPI","OGR_GMT",
+                   "OGR_PDS","OGR_SDTS","OGR_VRT","OpenFileGDB","OSM","OZI","PAux",
+                   "PCIDSK","PCRaster","PDF","PDS","PDS4","PGDUMP","PGeo","PLMOSAIC",
+                   "PLSCENES","PNG","PNM","PostGISRaster","PostgreSQL","PRF","R",
+                   "Rasterlite","RIK","RMF","ROI_PAC","RPFTOC","RRASTER","RS2","RST",
+                   "S57","SAFE","SAGA","SAR_CEOS","SDTS","Selafin","SENTINEL2","SGI",
+                   "SIGDEM","SNODAS","SQLite","SRP","SRTMHGT","STACIT","STACTA","SVG",
+                   "SXF","Terragen","TGA","TIGER","TIL","TopoJSON","TSX","UK .NTF",
+                   "USGSDEM","VDV","VFK","VICAR","VRT","WAsP","WCS","WEBP","WFS",
+                   "WMS","WMTS","XLS","XLSX","XPM","XYZ","Zarr","ZMap"
                 }.Select(x => new[] { x });
             }
         }
