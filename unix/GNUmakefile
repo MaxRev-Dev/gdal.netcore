@@ -1,12 +1,7 @@
 include RID.opt
 include ../shared/GdalCore.opt
-include $(GDAL_ROOT)/GDALmake.opt
 include $(GDAL_ROOT)/swig/csharp/csharp.opt
-
-ifeq ($(LIBGDAL_CURRENT),)
-LIBGDAL_CURRENT := 27
-endif
-
+ 
 ifeq ($(RID),)
 RID=linux-x64
 endif
@@ -40,23 +35,11 @@ BUILD_BASE =  $(BASE)/bindings
 
 bindings_out = $(BUILD_BASE)
 
-CSHARP_MODULES = libgdalcsharp.$(SO_EXT) libogrcsharp.$(SO_EXT) libgdalconstcsharp.$(SO_EXT) libosrcsharp.$(SO_EXT)
-CSHARP_OBJECTS = $(BUILD_BASE)/const/gdalconst_wrap.$(OBJ_EXT) $(BUILD_BASE)/gdal/gdal_wrap.$(OBJ_EXT) $(BUILD_BASE)/osr/osr_wrap.$(OBJ_EXT) $(BUILD_BASE)/ogr/ogr_wrap.$(OBJ_EXT)
+interface:
+	$(MAKE) -f ./generate-interface-makefile
 
-$(CSHARP_MODULES): lib%csharp.$(SO_EXT): %_wrap.$(OBJ_EXT)
-	$(LINK) $(LDFLAGS) $(CONFIG_LIBS) -Wl,-rpath '-Wl,$$ORIGIN'  $(_suprf_) $< -o $@ $(LINK_EXTRAFLAGS) $(OUTPUT)/libgdal.$(GDAL_SO_VER_)
-
-%.$(OBJ_EXT): %.cpp
-	$(CXX) $(CFLAGS) $(GDAL_INCLUDE) $(_suprf_) -c $<
-
-%.$(OBJ_EXT): %.cxx
-	$(CXX) $(CFLAGS) $(GDAL_INCLUDE) $(_suprf_) -c $<
-
-%.$(OBJ_EXT): %.c
-	$(CC) $(CFLAGS) $(GDAL_INCLUDE)  $(_suprf_) -c $<
-
-link_so:
-	$(echo ok $< && patchelf --set-rpath '$$ORIGIN' $<)
+build: interface linkall
+	@echo "Bindings and drivers are ready to packaging!"
 
 linkall: clean_runtimes initdirs copygdalout makesolocal copyalldepso copyprojdb
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
@@ -80,13 +63,6 @@ veryclean: clean
 cleanpackages:
 	(cd $(PWD) && rm -f -R $(NUGET_))
 
-interface:
-	$(MAKE) -f ./mkinterface
-
-prebuild: interface 
-
-build: ${CSHARP_OBJECTS} ${CSHARP_MODULES} gdal_csharp
-
 install:
 	@echo "No installation to be done"
 
@@ -108,44 +84,3 @@ copyalldepso:
 copyprojdb:
 	-mkdir -p $(LIBSHARED)
 	cp -f $(BASE_PROJ)/share/proj/proj.db $(LIBSHARED)
-
-gdal_csharp: linkall  
-	@echo "Bindings and drivers are ready to packaging!"
-
-## Creating packages for testing and publishing
-# https://github.com/dotnet/core/issues/4404
-export MSBUILDSINGLELOADCONTEXT = 1
-
-# make's .EXPORT_ALL_VARIABLES does not work here
-# using exprt to add dynamic labraries location
-export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
-
-packc:
-	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
-
-packr: 
-	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
-
-pack: packc packr
-
-packdc: 
-	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
-
-packdr: 
-	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
-
-packdev: packdc packdr
-	
-
-###	Testing linux libraries (from nuget build output)
-test-update:
-	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core -s $(NUGET_)) 
-	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_))
- 
-test-restore:
-	(cd $(TEST_DIR) && dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_))
-
-test-only: test-restore
-	(cd $(TEST_DIR) && dotnet test)
-	
-test: test-update test-only

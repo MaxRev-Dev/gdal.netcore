@@ -1,0 +1,16 @@
+include RID.opt
+include ../shared/GdalCore.opt
+
+###	Testing linux libraries (from nuget build output)
+test-update:
+	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.Core -s $(NUGET_)) 
+	(cd $(TEST_DIR) && dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_))
+ 
+test-restore:
+	(cd $(TEST_DIR) && dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_))
+
+test-only: test-restore
+	(cd $(TEST_DIR) && dotnet test)
+	
+test: test-update test-only
+	@exit 0

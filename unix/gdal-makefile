@@ -6,7 +6,7 @@ include RID.opt
 include ../shared/GdalCore.opt 
 
 # default targets on linux
-TARGETS = proj geos gdal
+TARGETS = proj gdal
 
 all: $(TARGETS)
 	@echo "$(PRE) Everything looks good. Linux libraries for GDAL is ready to packaging!"
@@ -73,105 +73,25 @@ init_%: clone_%
 	@echo "$(TO) Sources restore complete"
 
 configure_gdal:
-	@echo "$(TO) GDAL Configuring..."
-	(cd ${GDAL_ROOT} && chmod +x ./configure)
-	
-#   based on https://trac.osgeo.org/gdal/wiki/BuildingOnUnixWithMinimizedDrivers
-	(cd ${GDAL_ROOT} && ./configure  --prefix=${BUILD_ROOT}/gdal-build  \
-CFLAGS="-fPIC" \
-OPENJPEG_LIBS="-L${VCPKG_INSTALLED_DYNAMIC}/lib -lopenjp2" \
- --with-geos=${BUILD_ROOT}/geos-build/bin/geos-config \
- --with-proj=${BUILD_ROOT}/proj-build \
- --with-liblzma \
- --with-libtool \
- --with-geotiff=internal \
- --with-hide-internal-symbols \
- --with-threads \
- --with-curl=${VCPKG_INSTALLED_DYNAMIC}/share/curl/curl-config \
- --with-png=${VCPKG_INSTALLED} \
- --with-sqlite3 \
- --with-hdf4 \
- --with-hdf5=${VCPKG_INSTALLED_DYNAMIC} \
- --with-libz=${VCPKG_INSTALLED} \
- --with-jpeg=${VCPKG_INSTALLED}  \
- --with-expat=${VCPKG_INSTALLED} \
- --with-libtiff=internal \
- --with-xerces=${VCPKG_INSTALLED} \
- --with-libiconv-prefix=${VCPKG_INSTALLED} \
- --with-openjpeg  \
- --with-pg=yes \
- --with-odbc \
- --with-ogdi \
- --with-pcidsk \
- --with-pcraster \
- --without-cfitsio \
- --without-crypto \
- --without-cryptopp \
- --without-ecw \
- --without-fme \
- --without-freexl \
- --without-grass \
- --without-idb \
- --without-ingres \
- --without-jasper \
- --without-jp2mrsid \
- --without-kakadu \
- --without-libgrass \
- --without-libkml \
- --without-mrsid \
- --without-netcdf \
- --without-pcre \
- --without-perl \
- --without-python \
- --without-webp \
- --without-xml2 \
- --without-poppler)
-	@echo "$(TO) GDAL Configured!"
+	@echo "$(TO) GDAL Configuring..." 	
+	(cd ${GDAL_ROOT} && cmake cmake ..
+	@echo "$(TO) GDAL was configured!"
 	
 configure_proj: 
 	@echo "$(TO) PROJ Configuring..."
-	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
-	@cd $(PROJ_ROOT) &&	./autogen.sh 
+	@cd $(BUILD_ROOT)/proj-build &&	cmake .. 
+	@echo "$(TO) PROJ was configured!"
+build_proj:
+	@echo "$(TO) PROJ Building..."
+	@cd $(BUILD_ROOT)/proj-build && $(MAKE) -j$(CORES)
+	@echo "$(TO) PROJ was built!"
 
-	@cd $(PROJ_ROOT) &&	./configure \
-	--with-curl=$(VCPKG_INSTALLED_DYNAMIC)/share/curl/curl-config \
-	--prefix=$(BUILD_ROOT)/proj-build \
-	LIBS="-L$(VCPKG_INSTALLED)/lib -lsqlite3 \
-	 -L$(VCPKG_INSTALLED)/lib -ltiff \
-	 -L$(VCPKG_INSTALLED)/lib -llzma \
-	 -L$(VCPKG_INSTALLED)/lib -ljpeg \
-	 -L$(VCPKG_INSTALLED)/lib -lz" \
-	TIFF_INCLUDE_DIR=-I$(VCPKG_INSTALLED)/include \
-	TIFF_CFLAGS=-L$(VCPKG_INSTALLED)/lib \
-	TIFF_LIBRARY_RELEASE="$(VCPKG_INSTALLED)/lib/libtiff.a" \
-	SQLITE3_CFLAGS=-I$(VCPKG_INSTALLED)/include \
-	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib 
-	@echo "$(TO) PROJ Configured!"
+build_gdal:
+	@echo "$(TO) GDAL Building..."
+	@cd $(BUILD_ROOT)/gdal-build && $(MAKE) -j$(CORES)
+	@echo "$(TO) GDAL was built!"
 
-configure_geos: 
-	@echo "$(TO) GEOS Configuring..."
-	@cd $(GEOS_ROOT) && chmod +x ./autogen.sh 
-	@cd $(GEOS_ROOT) &&	./autogen.sh 
-# geos requires sqlite3 > 3.17
-	@cd $(GEOS_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/geos-build \
-	SQLITE3_CFLAGS=-I$(VCPKG_INSTALLED)/include \
-	SQLITE3_LIBS=-L$(VCPKG_INSTALLED)/lib
-	@echo "$(TO) GEOS Configured!"
-
-configure_%:
-	@echo "$(TO) Configuring..."
-	@cd $(PROJ_ROOT) && chmod +x ./autogen.sh 
-	@cd $(PROJ_ROOT) &&	./autogen.sh 
-	@cd $(PROJ_ROOT) &&	./configure  --prefix=$(BUILD_ROOT)/$(LW)-build
-	@echo "$(TO) Configured!"
-
-build_%:
-	@echo "$(TO) Building..."
-	$(DEL_DIR) "$(BUILD_ROOT)/$(LW)-build"
-	@cd $($(UP)_ROOT) &&  $(MAKE) &&  $(MAKE) install
-	@echo "$(TO) Built successfully!"
-
-reset: reset_proj reset_gdal reset_geos 
+reset: reset_proj reset_gdal 
 	@echo "$(TO) Reset ALL is complete" 
 
 reset_%:

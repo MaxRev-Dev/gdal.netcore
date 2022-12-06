@@ -4,7 +4,11 @@
 
 First of all I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 2 hours.
 
-**Environment**: I'm compiling in WSL on **CentOS 7 with GLIBC 2.17 (2012)**
+```shell
+sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-headers-amd64
+```
+
+**Environment**: I'm compiling in WSL on **Debian 11 with GLIBC 2.31 (2020)**
 
 1. Dynamic linking
 ``` shell

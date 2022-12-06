@@ -8,7 +8,7 @@ VCPKG_RID=x64-linux
 
 include ../shared/GdalCore.opt
  
-VCPKG=$(VCPKG_ROOT)/vcpkg
+VCPKG=$(abspath $(VCPKG_ROOT))/vcpkg
 
 # lowercase func
 LW = $(shell echo '$*' | tr A-Z a-z)
