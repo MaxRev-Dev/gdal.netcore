@@ -36,9 +36,10 @@ try {
     $env:VCPKG_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
     Add-EnvPath $env:VCPKG_ROOT 
 
-   # Get-VcpkgInstallation $bootstrapVcpkg
+    Get-VcpkgInstallation $bootstrapVcpkg
     
-    $ErrorActionPreference = 'continue'
+    $ErrorActionPreference = 'Stop'
+    # $ConfirmPreference = 'Low'
     # $VerbosePreference = Continue
     Set-GdalVariables 
     
@@ -47,18 +48,18 @@ try {
     Write-BuildStep "Visual Studio Environment was initialized"
 
 
-    #Install-VcpkgPackagesSharedConfig $installVcpkgPackages
+    Install-VcpkgPackagesSharedConfig $installVcpkgPackages
     
     Get-7ZipInstallation
-    #Get-GdalSdkIsAvailable
-   # Resolve-GdalThidpartyLibs
-    #Install-Proj
+    Get-GdalSdkIsAvailable
+    Resolve-GdalThidpartyLibs
+    Install-Proj
     
-   # Get-ProjDatum
+    Get-ProjDatum
 
     $env:INCLUDE = Add-EnvVar $env:INCLUDE "$env:SDK_PREFIX\include"
     $env:LIB = Add-EnvVar $env:LIB "$env:SDK_PREFIX\lib"
-    #Build-Gdal $cleanGdalBuild $cleanGdalIntermediate
+    Build-Gdal $cleanGdalBuild $cleanGdalIntermediate
 
     Build-CsharpBindings -isDebug $isDebug
 
@@ -66,6 +67,6 @@ try {
 finally {
     Pop-Location -StackName "gdal.netcore|root"
     Get-Variable |
-        Where-Object Name -notin $existingVariables.Name |
-        Remove-Variable
+    Where-Object Name -notin $existingVariables.Name |
+    Remove-Variable
 }

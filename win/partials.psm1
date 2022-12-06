@@ -159,6 +159,7 @@ function Build-Gdal {
     $env:CMAKE_PREFIX_PATH = "-DCMAKE_PREFIX_PATH=" + $env:SDK_PREFIX
     $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=" + $env:SDK_LIB + "\libmysql.lib"
     $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=" + $env:SDK_LIB + "\freetype.lib;" + $env:SDK_LIB + "\harfbuzz.lib"
+    $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -174,7 +175,7 @@ function Build-Gdal {
         Remove-Item -Path $env:GdalCmakeBuild -Recurse -Force
     }
     
-    Get-CloneAndCheckoutCleanGitRepo $env:GDAL_REPO $env:GDAL_COMMIT_VER "$env:BUILD_ROOT\gdal-source"
+    Get-CloneAndCheckoutCleanGitRepo $env:GDAL_REPO $env:GDAL_COMMIT_VER "$env:GDAL_SOURCE"
 
     if ((Test-Path -Path "$env:GdalCmakeBuild\CMakeCache.txt" -PathType Leaf)) {
         Write-BuildInfo "Removing build cache (CMakeCache.txt)"
@@ -187,15 +188,15 @@ function Build-Gdal {
         -What "E:/buildsystem/$env:SDK", "E:\buildsystem\$env:SDK" `
         -With $env:SDK_PREFIX.Replace("\", "/")  
 
-    Set-Location "$env:BUILD_ROOT\gdal-source"
+    Set-Location "$env:GDAL_SOURCE"
 
     # PATCH 2: apply patch to cmake pipeline. remove redundant compile steps
     git apply "$PSScriptRoot/patch/CmakeLists.txt.patch"
 
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild  
 
-    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:BUILD_ROOT\gdal-source" $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" -DCMAKE_CXX_FLAGS=" /WX $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF $env:PROJ_ROOT $env:MYSQL_LIBRARY $env:POPPLER_EXTRA_LIBRARIES -DGDAL_USE_ZLIB_INTERNAL=ON -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" -DBUILD_APPS=OFF -DBUILD_CSHARP_BINDINGS=ON -DBUILD_JAVA_BINDINGS=OFF
-    
+    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" -DCMAKE_CXX_FLAGS=" /WX $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF $env:PROJ_ROOT $env:MYSQL_LIBRARY $env:POPPLER_EXTRA_LIBRARIES -DGDAL_USE_ZLIB_INTERNAL=ON -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" -DBUILD_APPS=OFF -DBUILD_CSHARP_BINDINGS=ON -DBUILD_JAVA_BINDINGS=OFF
+    return
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
     Write-BuildStep "GDAL was built successfully"
