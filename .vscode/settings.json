@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.vc": "makefile",
+        "*-makefile": "makefile", 
+        "*.opt": "makefile",
+    }
+}
