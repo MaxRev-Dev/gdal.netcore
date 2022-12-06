@@ -25,10 +25,21 @@ namespace MaxRev.Gdal.Core
         {
             if (IsConfigured) return;
 
-            var thisName = Assembly.GetExecutingAssembly().FullName;
 
+            //CheckWindowsDriversPatch();
+
+            OSGeo.GDAL.Gdal.AllRegister();
+            OSGeo.OGR.Ogr.RegisterAll();
+
+            // set flag only on success
+            IsConfigured = true;
+        }
+
+        private static void CheckWindowsDriversPatch()
+        {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                var thisName = Assembly.GetExecutingAssembly().FullName;
                 Assembly asm;
 
                 try
@@ -82,7 +93,7 @@ namespace MaxRev.Gdal.Core
                     else
                     {
                         Console.WriteLine($"{thisName}: Can't find GDAL driver libraries");
-                        return;
+                        //return;
                     }
                 }
                 catch (Exception ex)
@@ -92,12 +103,6 @@ namespace MaxRev.Gdal.Core
                     throw;
                 }
             }
-
-            OSGeo.GDAL.Gdal.AllRegister();
-            OSGeo.OGR.Ogr.RegisterAll();
-
-            // set flag only on success
-            IsConfigured = true;
         }
 
         private static bool TryFindDriversInExecutingDirectory
@@ -107,11 +112,13 @@ namespace MaxRev.Gdal.Core
 
             if (!drivers.Any())
             {
-                throw new InvalidOperationException("Can't find drivers in executing directory.");
+                targetDrivers = null;
+                // throw new InvalidOperationException("Can't find drivers in executing directory.");
+                return false;
             }
 
             targetDrivers = Path.Combine(targetDir.FullName, "gdalplugins");
-            
+
             // check if this folder is already populated with drivers
             var targetDirInfo = new DirectoryInfo(targetDrivers);
             if (!targetDirInfo.Exists ||
