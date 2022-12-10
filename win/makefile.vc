@@ -30,7 +30,7 @@ interface:
 
 copyprojdb:
 	if not exist "$(LIBSHARED)" mkdir "$(LIBSHARED)"
-	$(COPY_I) "$(BASE_PROJ)/share/proj/proj.db" "$(LIBSHARED)/"
+	$(COPY_I) "$(PROJ_BUILD)/share/proj/proj.db" "$(LIBSHARED)/"
 
 collect: copyprojdb
 	if not exist "$(OUTPUT)" mkdir "$(OUTPUT)"

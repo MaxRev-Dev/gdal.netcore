@@ -153,12 +153,12 @@ function Build-Gdal {
     $env:SDK_BIN = "$env:SDK_PREFIX\bin"
     $env:PATH = "$env:BUILD_ROOT\proj-build\bin;$env:SDK_BIN;$env:PATH"
     exec { Write-Output projinfo EPSG:4326 }
-    $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT" + "\gdal-build"
-    $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=" + $env:GDAL_INSTALL_DIR
-    $env:PROJ_ROOT = "-DPROJ_ROOT=" + $env:PROJ_INSTALL_DIR
-    $env:CMAKE_PREFIX_PATH = "-DCMAKE_PREFIX_PATH=" + $env:SDK_PREFIX
-    $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=" + $env:SDK_LIB + "\libmysql.lib"
-    $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=" + $env:SDK_LIB + "\freetype.lib;" + $env:SDK_LIB + "\harfbuzz.lib"
+    $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
+    $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=$env:GDAL_INSTALL_DIR"
+    $env:PROJ_ROOT = "-DPROJ_ROOT=$env:PROJ_INSTALL_DIR"
+    $env:CMAKE_PREFIX_PATH = "-DCMAKE_PREFIX_PATH=$env:SDK_PREFIX"
+    $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
+    $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=$env:SDK_LIB\freetype.lib;$env:SDK_LIB\harfbuzz.lib"
     $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
 
     Write-BuildStep "Configuring GDAL"
@@ -191,7 +191,7 @@ function Build-Gdal {
     Set-Location "$env:GDAL_SOURCE"
 
     # PATCH 2: apply patch to cmake pipeline. remove redundant compile steps
-    git apply "$PSScriptRoot/patch/CmakeLists.txt.patch"
+    git apply "$PSScriptRoot/../shared/patch/CMakeLists.txt.patch"
 
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild  
 
