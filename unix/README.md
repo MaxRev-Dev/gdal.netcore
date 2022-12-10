@@ -5,8 +5,12 @@
 First of all I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 2 hours.
 
 ```shell
-sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-headers-amd64
+sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-headers-amd64 swig libnetcdf-dev libspatialite-dev libpoppler-dev libmysql++-dev 
 ```
+Install .NET
+https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-11
+
+
 
 **Environment**: I'm compiling in WSL on **Debian 11 with GLIBC 2.31 (2020)**
 

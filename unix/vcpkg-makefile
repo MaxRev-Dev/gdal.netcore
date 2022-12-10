@@ -1,11 +1,7 @@
 #
 #  gdal.netcore package automation
 #
-
-BASE=$(PWD)
-BASE_RUNTIME_RID=unix
-VCPKG_RID=x64-linux
-
+include RID.opt
 include ../shared/GdalCore.opt
  
 VCPKG=$(abspath $(VCPKG_ROOT))/vcpkg
@@ -18,13 +14,14 @@ REP = $(shell echo '$*' | sed "s/-force//g")
 
 # target pretty output
 TO = $(PRE) VCPKG |
+SHELL=/bin/bash
 
 all: install_vcpkg install_requirements
 	@exit 0
 force: $(addsuffix -force, $(TARGETS))
 	@exit 0
 
-# accepts any user params
+# accepts any params to install/uninstall package
 % :
 ifneq ($(filter $(REP),$(VCPKG_REQUIRE_UNIX)),'')
 	@echo "'vcpkg make' > trying to make stuff for => $(REP)"
@@ -46,7 +43,7 @@ pull:
 	fi;
 
 bootstrap: checkout_ver
-	(cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh); 
+	cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh || exit 1; 
 
 install_vcpkg: pull bootstrap
 	@exit 0
@@ -57,9 +54,9 @@ install_requirements_only: patch_vcpkg_triplets install_packages
 
 checkout_ver:
 	@echo "$(TO) Checking for remote changes..." 
-	@cd $(VCPKG_ROOT) && git fetch
+	@cd $(VCPKG_ROOT) && git fetch || exit 1
 	@echo "$(TO) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
-	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
+	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force || exit 1
  
 upgrade: checkout_ver
 	$(VCPKG) upgrade $(VCPKG_TRIPLETS_OVERLAY)
@@ -77,7 +74,6 @@ build_cleanup: $(VCPKG_CLEANUP)
 	@exit 0
 clean_ALL: build_cleanup
 	@exit 0
-
 
 define VCPKG_TRIPLET_LINUX_DYNAMIC_RELEASE
 	set(VCPKG_TARGET_ARCHITECTURE x64)

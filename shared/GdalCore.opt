@@ -24,17 +24,21 @@ VCPKG_COMMIT_VER=8b8196f0f81123c928165f9740120e10e8510340
 # latest on Nov 23, 2022
 
 # base requirements for both runtimes
-VCPKG_REQUIRE=geos "sqlite3[tool,rtree]" tiff curl
+VCPKG_REQUIRE=geos tiff curl "sqlite3[tool,rtree]"
 
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj 
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) 
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE)
 VCPKG_REQUIRE_WIN_STATIC= 
 
-# the default configuration is static
-# no collisions with sibling libraries in projects
-VCPKG_REQUIRE_UNIX=$(VCPKG_REQUIRE) expat xerces-c libpng zlib sqlite3 hdf5 libpq openjpeg libkml unixodbc
-VCPKG_REQUIRE_UNIX_DYNAMIC=
+# the default configuration is dynamic
+# THESE are installed from apt as require many boost deps
+# libnetcdf-dev libspatialite-dev librasterlite2-dev libpoppler-dev libmysql++-dev
+#   icu-devtools libdeflate-dev libfreexl-dev libfreexl1 libgeos-3.9.0 libgeos-c1v5 libgeos-dev
+# libicu-dev libjbig-dev liblzma-dev libmariadb-dev libmariadb-dev-compat libmariadb3 libmysql++3v5 libproj-dev
+# libproj19 librttopo-dev librttopo1 libspatialite7 libsqlite3-dev libssl-dev libtiff-dev libtiffxx5 libxml2-dev mariadb-common mysql-common proj-data
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre libmysql
+VCPKG_REQUIRE_UNIX=
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
@@ -58,22 +62,20 @@ __libshared=maxrev.gdal.core.libshared
 LIBSHARED=$(ROOTDIR_)/$(__libshared)/$(RID)/$(__libshared)
 
 ##### GDAL source extended location
-GDAL_ROOT_BASE=$(BUILD_ROOT)/gdal-source
-GDAL_ROOT=$(GDAL_ROOT_BASE)/gdal
+GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 
 ##### SWIG executable and interface
 BASE_SWIG_=$(GDAL_ROOT)/swig
 BASE_CSHARP_=$(BASE_SWIG_)/csharp
 SWIG_INCLUDE_=$(BASE_SWIG_)/include
 
+##### PROJ build location
+PROJ_BUILD=$(BUILD_ROOT)/proj-build
+PROJ_CMAKE_TMP=$(BUILD_ROOT)/proj-cmake-temp
+
 ##### GDAL build location
-GDAL_BUILD_=$(BUILD_ROOT)/gdal-build
-
-##### PROJ6 libraries path required by gdal
-BASE_PROJ=$(BUILD_ROOT)/proj-build
-
-#### enabling wildcards expand for gdal
-GDAL_SETARGV="%VCToolsInstallDir%\lib\x64\wsetargv.obj"
+GDAL_BUILD=$(BUILD_ROOT)/gdal-build
+GDAL_CMAKE_TMP=$(BUILD_ROOT)/gdal-cmake-temp
 
 ##### NUGET output folder
 NUGET_=$(ROOTDIR_)/nuget

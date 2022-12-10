@@ -10,5 +10,6 @@ VCPKG_RID=x64-linux
 # .NET RID
 RID=linux-x64
 SWIG=swig
+SHELL=/bin/bash
 
-DEL_DIR=rm -r
+DEL_DIR=rm -rf
