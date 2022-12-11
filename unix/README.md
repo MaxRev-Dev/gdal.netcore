@@ -2,55 +2,70 @@
 
 ## Prerequisites
 
-First of all I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 2 hours.
+First of all, I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 1 hour. But from version 3.6 it possibly faster with CMake.
 
-```shell
-sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-headers-amd64 swig libnetcdf-dev libspatialite-dev libpoppler-dev libmysql++-dev 
+> NOTE: this pipeline will build **only** dynamic libraries package.<br>
+> C# Bindings (aka Core) are currently build in windows
+
+### **1. Environment**
+I'm compiling in WSL on **Debian 11 with GLIBC 2.31 (2020)**
+
+### **2. Base packages**. VCPKG and pipeline scripts won't work without them:
+
+```bash
+sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-headers-amd64 autoconf automake swig patchelf 
 ```
-Install .NET
+
+
+### 3. **Install .NET**
 https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-11
 
+### 4. **Installing libraries**. 
+Libraries can be installed in two ways.
 
+1. **VPKG** - recommended. Latest versions, no collisions with other dynamic libraries.
+2. **APT package manager** - if vcpkg does not provide any. Can create conficts with other library dependencies. 
 
-**Environment**: I'm compiling in WSL on **Debian 11 with GLIBC 2.31 (2020)**
-
-1. Dynamic linking
-``` shell
-yum install patchelf -y
+Each library enables one driver
+```bash 
+sudo apt-get install libhdf4-dev
 ```
-2. Install dev tools > [link](https://github.com/microsoft/vcpkg#installing-linux-developer-tools)
-``` shell
-yum install centos-release-scl -y
-yum install devtoolset-7 -y
-scl enable devtoolset-7 bash
-```
-3. Install tools (required swig 3.0.12)
-```shell
-yum install swig3 -y
-yum install automake -y
-yum install libtool -y
-yum install make -y
+#### Optional libraries
+```bash
+sudo apt-get install libnetcdf-dev libspatialite-dev libpoppler-dev libmysql++-dev 
 ```
 
-4. Install libraries
-``` shell 
-yum install xz-devel hdf-devel hdf5-devel libtiff sqlite-devel expat curl-devel -y
-```
+### 5. **Compiling**
 
-## Easy way compiling 
-
-```shell
-# don't forget to enable ONCE dev tools on CentOS 
-scl enable devtoolset-7 bash
+```bash
 # install libraries with VCPKG
 make -f vcpkg-makefile
-# install main libraries (proj,geos,gdal)
+
+# install main libraries (proj,gdal)
 make -f gdal-makefile
-# generate bindings 
-make 
-# create packages
-make pack
-# test packages
-make test
+
+# collect dynamic libraries 
+make -f collect-deps-makefile
+
+# create packages (output to 'nuget' folder)
+make -f publish-makefile pack
+
+# testing packages
+# optional PRERELEASE=1 - testing pre-release versions
+# optional APP_RUN=1 - testing via console app run (quick, to ensure deps were loaded correctly)
+make -f test-makefile test
 ```
 
+### 6. **How to check dependencies:**
+Run tests. If everything loads correctly - you're good.
+
+Or after collecting libraries, run **readelf**.
+Don't forget to set **LD_LIBRARY_PATH**. See **copy-deps** target in **collect-deps** for details. Assumming the repo path is `/root/gdal.netcore`.
+```bash
+readelf -d "/root/gdal.netcore/build-unix/gdal-build/lib/libgdal.so" | grep NEEDED
+```
+
+Or using **ldd**:
+```bash
+ldd "/root/gdal.netcore/build-unix/gdal-build/lib/libgdal.so"
+```

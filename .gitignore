@@ -27,7 +27,7 @@ nuget/
 build-*
 libshared/
 maxrev.gdal.core.libshared/
-
+tmp/
 !test/**/*.cs
 !compile/*.*
 
