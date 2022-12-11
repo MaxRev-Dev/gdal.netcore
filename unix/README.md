@@ -37,11 +37,15 @@ sudo apt-get install libnetcdf-dev libspatialite-dev libpoppler-dev libmysql++-d
 
 ### 5. **Compiling**
 
+Simply run `make` in current folder to start GNUmakefile which constists of steps described below.
+Still, you can execute them sequentially if needed.
+
 ```bash
 # install libraries with VCPKG
 make -f vcpkg-makefile
 
 # install main libraries (proj,gdal)
+# > optional use [target]-force to run from scratch, ex. gdal-force
 make -f gdal-makefile
 
 # collect dynamic libraries 
@@ -51,8 +55,8 @@ make -f collect-deps-makefile
 make -f publish-makefile pack
 
 # testing packages
-# optional PRERELEASE=1 - testing pre-release versions
-# optional APP_RUN=1 - testing via console app run (quick, to ensure deps were loaded correctly)
+# > optional PRERELEASE=1 - testing pre-release versions
+# > optional APP_RUN=1 - testing via console app run (quick, to ensure deps were loaded correctly)
 make -f test-makefile test
 ```
 
