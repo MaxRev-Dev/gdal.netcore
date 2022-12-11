@@ -4,6 +4,13 @@
   <VRTRasterBand dataType="Byte" band="1">
     <ColorInterp>Gray</ColorInterp>
     <SimpleSource>
+      <SourceFilename relativeToVRT="1">тест.tif</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <SourceProperties RasterXSize="514" RasterYSize="515" DataType="Byte" BlockXSize="514" BlockYSize="15" />
+      <SrcRect xOff="0" yOff="0" xSize="514" ySize="515" />
+      <DstRect xOff="0" yOff="0" xSize="514" ySize="515" />
+    </SimpleSource>
+    <SimpleSource>
       <SourceFilename relativeToVRT="1">input.tif</SourceFilename>
       <SourceBand>1</SourceBand>
       <SourceProperties RasterXSize="514" RasterYSize="515" DataType="Byte" BlockXSize="514" BlockYSize="15" />
@@ -11,21 +18,7 @@
       <DstRect xOff="0" yOff="0" xSize="514" ySize="515" />
     </SimpleSource>
     <SimpleSource>
-      <SourceFilename relativeToVRT="1">test1.vrt</SourceFilename>
-      <SourceBand>1</SourceBand>
-      <SourceProperties RasterXSize="514" RasterYSize="515" DataType="Byte" BlockXSize="128" BlockYSize="128" />
-      <SrcRect xOff="0" yOff="0" xSize="514" ySize="515" />
-      <DstRect xOff="0" yOff="0" xSize="514" ySize="515" />
-    </SimpleSource>
-    <SimpleSource>
       <SourceFilename relativeToVRT="1">test2.vrt</SourceFilename>
-      <SourceBand>1</SourceBand>
-      <SourceProperties RasterXSize="514" RasterYSize="515" DataType="Byte" BlockXSize="128" BlockYSize="128" />
-      <SrcRect xOff="0" yOff="0" xSize="514" ySize="515" />
-      <DstRect xOff="0" yOff="0" xSize="514" ySize="515" />
-    </SimpleSource>
-    <SimpleSource>
-      <SourceFilename relativeToVRT="1">test3.vrt</SourceFilename>
       <SourceBand>1</SourceBand>
       <SourceProperties RasterXSize="514" RasterYSize="515" DataType="Byte" BlockXSize="128" BlockYSize="128" />
       <SrcRect xOff="0" yOff="0" xSize="514" ySize="515" />
@@ -39,9 +32,16 @@
       <DstRect xOff="0" yOff="0" xSize="514" ySize="515" />
     </SimpleSource>
     <SimpleSource>
-      <SourceFilename relativeToVRT="1">тест.tif</SourceFilename>
+      <SourceFilename relativeToVRT="1">test1.vrt</SourceFilename>
       <SourceBand>1</SourceBand>
-      <SourceProperties RasterXSize="514" RasterYSize="515" DataType="Byte" BlockXSize="514" BlockYSize="15" />
+      <SourceProperties RasterXSize="514" RasterYSize="515" DataType="Byte" BlockXSize="128" BlockYSize="128" />
+      <SrcRect xOff="0" yOff="0" xSize="514" ySize="515" />
+      <DstRect xOff="0" yOff="0" xSize="514" ySize="515" />
+    </SimpleSource>
+    <SimpleSource>
+      <SourceFilename relativeToVRT="1">test3.vrt</SourceFilename>
+      <SourceBand>1</SourceBand>
+      <SourceProperties RasterXSize="514" RasterYSize="515" DataType="Byte" BlockXSize="128" BlockYSize="128" />
       <SrcRect xOff="0" yOff="0" xSize="514" ySize="515" />
       <DstRect xOff="0" yOff="0" xSize="514" ySize="515" />
     </SimpleSource>

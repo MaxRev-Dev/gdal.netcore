@@ -116,7 +116,7 @@ namespace GdalCore_XUnit
                    "JPEG","KML","KMLSUPEROVERLAY","KRO","L1B","LAN","LCP","Leveller",
                    "LIBKML","LOSLAS","LVBAG","MAP","MapInfo File","MapML","MBTiles",
                    "MEM","Memory","MFF","MFF2","MRF","MSGN","MSSQLSpatial","MVT",
-                   "MySQL","NAS","NDF","netCDF","NGSGEOID","NGW","NITF","NTv2",
+                   "NAS","NDF","netCDF","NGSGEOID","NGW","NITF","NTv2",
                    "NWT_GRC","NWT_GRD","OAPIF","ODBC","ODS","OGCAPI","OGR_GMT",
                    "OGR_PDS","OGR_SDTS","OGR_VRT","OpenFileGDB","OSM","OZI","PAux",
                    "PCIDSK","PCRaster","PDF","PDS","PDS4","PGDUMP","PGeo","PLMOSAIC",
