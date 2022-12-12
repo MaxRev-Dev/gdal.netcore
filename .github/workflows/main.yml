@@ -13,12 +13,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:     
-      - uses: actions/checkout@v2
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1.7.2
+      - uses: actions/checkout@v3
         with:
-          dotnet-version: '6.0.x'
-      - uses: actions/cache@v2
+          fetch-depth: 0
+      - name: Setup .NET Core SDK
+      - uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+      - uses: actions/cache@v3
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
@@ -32,4 +34,4 @@ jobs:
 
       - name: Run tests from nuget packages
         run: |
-          dotnet test test/GdalCore-XUnit/GdalCore-XUnit.csproj
+          dotnet test tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj
