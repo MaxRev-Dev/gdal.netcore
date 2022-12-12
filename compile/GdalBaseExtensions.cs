@@ -8,11 +8,6 @@ namespace MaxRev.Gdal.Core
 {
     internal static class GdalBaseExtensions
     {
-        public static IEnumerable<FileInfo> GetGdalPlugins(this DirectoryInfo directory)
-        {
-            return directory.EnumerateFiles("gdal_*.dll").Where(x => !x.Name.Contains("wrap"));
-        }
-
         public static string GetSourceLocation(this Assembly asm)
         {
             return !string.IsNullOrEmpty(asm.Location) ? asm.Location : AppContext.BaseDirectory;

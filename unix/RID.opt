@@ -10,10 +10,6 @@ VCPKG_RID=x64-linux
 # .NET RID
 RID=linux-x64
 SWIG=swig
+SHELL=/bin/bash
 
-# Visual C++ Redistributable Version
-# See VCToolsRedistDir variable.
-# Used to ship runtime libraries along with packages
-CRT_VERSION=143
-
-DEL_DIR=rm -r
+DEL_DIR=rm -rf

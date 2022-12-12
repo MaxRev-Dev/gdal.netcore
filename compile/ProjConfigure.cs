@@ -5,25 +5,6 @@ using System.Linq;
 
 namespace MaxRev.Gdal.Core
 {
-    [Obsolete("Use simplified Proj class. Library version is incrementing frequently. This class will be removed in the next release")]
-    /// <summary>
-    ///  Configurator for Proj. Use with <see cref="OSGeo.OGR.Ogr.RegisterAll"/> 
-    /// </summary>
-    public static class Proj6
-    {
-
-        [Obsolete("Use simplified Proj.Configure. Library version is incrementing frequently")]
-        /// <summary>
-        /// Performs search for proj.db in project directories and sets search paths for Proj. 
-        /// You can call <see cref="OSGeo.OSR.Osr.SetPROJSearchPaths"/> alternatively.
-        /// </summary>
-        /// <param name="additionalSearchPaths">optional additional paths</param>
-        public static void Configure(params string[] additionalSearchPaths)
-        {
-            Proj.Configure(additionalSearchPaths);
-        }
-    }
-
     /// <summary>
     ///  Configurator for Proj. Use with <see cref="OSGeo.OGR.Ogr.RegisterAll"/> 
     /// </summary>
@@ -36,6 +17,13 @@ namespace MaxRev.Gdal.Core
         /// <param name="additionalSearchPaths">optional additional paths</param> 
         public static void Configure(params string[] additionalSearchPaths)
         {
+            // fast set and forget if user provides a custom location
+            if (additionalSearchPaths.Any())
+            {
+                OSGeo.OSR.Osr.SetPROJSearchPaths(additionalSearchPaths);
+                return;
+            }
+
             const string libshared = "maxrev.gdal.core.libshared";
             var runtimes = $"runtimes/{GdalBaseExtensions.GetEnvRID()}/native";
             var entryAsm = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
@@ -92,7 +80,7 @@ namespace MaxRev.Gdal.Core
 
                 if (found != "")
                 {
-                    OSGeo.OSR.Osr.SetPROJSearchPaths(new[] { found }.Concat(additionalSearchPaths).ToArray());
+                    OSGeo.OSR.Osr.SetPROJSearchPaths(new[] { found });
                     return;
                 }
 

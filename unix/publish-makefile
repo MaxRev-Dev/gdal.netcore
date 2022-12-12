@@ -1,0 +1,29 @@
+include RID.opt
+include ../shared/GdalCore.opt
+
+## Creating packages for testing and publishing
+# https://github.com/dotnet/core/issues/4404
+export MSBUILDSINGLELOADCONTEXT = 1
+
+# make's .EXPORT_ALL_VARIABLES does not work here
+# using export to add dynamic libraries location
+export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
+
+# pack-core:
+# 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+
+pack-runtime: 
+	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
+
+pack: pack-runtime
+	@exit 0
+
+# pack-core-dev: 
+# 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+
+pack-runtime-dev: 
+	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
+
+pack-dev: pack-runtime-dev
+	@exit 0
+

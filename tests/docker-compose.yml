@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  maxrev.gdal.core.tests:
+    image: ${DOCKER_REGISTRY-}maxrev.gdal.core.tests
+    build:
+      context: ..
+      dockerfile: tests/MaxRev.Gdal.Core.Tests/Dockerfile

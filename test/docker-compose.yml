@@ -1,8 +1,0 @@
-version: '3.4'
-
-services:
-  gdalcoretest:
-    image: ${DOCKER_REGISTRY-}gdalcoretest
-    build:
-      context: .
-      dockerfile: GdalCoreTest/Dockerfile

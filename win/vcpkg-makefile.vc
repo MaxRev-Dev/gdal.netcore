@@ -1,6 +1,9 @@
 #
-# gdal-makefile.vc - gdal.netcore package automation
+#  gdal.netcore package automation
 #
+
+!INCLUDE RID.opt
+!INCLUDE ../shared/GdalCore.opt
 
 all: install_vcpkg install_requirements
 
@@ -10,7 +13,6 @@ VCPKG_RID = x64-windows
 
 VCPKG_CLEANUP = buildtrees downloads packages installed
 
-!INCLUDE ..\shared\GdalCore.opt
 VCPKG_ROOT = $(BUILD_ROOT)\vcpkg
 VCPKG = "$(VCPKG_ROOT)\vcpkg.exe"
 
@@ -28,7 +30,7 @@ bootstrap:
 
 install_requirements: install_vcpkg checkout_ver bootstrap patch_vcpkg_triplets install_packages   
 
-VCPKG_WINDOWS_DEFAULT_TRIPLET = $(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake
+VCPKG_WINDOWS_DEFAULT_TRIPLET = "$(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake"
 
 patch_vcpkg_triplets:
 	@if not exist "$(VPCKG_CUSTOM_TRIPLETS)" md "$(VPCKG_CUSTOM_TRIPLETS)"

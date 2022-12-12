@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup> 
+    <TargetFramework>net7.0</TargetFramework>
+    <RootNamespace>MaxRev.Gdal.Core.Tests.XUnit</RootNamespace>
+    <Platform>x64</Platform>
+    <NoWarn>NU1605</NoWarn>
+    <IsPackable>false</IsPackable>
+    <Platforms>x64</Platforms>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MaxRev.Gdal.Core" Version="3.6.0.100" />
+    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal" Version="3.6.0.100" />
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" Version="3.6.0.100" /> 
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="3.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MaxRev.Gdal.Core.Tests.AzureFunctions\MaxRev.Gdal.Core.Tests.AzureFunctions.csproj" />
+    <ProjectReference Include="..\MaxRev.Gdal.Core.Tests\MaxRev.Gdal.Core.Tests.csproj" />
+  </ItemGroup>
+</Project>
