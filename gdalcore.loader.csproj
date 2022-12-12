@@ -25,8 +25,7 @@
     <RootNamespace></RootNamespace>
     <PackageReleaseNotes>
       - GDAL Version 3.6.0
-      - built with vcpkg
-      - fixed drivers lookup algorithm
+      - built with VCPKG
     </PackageReleaseNotes>
   </PropertyGroup>
 
