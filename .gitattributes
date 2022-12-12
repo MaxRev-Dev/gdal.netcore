@@ -197,3 +197,7 @@
 #*.props     merge=binary
 #*.filters   merge=binary
 #*.vcxitems  merge=binary
+
+tests/MaxRev.Gdal.Core.Tests.XUnit/samples-raster/** linguist-vendored
+tests/MaxRev.Gdal.Core.Tests.XUnit/samples-vector/** linguist-vendored
+tests/MaxRev.Gdal.Core.Tests.XUnit/utf8-data/** linguist-vendored
