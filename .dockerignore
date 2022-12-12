@@ -1,3 +1,6 @@
+*
+!tests/**
+!nuget/**
 **/.dockerignore
 **/.env
 **/.git
@@ -18,3 +21,7 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/.toolstarget
+**/build-win
+**/build-unix
+**/bin
+**/obj

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup> 
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>GdalCore_XUnit</RootNamespace>
+    <RootNamespace>MaxRev.Gdal.Core.Tests.XUnit</RootNamespace>
     <Platform>x64</Platform>
     <NoWarn>NU1605</NoWarn>
     <IsPackable>false</IsPackable>
@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="MaxRev.Gdal.Core" Version="3.6.0.100" />
     <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal" Version="3.6.0.100" />
-    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" Version="3.6.0.100-dev001" /> 
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" Version="3.6.0.100" /> 
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -23,7 +23,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GdalCore-AzureFunctions\GdalCore-AzureFunctions.csproj" />
-    <ProjectReference Include="..\GdalCoreTest\GdalCoreTest.csproj" />
+    <ProjectReference Include="..\MaxRev.Gdal.Core.Tests.AzureFunctions\MaxRev.Gdal.Core.Tests.AzureFunctions.csproj" />
+    <ProjectReference Include="..\MaxRev.Gdal.Core.Tests\MaxRev.Gdal.Core.Tests.csproj" />
   </ItemGroup>
 </Project>

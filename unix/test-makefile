@@ -11,7 +11,7 @@ ifeq ($(APP_RUN),)
 TEST_TARGET=$(TEST_DIR) 
 APP_RUN_TARGET=dotnet test
 else
-TEST_TARGET=$(TEST_DIR_ALT)
+TEST_TARGET=$(TEST_DIR_APP)
 APP_RUN_TARGET=dotnet run
 endif
 

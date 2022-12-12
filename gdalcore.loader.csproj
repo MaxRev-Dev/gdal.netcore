@@ -44,15 +44,15 @@
     <None Remove="build-unix/**" />
     <None Remove="./*.cs" />
     <None Remove="build/**" />
-    <None Remove="test/**" />
+    <None Remove="tests/**" />
     <Compile Remove="./**/*.cs" />
     <Compile Remove="build/**" />
-    <Compile Remove="test/**" />
+    <Compile Remove="tests/**" />
     <Compile Remove="win/**" />
     <Compile Remove="unix/**" />
     <Compile Remove="build-win/**" />
     <Compile Remove="build-unix/**" />
-    <EmbeddedResource Remove="test/**" />
+    <EmbeddedResource Remove="tests/**" />
     <Compile Include="compile/**/*.cs" />
   </ItemGroup>
 

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
-    <RootNamespace>GdalCore_AzureFunctions</RootNamespace>
+    <RootNamespace>MaxRev.Gdal.Core.Tests.AzureFunctions</RootNamespace>
     <Platform>x64</Platform>
   </PropertyGroup>
   <ItemGroup>

@@ -81,8 +81,8 @@ GDAL_CMAKE_TMP=$(BUILD_ROOT)/gdal-cmake-temp
 NUGET_=$(ROOTDIR_)/nuget
 
 ### Shared .NET Core Tests
-TEST_DIR=$(ROOTDIR_)/test/GdalCore-XUnit
-TEST_DIR_ALT=$(ROOTDIR_)/test/GdalCoreTest
+TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.XUnit
+TEST_DIR_APP=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests
 
 GIT_CLEAN=git clean -fqdx
 # --------------------- !CONFIG! --------------------

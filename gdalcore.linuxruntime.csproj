@@ -26,7 +26,7 @@ Targets linux-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2
   
   <ItemGroup> 
     <Compile Remove="**/*.cs"></Compile>
-    <Compile Remove="test\**" />
+    <Compile Remove="tests\**" />
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
 
@@ -51,8 +51,8 @@ Targets linux-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Remove="test\**" />
-    <None Remove="test\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <None Remove="tests\**" />
   </ItemGroup>
 
   <ItemGroup>

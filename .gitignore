@@ -28,7 +28,7 @@ build-*
 libshared/
 maxrev.gdal.core.libshared/
 tmp/
-!test/**/*.cs
+!tests/**/*.cs
 !compile/*.*
 
 # User-specific files
