@@ -1,11 +1,12 @@
-#  .\install.ps1 -cleanGdalBuild:$true -cleanGdalIntermediate:$true -cleanProjBuild:$true -bootstrapVcpkg:$true
+# Usage .\install.ps1 -cleanGdalBuild:$true -cleanGdalIntermediate:$true -cleanProjBuild:$true -bootstrapVcpkg:$true
 param (
     [bool] $cleanGdalBuild = $true, 
     [bool] $cleanGdalIntermediate = $true, 
     [bool] $cleanProjBuild = $true,
+    [bool] $cleanProjIntermediate = $true,
     [bool] $bootstrapVcpkg = $true,
     [bool] $installVcpkgPackages = $true,
-    [bool] $isDebug = $true
+    [bool] $isDebug = $false
 )
 
 # reset previous imports
@@ -21,7 +22,7 @@ Push-Location -StackName "gdal.netcore|root"
 
 $existingVariables = Get-Variable
 try { 
-    #Install-PwshModuleRequirements
+    Install-PwshModuleRequirements
     
     # echo $env:PATH
     # echo $env:ARCH_FLAGS
@@ -29,7 +30,6 @@ try {
     # echo $env:INCLUDE 
 
     $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
-    $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
     $env:7Z_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\7z")
     Add-EnvPath $env:7Z_ROOT
 
@@ -47,13 +47,12 @@ try {
     Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
     Write-BuildStep "Visual Studio Environment was initialized"
 
-
     Install-VcpkgPackagesSharedConfig $installVcpkgPackages
     
     Get-7ZipInstallation
     Get-GdalSdkIsAvailable
     Resolve-GdalThidpartyLibs
-    Install-Proj
+    Install-Proj -cleanProjBuild $cleanProjBuild -cleanProjIntermediate $cleanProjIntermediate
     
     Get-ProjDatum
 
@@ -62,7 +61,6 @@ try {
     Build-Gdal $cleanGdalBuild $cleanGdalIntermediate
 
     Build-CsharpBindings -isDebug $isDebug
-
 }
 finally {
     Pop-Location -StackName "gdal.netcore|root"

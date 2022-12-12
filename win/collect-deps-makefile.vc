@@ -1,0 +1,27 @@
+#
+#  gdal.netcore package automation
+#
+
+!INCLUDE RID.opt
+!INCLUDE ../shared/GdalCore.opt
+
+OUTPUT=$(ROOTDIR_)/runtimes/win-x64/native
+OUTPUT=$(abspath $(OUTPUT))
+BUILD_ROOT=$(abspath $(BUILD_ROOT))
+
+SDK_ROOT=$(ROOTDIR_)/build-win/sdk/release-1930-x64
+
+all: collect
+
+copyprojdb:
+	if not exist "$(LIBSHARED)" mkdir "$(LIBSHARED)"
+	$(COPY_I) "$(PROJ_BUILD)/share/proj/proj.db" "$(LIBSHARED)/"
+
+collect: copyprojdb
+	if not exist "$(OUTPUT)" mkdir "$(OUTPUT)"
+	$(COPY) $(abspath $(VCPKG_INSTALLED)\bin\*.dll) "$(OUTPUT)\"
+	$(COPY) "$(abspath $(SDK_ROOT)\bin)\*.dll" "$(OUTPUT)\"
+	$(COPY) "$(abspath $(BUILD_ROOT)\gdal-build\share\csharp)\*_wrap.dll" "$(OUTPUT)\"
+	$(COPY_I) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).CRT\*.dll" "$(OUTPUT)\"
+	
+	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" )

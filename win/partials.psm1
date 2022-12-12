@@ -1,5 +1,9 @@
 function Set-GdalVariables {
-    $env:GDAL_VERSION = "3.6.0"
+    $env:GDAL_REPO = "https://github.com/OSGeo/gdal.git"
+    $env:GDAL_COMMIT_VER = "release/3.6"
+
+    $env:PROJ_REPO = "https://github.com/OSGeo/PROJ.git"
+    $env:PROJ_COMMIT_VER = "7.2"
 
     $env:VS_VERSION = "Visual Studio 17 2022"
     $env:SDK = "release-1930-x64" #2022 x64
@@ -16,12 +20,6 @@ function Set-GdalVariables {
     $env:platform = "x64"
     $env:CMAKE_ARCHITECTURE = "x64"
     $env:CMAKE_PARALLEL_JOBS = 4
-
-    $env:GDAL_REPO = "https://github.com/OSGeo/gdal.git"
-    $env:GDAL_COMMIT_VER = "release/3.6"
-
-    $env:PROJ_REPO = "https://github.com/OSGeo/PROJ.git"
-    $env:PROJ_COMMIT_VER = "7.2"
 
     $env:PROJ_INSTALL_DIR = (Get-ForceResolvePath "$env:BUILD_ROOT\proj-build") 
     $env:DOWNLOADS_DIR = (Get-ForceResolvePath "$env:BUILD_ROOT\downloads") 
@@ -106,24 +104,41 @@ function Install-VcpkgPackagesSharedConfig {
 }
 
 function Install-Proj {
+    param (
+        [bool] $cleanProjBuild = $true,
+        [bool] $cleanProjIntermediate = $true
+    )
     Write-BuildStep "Building PROJ"
-    Write-BuildInfo "Checking out PROJ repo..."
     if ($cleanProjBuild) {
         Write-BuildInfo "Cleaning PROJ build folder"
-        Remove-Item -Path "$env:BUILD_ROOT\proj-build" -Recurse -Force
-    }
-    Get-CloneAndCheckoutCleanGitRepo $env:PROJ_REPO $env:PROJ_COMMIT_VER "$env:BUILD_ROOT\proj-source"
-    
-    Write-BuildInfo "Configuring PROJ..."
- 
-    New-FolderIfNotExistsAndSetCurrentLocation "$env:BUILD_ROOT\proj-source\build" 
+        if (Test-Path -Path "$env:BUILD_ROOT\proj-build" -PathType Container) {
+            Remove-Item -Path "$env:BUILD_ROOT\proj-build" -Recurse -Force
+        }
+    }    
+    $env:PROJ_SOURCE = "$env:BUILD_ROOT\proj-source"
+    Write-BuildInfo "Checking out PROJ repo..."
 
-    $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=" + $env:PROJ_INSTALL_DIR
+    nmake -f fetch-makefile.vc fetch-proj
+    #Get-CloneAndCheckoutCleanGitRepo $env:PROJ_REPO $env:PROJ_COMMIT_VER $env:PROJ_SOURCE
  
-    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE .. $env:CMAKE_INSTALL_PREFIX `
+    $env:ProjCmakeBuild = "$env:BUILD_ROOT\proj-cmake-temp"
+    if ($cleanProjIntermediate) {
+        Write-BuildInfo "Cleaning GDAL intermediate folder"
+        Remove-Item -Path $env:ProjCmakeBuild -Recurse -Force
+    }
+    if ((Test-Path -Path "$env:ProjCmakeBuild\CMakeCache.txt" -PathType Leaf)) {
+        Write-BuildInfo "Removing build cache (CMakeCache.txt)"
+        Remove-Item "$env:ProjCmakeBuild\CMakeCache.txt"
+    }
+ 
+    Write-BuildInfo "Configuring PROJ..."
+    New-FolderIfNotExistsAndSetCurrentLocation $env:ProjCmakeBuild
+
+    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE $env:PROJ_SOURCE `
+        -DCMAKE_INSTALL_PREFIX=$env:PROJ_INSTALL_DIR `
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
-        -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake" `
+        -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
         -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
@@ -152,7 +167,6 @@ function Build-Gdal {
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
     $env:SDK_BIN = "$env:SDK_PREFIX\bin"
     $env:PATH = "$env:BUILD_ROOT\proj-build\bin;$env:SDK_BIN;$env:PATH"
-    exec { Write-Output projinfo EPSG:4326 }
     $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
     $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=$env:GDAL_INSTALL_DIR"
     $env:PROJ_ROOT = "-DPROJ_ROOT=$env:PROJ_INSTALL_DIR"
@@ -160,6 +174,7 @@ function Build-Gdal {
     $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
     $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=$env:SDK_LIB\freetype.lib;$env:SDK_LIB\harfbuzz.lib"
     $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
+    $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -175,7 +190,8 @@ function Build-Gdal {
         Remove-Item -Path $env:GdalCmakeBuild -Recurse -Force
     }
     
-    Get-CloneAndCheckoutCleanGitRepo $env:GDAL_REPO $env:GDAL_COMMIT_VER "$env:GDAL_SOURCE"
+    nmake -f fetch-makefile.vc fetch-gdal
+    #Get-CloneAndCheckoutCleanGitRepo $env:GDAL_REPO $env:GDAL_COMMIT_VER "$env:GDAL_SOURCE"
 
     if ((Test-Path -Path "$env:GdalCmakeBuild\CMakeCache.txt" -PathType Leaf)) {
         Write-BuildInfo "Removing build cache (CMakeCache.txt)"
@@ -190,13 +206,20 @@ function Build-Gdal {
 
     Set-Location "$env:GDAL_SOURCE"
 
+    Remove-Item -Path $env:GDAL_SOURCE/autotest -Recurse -Force
     # PATCH 2: apply patch to cmake pipeline. remove redundant compile steps
-    git apply "$PSScriptRoot/../shared/patch/CMakeLists.txt.patch"
+    git apply "$PSScriptRoot\..\shared\patch\CMakeLists.txt.patch"
 
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild  
 
-    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" -DCMAKE_CXX_FLAGS=" /WX $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF $env:PROJ_ROOT $env:MYSQL_LIBRARY $env:POPPLER_EXTRA_LIBRARIES -DGDAL_USE_ZLIB_INTERNAL=ON -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" -DBUILD_APPS=OFF -DBUILD_CSHARP_BINDINGS=ON -DBUILD_JAVA_BINDINGS=OFF
-    return
+    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
+        $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
+        $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" `
+        -DCMAKE_CXX_FLAGS=" /WX $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
+        $env:PROJ_ROOT $env:MYSQL_LIBRARY $env:POPPLER_EXTRA_LIBRARIES `
+        -DGDAL_USE_ZLIB_INTERNAL=ON -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" `
+        -DBUILD_APPS=OFF -DBUILD_CSHARP_BINDINGS=ON -DBUILD_JAVA_BINDINGS=OFF
+
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
     Write-BuildStep "GDAL was built successfully"
@@ -210,14 +233,12 @@ function Build-CsharpBindings {
     
     Set-Location $PSScriptRoot
     
-    nmake -f "$PSScriptRoot/makefile.vc" collect
+    nmake -f "$PSScriptRoot\collect-deps-makefile.vc"
     
     if ($isDebug) {
-        nmake -f "$PSScriptRoot/makefile.vc" packdev DEBUG=1
+        nmake -f "$PSScriptRoot\publish-makefile.vc" pack-dev DEBUG=1
     }
     else {
-        nmake -f "$PSScriptRoot/makefile.vc" pack
+        nmake -f "$PSScriptRoot\publish-makefile.vc" pack
     }
-
-    nmake -f "$PSScriptRoot/makefile.vc" test
 }

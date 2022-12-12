@@ -189,7 +189,7 @@ function Get-CloneAndCheckoutCleanGitRepo {
     
     Push-Location -StackName "gdal.netcore|root"
     New-FolderIfNotExistsAndSetCurrentLocation $Path
-
+ 
     if (-Not (Test-Path -Path $Path -PathType Container) -or 
          (Get-ChildItem $Path | Measure-Object).Count -eq 0) { 
         git clone -b $Branch -c core.longpaths=true $Url .

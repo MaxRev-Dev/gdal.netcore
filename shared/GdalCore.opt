@@ -3,7 +3,7 @@
 ##### ------- SHARED CONFIGURATION ------- ##### 
  
 ##### repo root
-ROOTDIR_=$(abspath $(BASE)/../)
+ROOTDIR_=$(abspath $(BASE)/..)
 
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)

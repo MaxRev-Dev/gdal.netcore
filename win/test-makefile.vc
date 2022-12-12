@@ -1,0 +1,32 @@
+#
+#  gdal.netcore package automation
+#
+
+!INCLUDE RID.opt
+!INCLUDE ../shared/GdalCore.opt
+
+!IFDEF PRE_RELEASE
+PRE_RELEASE_ARG=--prerelease
+!ELSE
+PRE_RELEASE_ARG= 
+!ENDIF
+
+all: test
+
+test-restore:
+	-cd $(TEST_DIR)
+	dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_) 
+	-cd $(MAKEDIR)
+
+test-update:
+	-cd $(TEST_DIR)
+	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) $(PRE_RELEASE_ARG)
+	dotnet add package MaxRev.Gdal.Core -s $(NUGET_) $(PRE_RELEASE_ARG)
+	-cd $(MAKEDIR)
+
+test-only: test-restore
+	-cd $(TEST_DIR)
+	dotnet test
+	-cd $(MAKEDIR)
+
+test: test-restore test-update test-only
