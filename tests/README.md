@@ -7,6 +7,11 @@ If you want to run any .NET app in docker you can use the [Dockerfile](MaxRev.Gd
 ```
 docker-compose run --rm maxrev.gdal.core.tests
 ```
-## Azure Pipelines
-View the [MaxRev.Gdal.Core.AzurePipelines](MaxRev.Gdal.Core.AzurePipelines) folder with a sample of creating function with GDAL.
+## Azure Functions
+View the [MaxRev.Gdal.Core.Tests.AzureFunctions](MaxRev.Gdal.Core.Tests.AzureFunctions) folder with a sample of creating function with GDAL.
 
+## Functional Tests
+Functional tests are located in [MaxRev.Gdal.Core.Tests.XUnit](MaxRev.Gdal.Core.Tests.XUnit) folder. They are divided into several parts:
+- [CommonTests.cs](MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs) - tests that are common for all platforms
+- [ProjTests.cs](MaxRev.Gdal.Core.Tests.XUnit/ProjTests.cs) - tests that are specific for projections
+- [RasterTests.cs](MaxRev.Gdal.Core.Tests.XUnit/RasterTests.cs) - tests that are specific for raster operations
