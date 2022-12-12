@@ -1,6 +1,6 @@
 # gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) ![Packages CI](https://github.com/MaxRev-Dev/gdal.netcore/workflows/CI/badge.svg?branch=master)
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.3.3 library for [.NET Core](https://dotnet.microsoft.com/download). 
+A simple (as is) build engine of [GDAL](https://gdal.org/) 3.6.0 library for [.NET](https://dotnet.microsoft.com/download). 
 
 ## Packages
 
@@ -11,26 +11,22 @@ NuGet: [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.
 NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)
 
 ## Table Of Contents
-
-- [gdal.netcore](#gdalnetcore)
-  * [Packages](#packages)
+  * [**Packages**](#packages)
   * [Table Of Contents](#table-of-contents)
-  * [About this library](#about-this-library)
+  * [**About this library**](#about-this-library)
     + [What is this library](#what-is-this-library)
     + [What is not](#what-is-not)
-  * [How to use](#how-to-use)
+  * [**How to use**](#how-to-use)
+  * [**Using GDAL functions**](#using-gdal-functions)
+  * [**Development**](#--development--)
   * [How to compile on Windows](#how-to-compile-on-windows)
   * [How to compile on Unix](#how-to-compile-on-unix)
   * [About build configuration](#about-build-configuration)
   * [Building runtime libraries](#building-runtime-libraries)
-  * [Building Nuget Packages](#building-nuget-packages)
-    + [Prerequisites](#prerequisites)
-    + [Packaging](#packaging)
   * [FAQ](#faq)
       - [Q: Missing {some} drivers, can you add more?](#q-missing--some--drivers--can-you-add-more-)
       - [Q: GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
       - [Q: Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
-      - [Q: Can't compile on Windows](#q-can-t-compile-on-windows)
       - [Q: Can I compile it on Ubuntu or another Unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system-)
       - [Q: In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
       - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)
@@ -38,7 +34,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
-## About this library
+## **About this library**
 
 ### What is this library
 
@@ -52,7 +48,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 - Does not change GDAL source code.
 - Does not extend GDAL methods.
 
-## How to use
+## **How to use**
 
 1. Install core package - [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
  ```powershell
@@ -75,6 +71,15 @@ GdalBase.ConfigureAll();
 4. Profit! Use it in ordinary flow
 
 
+## **Using GDAL functions**
+If you're struggling using GDAL functions.
+Here's a good place to start:
+ - [Vector related operations](https://github.com/OSGeo/gdal/tree/master/doc/source/api/csharp/csharp_vector.rst)
+ - [Raster related operations](https://github.com/OSGeo/gdal/tree/master/doc/source/api/csharp/csharp_raster.rst)
+ - [Sample Apps](https://github.com/OSGeo/gdal/tree/master/swig/csharp/apps)
+
+
+## **Development**
 ## How to compile on Windows
 
 Enter [win](win/) directory to find out how.
@@ -85,142 +90,20 @@ Detailed guide is here - [unix](unix/).
 
 ## About build configuration
 
-Current version targets **GDAL 3.3.3** with **minimal drivers**
+Current version targets **GDAL 3.6.0** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They will be included upon request.
 
-Drivers included PROJ(7.2.1), SQLITE3, GEOS(3.9.0), HDF4, HDF5, GEOTIFF, JPEG, PNG, LIBZ, LERC, CURL
-
-<details>
-  <summary>Configure summary of current version</summary>
-
-      GDAL is now configured for x86_64-pc-linux-gnu
-      Installation directory:    /mnt/e/dev/builds/gdal-netcore/build-unix/gdal-build
-      C compiler:                gcc -DHAVE_AVX_AT_COMPILE_TIME -DHAVE_SSSE3_AT_COMPILE_TIME -DHAVE_SSE_AT_COMPILE_TIME -fPIC -fvisibility=hidden
-      C++ compiler:              g++ -DHAVE_AVX_AT_COMPILE_TIME -DHAVE_SSSE3_AT_COMPILE_TIME -DHAVE_SSE_AT_COMPILE_TIME -g -O2 -fvisibility=hidden
-      C++14 support:             no
-    
-      LIBTOOL support:           yes
-      
-      LIBZ support:              internal
-      LIBLZMA support:           no
-      ZSTD support:              no
-      cryptopp support:          no
-      crypto/openssl support:    no
-      GRASS support:             no
-      CFITSIO support:           no
-      PCRaster support:          no
-      LIBPNG support:            internal
-      DDS support:               no
-      GTA support:               no
-      LIBTIFF support:           internal (BigTIFF=yes)
-      LIBGEOTIFF support:        internal
-      LIBJPEG support:           internal
-      12 bit JPEG:               yes
-      12 bit JPEG-in-TIFF:       yes
-      LIBGIF support:            no
-      JPEG-Lossless/CharLS:      no
-      OGDI support:              no
-      HDF4 support:              yes
-      HDF5 support:              yes
-      Kea support:               no
-      NetCDF support:            no
-      Kakadu support:            no
-      JasPer support:            no
-      OpenJPEG support:          no
-      ECW support:               no
-      MrSID support:             no
-      MrSID/MG4 Lidar support:   no
-      JP2Lura support:           no
-      MSG support:               no
-      EPSILON support:           no
-      WebP support:              no
-      cURL support (wms/wcs/...):yes
-      PostgreSQL support:        no
-      LERC support:              yes
-      MySQL support:             no
-      Ingres support:            no
-      Xerces-C support:          no
-      Expat support:             no
-      libxml2 support:           no
-      Google libkml support:     no
-      ODBC support:              no
-      FGDB support:              no
-      MDB support:               no
-      PCIDSK support:            no
-      OCI support:               no
-      GEORASTER support:         no
-      SDE support:               no
-      Rasdaman support:          no
-      DODS support:              no
-      SQLite support:            yes
-      PCRE support:              no
-      SpatiaLite support:        no
-      RasterLite2 support:       no
-      Teigha (DWG and DGNv8):    no
-      INFORMIX DataBlade support:no
-      GEOS support:              yes
-      SFCGAL support:            no
-      QHull support:             no
-      Poppler support:           no
-      Podofo support:            no
-      PDFium support:            no
-      OpenCL support:            no
-      Armadillo support:         no
-      FreeXL support:            no
-      SOSI support:              no
-      MongoDB support:           no
-      MongoCXX v3 support:       no
-      HDFS support:              no
-      TileDB support:            no
-      userfaultfd support:       yes
-      misc. gdal formats:        aaigrid adrg aigrid airsar arg blx bmp bsb cals ceos ceos2 coasp cosar ctg dimap dted e00grid elas envisat ers fit gff gsg gxf hf2 idrisi ignfheightasciigrid ilwis ingr iris iso8211 jaxapalsar jdem kmlsuperoverlay l1b leveller map mrf msgn ngsgeoid nitf northwood pds prf r raw rmf rs2 safe saga sdts sentinel2 sgi sigdem srtmhgt terragen til tsx usgsdem xpm xyz zmap rik ozi grib eeda plmosaic rda wcs wms wmts daas rasterlite mbtiles pdf
-      disabled gdal formats:
-      misc. ogr formats:         aeronavfaa arcgen avc bna cad csv dgn dxf edigeo geoconcept georss gml gmt gpsbabel gpx gtm htf jml mvt ntf openair openfilegdb pgdump rec s57 segukooa segy selafin shape sua svg sxf tiger vdv wasp xplane idrisi pds sdts amigocloud carto cloudant couchdb csw elastic gft ngw plscenes wfs gpkg vfk osm
-      disabled ogr formats:
-      
-      SWIG Bindings:             no
-      
-      PROJ >= 6:                 yes
-      enable GNM building:       no
-      enable pthread support:    yes
-      enable POSIX iconv support:yes
-      hide internal symbols:     yes
-</details>
+Drivers included PROJ(7.2.1), GEOS(3.11.1) and more than 200 other drivers.
+To view full list of drivers, see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
 
 **NOTE**: Windows and Linux drivers availability may differ, ask me of specific driver for runtime. Please issue, if I forgot to mention any other packages.
 
 ## Building runtime libraries
 
-Current version is targeting **GDAL 3.3.3** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdalcore package) are build from **linux**.
+Current version is targeting **GDAL 3.6.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdal.core package) are build from **windows**.
 
 To make everything work smoothly, each configuration targets same drivers and their versions respectively.
 
-- After **VCPKG** integration finished, configuration is shared between runtimes - `shared/GdalCore.opt`
-- Overrides for `nmake.opt` on windows - `win/presource/gdal-nmake.opt` 
-- Patched makefile - `win/presource/gdal-makefile.vc`
-
-To build for a specific runtime, see the **README.md** in respective directory.
-
-## Building Nuget Packages
-
-### Prerequisites
-
-1. Install [.NET Core SDK](https://dotnet.microsoft.com/learn/dotnet/hello-world-tutorial/install)  (3.1 or 6.0) and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages
-2. You have already built everything 
-
-### Packaging
-
-1. I'm using [CentOS 7](https://docs.microsoft.com/en-us/dotnet/core/install/linux-centos#centos-7-) for example:
-
-```bash
-rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
-sudo apt-get install apt-transport-https && apt-get update && apt-get install dotnet-sdk-6.0
-```
-
-2. And then just 
-
-```shell
-make pack
-```
+To start building for a specific runtime, see the **README.md** in a respective directory.
 
 ## FAQ
 
@@ -235,10 +118,6 @@ A: Try to search an [issue on github](https://github.com/OSGeo/gdal/issues). In 
 #### Q: Some types throw exceptions from SWIG on Windows
 
 A: Yes, currently there are [some redundant](https://github.com/MaxRev-Dev/gdal.netcore/issues/11) types in OGR namespace. This will be fixed in the next builds.
-
-#### Q: Can't compile on Windows
-
-A: I've built it on my machine several times from scratch. Do you have installed all SDKs? If you know **cmake** or **nmake** [you can help to port](https://github.com/MaxRev-Dev/gdal.netcore/projects/1) batch files that are buggy.
 
 #### Q: Can I compile it on Ubuntu or another Unix-based system?
 
