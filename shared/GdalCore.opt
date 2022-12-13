@@ -32,12 +32,12 @@ VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE)
 VCPKG_REQUIRE_WIN_STATIC= 
 
 # the default configuration is dynamic
-# THESE are installed from apt as require many boost deps
+# NOTE: some of these drivers can be installed from apt as require many boost deps
 # libnetcdf-dev libspatialite-dev librasterlite2-dev libpoppler-dev libmysql++-dev
-#   icu-devtools libdeflate-dev libfreexl-dev libfreexl1 libgeos-3.9.0 libgeos-c1v5 libgeos-dev
+# icu-devtools libdeflate-dev libfreexl-dev libfreexl1 libgeos-3.9.0 libgeos-c1v5 libgeos-dev
 # libicu-dev libjbig-dev liblzma-dev libmariadb-dev libmariadb-dev-compat libmariadb3 libmysql++3v5 libproj-dev
 # libproj19 librttopo-dev librttopo1 libspatialite7 libsqlite3-dev libssl-dev libtiff-dev libtiffxx5 libxml2-dev mariadb-common mysql-common proj-data
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libmysql
 VCPKG_REQUIRE_UNIX=
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
