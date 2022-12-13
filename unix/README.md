@@ -13,7 +13,7 @@ I'm compiling in WSL on **Debian 11 with GLIBC 2.31 (2020)**
 ### **2. Base packages**. VCPKG and pipeline scripts won't work without them:
 
 ```bash
-sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-headers-amd64 autoconf automake swig patchelf 
+sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-headers-amd64 autoconf automake python3 autoconf-archive swig patchelf 
 ```
 
 
@@ -28,11 +28,11 @@ Libraries can be installed in two ways.
 
 Each library enables one driver
 ```bash 
-sudo apt-get install libhdf4-dev
+sudo apt-get install libhdf4-dev libnetcdf-dev
 ```
 #### Optional libraries
 ```bash
-sudo apt-get install libnetcdf-dev libspatialite-dev libpoppler-dev libmysql++-dev 
+sudo apt-get install libspatialite-dev libpoppler-dev
 ```
 
 ### 5. **Compiling**
