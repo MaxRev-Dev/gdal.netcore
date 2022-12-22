@@ -118,6 +118,7 @@ function Install-Proj {
     $env:PROJ_SOURCE = "$env:BUILD_ROOT\proj-source"
     Write-BuildInfo "Checking out PROJ repo..."
 
+    Set-Location "$PSScriptRoot"
     nmake -f fetch-makefile.vc fetch-proj
     #Get-CloneAndCheckoutCleanGitRepo $env:PROJ_REPO $env:PROJ_COMMIT_VER $env:PROJ_SOURCE
  
@@ -135,7 +136,7 @@ function Install-Proj {
     New-FolderIfNotExistsAndSetCurrentLocation $env:ProjCmakeBuild
 
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE $env:PROJ_SOURCE `
-        -DCMAKE_INSTALL_PREFIX=$env:PROJ_INSTALL_DIR `
+        -DCMAKE_INSTALL_PREFIX="$env:PROJ_INSTALL_DIR" `
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
         -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
@@ -190,6 +191,7 @@ function Build-Gdal {
         Remove-Item -Path $env:GdalCmakeBuild -Recurse -Force
     }
     
+    Set-Location "$PSScriptRoot"
     nmake -f fetch-makefile.vc fetch-gdal
     #Get-CloneAndCheckoutCleanGitRepo $env:GDAL_REPO $env:GDAL_COMMIT_VER "$env:GDAL_SOURCE"
 
@@ -210,7 +212,7 @@ function Build-Gdal {
     # PATCH 2: apply patch to cmake pipeline. remove redundant compile steps
     git apply "$PSScriptRoot\..\shared\patch\CMakeLists.txt.patch"
 
-    New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild  
+    New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild
 
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
@@ -233,12 +235,12 @@ function Build-CsharpBindings {
     
     Set-Location $PSScriptRoot
     
-    nmake -f "$PSScriptRoot\collect-deps-makefile.vc"
+    nmake -f collect-deps-makefile.vc
     
     if ($isDebug) {
-        nmake -f "$PSScriptRoot\publish-makefile.vc" pack-dev DEBUG=1
+        nmake -f publish-makefile.vc pack-dev DEBUG=1
     }
     else {
-        nmake -f "$PSScriptRoot\publish-makefile.vc" pack
+        nmake -f publish-makefile.vc pack
     }
 }

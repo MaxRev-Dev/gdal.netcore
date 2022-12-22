@@ -11,7 +11,7 @@ fetch-gdal:
     git clone $(GDAL_REPO) $(GDAL_ROOT_BASE)
 !ENDIF
 	cd $(GDAL_ROOT)
-	git fetch
+	git fetch --all --tags
 	git checkout -fq $(GDAL_COMMIT_VER) 
 	git reset --hard
 	$(GIT_CLEAN)
@@ -22,7 +22,7 @@ fetch-proj:
     git clone $(PROJ_REPO) $(PROJ_ROOT)
 !ENDIF
 	cd $(PROJ_ROOT)
-	git fetch
+	git fetch --all --tags
 	git checkout -fq $(PROJ_COMMIT_VER)
 	git reset --hard
 	$(GIT_CLEAN)

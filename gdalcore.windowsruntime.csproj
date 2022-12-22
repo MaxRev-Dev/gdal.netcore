@@ -12,14 +12,14 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.6.0.100</Version>
-    <Description>GDAL (3.6.0) minimal libraries package. 
+    <Version>3.6.1.100</Version>
+    <Description>GDAL (3.6.1) minimal libraries package. 
 Drivers included PROJ (7.2.1), GEOS (3.11.1), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5
 Targets win-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1,3.1], net6.0, net7.0
 </Description>
     <AssemblyName>MaxRev.Gdal.WindowsRuntime.Minimal</AssemblyName> 
     <PackageReleaseNotes>
-- GDAL 3.6.0
+- GDAL 3.6.1
 - targets .NET6 LTS, .NET7 
 - GEOS 3.11.1</PackageReleaseNotes>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> 
