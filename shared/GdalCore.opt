@@ -10,11 +10,11 @@ BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
-GDAL_COMMIT_VER=0c6a97a28b31934b20df7df701e2c57fde181e25 # v3.6.0 - Dec 11, 2022
+GDAL_COMMIT_VER=tags/v3.6.1 # v3.6.1 - Dec 14, 2022
 
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
-PROJ_COMMIT_VER=cc2d1758acedd2886241967be355b88a7b9d09fe # 7.2.1 - Mar, 2021
+PROJ_COMMIT_VER=tags/7.2.1 # 7.2.1 - Mar, 2021
 
 # ---------------------- VCPKG ----------------------
 
