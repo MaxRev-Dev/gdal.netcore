@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.IO;
 using System.Reflection;
@@ -11,19 +12,20 @@ namespace MaxRev.Gdal.Core
     public static class Proj
     {
         /// <summary>
-        /// Performs search for proj.db in project directories and sets search paths for Proj. 
+        /// Performs search for proj.db in project directories and sets search paths for Proj. <br/>
+        /// If the proj.db exists in user directory, it will be used. Otherwise, the first found proj.db will be used.
+        /// <para>
+        /// Search order: <br/>
+        /// - User defined paths <br/>
+        /// - Executable directory (current working directory) <br/>
+        /// - Entry assembly directory  
+        /// - runtimes/&lt;platform&gt;/native/ directory
+        /// </para> 
         /// You can call <see cref="OSGeo.OSR.Osr.SetPROJSearchPaths"/> alternatively.
         /// </summary>
         /// <param name="additionalSearchPaths">optional additional paths</param> 
         public static void Configure(params string[] additionalSearchPaths)
         {
-            // fast set and forget if user provides a custom location
-            if (additionalSearchPaths.Any())
-            {
-                OSGeo.OSR.Osr.SetPROJSearchPaths(additionalSearchPaths);
-                return;
-            }
-
             const string libshared = "maxrev.gdal.core.libshared";
             var runtimes = $"runtimes/{GdalBaseExtensions.GetEnvRID()}/native";
             var entryAsm = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
@@ -42,7 +44,7 @@ namespace MaxRev.Gdal.Core
                 // this list is sorted according to expected 
                 // contents location related to
                 // published binaries location
-                var possibleLocations = new[]
+                var possibleLocations = additionalSearchPaths.Concat(new[]
                 {
                     // test runner use this and docker containers
                     Path.Combine(executingRoot, runtimes, libshared),
@@ -55,37 +57,39 @@ namespace MaxRev.Gdal.Core
                     // azure functions
                     Path.Combine(executingRoot, "..", runtimes, libshared),
 
-                    // These cases are last hope solututions: 
+                    // These cases are last hope solutions: 
                     // some environments may have flat structure
                     // let's try to search in root directories
                     entryRoot,
                     executingRoot,
                     runtimes,
                     libshared,
-                }.Select(x => new DirectoryInfo(x).FullName);
+                }).Select(x => new DirectoryInfo(x).FullName).ToArray();
 
-                string found = "";
+                string? found = default;
 
                 foreach (var item in possibleLocations)
                 {
                     if (!Directory.Exists(item))
                         continue;
                     var search = Directory.EnumerateFiles(item, "proj.db");
-                    if (search.Any())
-                    {
-                        found = item;
-                        break;
-                    }
+                    if (!search.Any())
+                        continue;
+                    found = item;
+                    break;
                 }
 
-                if (found != "")
+                if (found is null)
                 {
-                    OSGeo.OSR.Osr.SetPROJSearchPaths(new[] { found });
-                    return;
+                    // we did not find anything
+                    throw new FileNotFoundException(
+                        $"Can not find proj.db. Tried to search in {string.Join(", ", possibleLocations)}");
                 }
 
-                // we did not found anything
-                throw new FileNotFoundException($"Can't find proj.db. Tried to search in {string.Join(", ", possibleLocations)}");
+                // as we search in the user defined paths first 
+                // there will be always proj.db from a user defined path 
+                // other proj grid files will be searched in additional directories
+                OSGeo.OSR.Osr.SetPROJSearchPaths(new[] { found }.Concat(additionalSearchPaths).Distinct().ToArray());
             }
             catch (Exception ex) when (ex is not FileNotFoundException)
             {
