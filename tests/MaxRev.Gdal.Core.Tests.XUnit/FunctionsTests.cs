@@ -1,4 +1,4 @@
-﻿using GdalCore_AzureFunctions;
+﻿using MaxRev.Gdal.Core.Tests.AzureFunctions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;

@@ -9,12 +9,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>MaxRev.Gdal.Core</PackageId>
     <AssemblyName>MaxRev.Gdal.Core</AssemblyName>
+    <RootNamespace>MaxRev.Gdal.Core</RootNamespace>
     <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.6.1.100</Version>
+    <Version>3.6.1.110</Version>
     <Description>
       GDAL (3.6.1) bindings for dotnet core (now linux-x64 and win-x64).
       Bridge between gdal and netcore.
@@ -22,7 +23,6 @@
       Works in docker containers without pkg installations!!
       Just call - GdalBase.ConfigureAll()
     </Description>
-    <RootNamespace></RootNamespace>
     <PackageReleaseNotes>
       - GDAL Version 3.6.1
       - built with VCPKG
