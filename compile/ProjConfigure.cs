@@ -1,9 +1,7 @@
 #nullable enable
 using System;
 using System.IO;
-using System.Reflection;
 using System.Linq;
-
 namespace MaxRev.Gdal.Core
 {
     /// <summary>
@@ -27,44 +25,12 @@ namespace MaxRev.Gdal.Core
         public static void Configure(params string[] additionalSearchPaths)
         {
             const string libshared = "maxrev.gdal.core.libshared";
-            var runtimes = $"runtimes/{GdalBaseExtensions.GetEnvRID()}/native";
-            var entryAsm = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();
 
             try
             {
-                // assembly location can be empty with bundled assemblies
-                var entryRoot =
-                    new FileInfo(entryAsm.GetSourceLocation())
-                        .Directory!.FullName;
-
-                var executingRoot =
-                    new FileInfo(Assembly.GetExecutingAssembly().GetSourceLocation())
-                        .Directory!.FullName;
-
-                // this list is sorted according to expected 
-                // contents location related to
-                // published binaries location
-                var possibleLocations = additionalSearchPaths.Concat(new[]
-                {
-                    // test runner use this and docker containers
-                    Path.Combine(executingRoot, runtimes, libshared),
-                    Path.Combine(executingRoot, libshared),
-                    // self-contained published package 
-                    // with custom working directory
-                    Path.Combine(entryRoot, runtimes, libshared),
-                    Path.Combine(entryRoot, libshared),
-
-                    // azure functions
-                    Path.Combine(executingRoot, "..", runtimes, libshared),
-
-                    // These cases are last hope solutions: 
-                    // some environments may have flat structure
-                    // let's try to search in root directories
-                    entryRoot,
-                    executingRoot,
-                    runtimes,
-                    libshared,
-                }).Select(x => new DirectoryInfo(x).FullName).ToArray();
+                var runtimes = $"runtimes/{GdalBaseExtensions.GetEnvRID()}/native";
+                var helperLocations = GdalBaseExtensions.GetPackageDataPossibleLocations(runtimes, libshared);
+                var possibleLocations = additionalSearchPaths.Concat(helperLocations).Distinct().ToArray();
 
                 string? found = default;
 

@@ -1,9 +1,9 @@
-using System.Runtime.InteropServices;
+using MaxRev.Gdal.Core;
+using OSGeo.GDAL;
 using System;
 using System.IO;
 using System.Linq;
-using MaxRev.Gdal.Core;
-using OSGeo.GDAL;
+using System.Runtime.InteropServices;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -15,9 +15,9 @@ namespace GdalCore_XUnit
     public class Utf8Tests
     {
         private readonly ITestOutputHelper _outputHelper;
-        private string dataDirectoryPath;
-        private string englishInputFilePath;
-        private string cyrillicInputFilePath;
+        private readonly string dataDirectoryPath;
+        private readonly string englishInputFilePath;
+        private readonly string cyrillicInputFilePath;
 
         public Utf8Tests(ITestOutputHelper outputHelper)
         {
@@ -34,7 +34,7 @@ namespace GdalCore_XUnit
         {
             Gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
 
-            string currentState = Gdal.GetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
+            var currentState = Gdal.GetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
 
             _outputHelper.WriteLine($"Test 1 - GDAL_FILENAME_IS_UTF8 is set to {currentState} by default");
 
@@ -47,7 +47,7 @@ namespace GdalCore_XUnit
         {
             Gdal.SetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
 
-            string currentState = Gdal.GetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
+            var currentState = Gdal.GetConfigOption("GDAL_FILENAME_IS_UTF8", "YES");
 
             _outputHelper.WriteLine($"Test 2 - GDAL_FILENAME_IS_UTF8 is set to {currentState} before the test");
 
@@ -83,20 +83,34 @@ namespace GdalCore_XUnit
 
             // this works like a charm on linux even without config flag
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
                 Assert.True(result);
+            }
 
             // windows can't find a file though
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
                 Assert.False(result);
+            }
             else
+            {
                 throw new XunitException("This test was not created for current os platform");
+            }
+        }
+
+        [Fact]
+        public void GdalDataFolderIsSet()
+        {
+            var gdalDataFolder = Gdal.GetConfigOption("GDAL_DATA", null);
+            Assert.NotNull(gdalDataFolder);
+            Assert.True(Directory.Exists(gdalDataFolder));
         }
 
         private bool GdalBuildVrt(string[] inputFilesPaths, string outputFilePath, string[] options, Gdal.GDALProgressFuncDelegate callback)
         {
             try
             {
-                using Dataset result = Gdal.wrapper_GDALBuildVRT_names(outputFilePath, inputFilesPaths, new GDALBuildVRTOptions(options), callback, null);
+                using var result = Gdal.wrapper_GDALBuildVRT_names(outputFilePath, inputFilesPaths, new GDALBuildVRTOptions(options), callback, null);
             }
             catch (Exception exception)
             {
@@ -112,7 +126,7 @@ namespace GdalCore_XUnit
         {
             try
             {
-                using Dataset inputDataset = Gdal.Open(inputFilePath, Access.GA_ReadOnly);
+                using var inputDataset = Gdal.Open(inputFilePath, Access.GA_ReadOnly);
             }
             catch (Exception exception)
             {
@@ -126,9 +140,9 @@ namespace GdalCore_XUnit
 
         private bool RunTest(string inputFilePath, string inputDirectoryPath, string outputFilePath)
         {
-            bool isTestSuccessful = OpenDataset(inputFilePath);
+            var isTestSuccessful = OpenDataset(inputFilePath);
 
-            string[] inputFilesPaths = new DirectoryInfo(inputDirectoryPath)
+            var inputFilesPaths = new DirectoryInfo(inputDirectoryPath)
                                       .EnumerateFiles().Select(fileInfo => fileInfo.FullName).ToArray();
             if (!GdalBuildVrt(inputFilesPaths, outputFilePath, null, null))
             {
