@@ -1,6 +1,6 @@
 # gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) ![Packages CI](https://github.com/MaxRev-Dev/gdal.netcore/workflows/CI/badge.svg?branch=master)
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.6.0 library for [.NET](https://dotnet.microsoft.com/download). 
+A simple (as is) build engine of [GDAL](https://gdal.org/) 3.6.1 library for [.NET](https://dotnet.microsoft.com/download). 
 
 ## Packages
 
@@ -24,6 +24,9 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
   * [About build configuration](#about-build-configuration)
   * [Building runtime libraries](#building-runtime-libraries)
   * [FAQ](#faq)
+      - [Q: Packages do not work on CentOS 7, Ubuntu 18.04](#q-packages-do-not-work-on-centos-7-ubuntu-1804)
+      - [Q: Projections are not working as expected](#q-projections-are-not-working-as-expected)
+      - [Q: Some drivers complain about missing data files](#q-some-drivers-complain-about-missing-data-files)
       - [Q: Missing {some} drivers, can you add more?](#q-missing--some--drivers--can-you-add-more-)
       - [Q: GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
       - [Q: Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
@@ -40,7 +43,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 
 - Only generates assemblies and binds everything into one package.
 - Provides easy access to GDAL by installing **only core and runtime package**
-- DOES NOT require installation of GDAL 
+- DOES NOT require installation of GDAL. From 3.6.1 version GDAL_DATA is also shipped. While it contains the `proj.db` database you can require `proj-data` grid shifts.
 
 ### What is not
 
@@ -90,22 +93,31 @@ Detailed guide is here - [unix](unix/).
 
 ## About build configuration
 
-Current version targets **GDAL 3.6.0** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They will be included upon request.
+Current version targets **GDAL 3.6.1** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They can be packaged upon a request.
 
 Drivers included PROJ(7.2.1), GEOS(3.11.1) and more than 200 other drivers.
-To view full list of drivers, see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
+To view full list of drivers, run view the full list of drivers with GDAL's API or see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
 
-**NOTE**: Windows and Linux drivers availability may differ, ask me of specific driver for runtime. Please issue, if I forgot to mention any other packages.
+**NOTE**: Windows and Linux drivers availability may differ, ask me of a specific driver for runtime. Please issue, if I forgot to mention any packages.
 
 ## Building runtime libraries
 
-Current version is targeting **GDAL 3.6.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdal.core package) are build from **windows**.
+Current version is targeting **GDAL 3.6.1** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Main operating bindings (in gdal.core package) are build from **windows**.
 
 To make everything work smoothly, each configuration targets same drivers and their versions respectively.
 
 To start building for a specific runtime, see the **README.md** in a respective directory.
 
 ## FAQ
+
+#### Q: Packages do not work on CentOS 7, Ubuntu 18.04
+A: It's an old distro and is out of support (EOL). Use docker (see [this Dockerfile](tests/MaxRev.Gdal.Core.Tests/Dockerfile) how to package your app) or a newer distro (GLIBC 2.31+). Packages for older systems are difficult to maintain. From 3.6.x version the Debian 11 distro is used. See [this](https://github.com/MaxRev-Dev/gdal.netcore/issues/87#issuecomment-1377995387) for more info.
+
+#### Q: Projections are not working as expected
+A: This package only contains the [`proj.db` database](https://proj.org/resource_files.html#proj-db). Make sure you have installed `proj-data` package. It contains aditional grid shifts and other data required for projections. Add path to your data folder with `MaxRev.Gdal.Core.Proj.Configure()`. See [this](https://proj.org/resource_files.html) for more info.
+
+#### Q: Some drivers complain about missing data files
+A: This is related to the previous package versions (prior to 3.6.1). From 3.6.1 version, `GDAL_DATA` folder is also shipped with core package.
 
 #### Q: Missing {some} drivers, can you add more?
 
@@ -121,11 +133,11 @@ A: Yes, currently there are [some redundant](https://github.com/MaxRev-Dev/gdal.
 
 #### Q: Can I compile it on Ubuntu or another Unix-based system?
 
-A: The main reason I'm compiling it on CentOS - glibc of version 2.17. It's the lowest version [(in my opinion)](https://github.com/MaxRev-Dev/gdal.netcore/issues/1#issuecomment-522817778) that suits for all common systems (Ubuntu, Debian, Fedora)
+A: From the 3.6.x version the Debian 11 distro is used. Prior to 3.6.x version packages were built on CentOS - glibc of version 2.17. It's the lowest version [(in my opinion)](https://github.com/MaxRev-Dev/gdal.netcore/issues/1#issuecomment-522817778) that suits for all common systems (Ubuntu, Debian, Fedora)
 
 #### Q: In some methods performance is slower on Unix 
 
-A: Use of [older version](https://github.com/MaxRev-Dev/gdal.netcore/issues/1) of GLIBC might be [a reason](https://github.com/MaxRev-Dev/gdal.netcore/issues/6). But It's not a fault of build engine.
+A: Apparently, it's not a fault of the build engine. I did not face this issue and I use this packages in several production environments.
 
 #### Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception
 
