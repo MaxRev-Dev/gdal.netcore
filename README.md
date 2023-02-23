@@ -25,12 +25,12 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
   * [Building runtime libraries](#building-runtime-libraries)
   * [FAQ](#faq)
       - [Q: Packages do not work on CentOS 7, Ubuntu 18.04](#q-packages-does-not-work-on-centos-7-ubuntu-1804)
+      - [Q: Can I compile it on Ubuntu or another Unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system-)
       - [Q: Projections are not working as expected](#q-projections-are-not-working-as-expected)
       - [Q: Some drivers complain about missing data files](#q-some-drivers-complain-about-missing-data-files)
       - [Q: Missing {some} drivers, can you add more?](#q-missing--some--drivers--can-you-add-more-)
       - [Q: GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
       - [Q: Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
-      - [Q: Can I compile it on Ubuntu or another Unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system-)
       - [Q: In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
       - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)
   * [About and Contacts](#about-and-contacts)
@@ -113,6 +113,10 @@ To start building for a specific runtime, see the **README.md** in a respective 
 #### Q: Packages does not work on CentOS 7, Ubuntu 18.04
 A: These are old distros and are out of support (EOL). Use docker (see [this Dockerfile](tests/MaxRev.Gdal.Core.Tests/Dockerfile) how to package your app) or a newer distro (GLIBC 2.31+). Packages for older systems are difficult to maintain. From 3.6.x version the Debian 11 distro is used. See [this](https://github.com/MaxRev-Dev/gdal.netcore/issues/87#issuecomment-1377995387) for more info.
 
+#### Q: Can I compile it on Ubuntu or another Unix-based system?
+
+A: Yes, you can (see [unix](/unix/) folder for readme). All you have to do, is to choose one of the latest distros like Ubuntu 22.04 or Debian 11 (recommended). From the 3.6.x version the Debian 11 distro is used by default. It was changed because of EOL of the previous distro (see answer above). Prior to 3.6.x version packages were built on CentOS - glibc of version 2.17. It's the lowest version [(in my opinion)](https://github.com/MaxRev-Dev/gdal.netcore/issues/1#issuecomment-522817778) that suits all common systems (Ubuntu, Debian, Fedora).
+
 #### Q: Projections are not working as expected
 A: This package only contains the [`proj.db` database](https://proj.org/resource_files.html#proj-db). Make sure you have installed `proj-data` package. It contains aditional grid shifts and other data required for projections. Add path to your data folder with `MaxRev.Gdal.Core.Proj.Configure()`. See [this](https://proj.org/resource_files.html) for more info.
 
@@ -130,10 +134,6 @@ A: Try to search an [issue on github](https://github.com/OSGeo/gdal/issues). In 
 #### Q: Some types throw exceptions from SWIG on Windows
 
 A: Yes, currently there are [some redundant](https://github.com/MaxRev-Dev/gdal.netcore/issues/11) types in OGR namespace. This will be fixed in the next builds.
-
-#### Q: Can I compile it on Ubuntu or another Unix-based system?
-
-A: From the 3.6.x version the Debian 11 distro is used. Prior to 3.6.x version packages were built on CentOS - glibc of version 2.17. It's the lowest version [(in my opinion)](https://github.com/MaxRev-Dev/gdal.netcore/issues/1#issuecomment-522817778) that suits all common systems (Ubuntu, Debian, Fedora).
 
 #### Q: In some methods performance is slower on Unix 
 
