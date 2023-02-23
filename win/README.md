@@ -3,8 +3,9 @@
 ## Table of contents
 
 - [Windows build scripts for GDAL](#windows-build-scripts-for-gdal)
-  * [Prerequisites:](#prerequisites-)
-  * [Building: (in PowerShell)](#building---in-powershell-)
+  * [Prerequisites:](#prerequisites)
+  * [Building: (in PowerShell)](#building-in-powershell)
+  * [Troubleshooting dependencies:](#troubleshooting-dependencies)
 
 Table of contents generated with [markdown-toc](http://ecotrust-canada.github.io/markdown-toc/).
 

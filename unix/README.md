@@ -1,5 +1,14 @@
 # Building GDAL bindings on unix
 
+  * [Prerequisites](#prerequisites)
+    + [**1. Environment**](#1-environment)
+    + [**2. Base packages**](#2-base-packages-vcpkg-and-pipeline-scripts-won-t-work-without-them)
+    + [3. **Install .NET**](#3-install-net)
+    + [4. **Installing libraries**.](#4-installing-libraries)
+      - [Optional libraries](#optional-libraries)
+    + [5. **Compiling**](#5-compiling)
+    + [6. **How to check dependencies:**](#6-how-to-check-dependencies)
+
 ## Prerequisites
 
 First of all, I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 1 hour. But from version 3.6 it possibly faster with CMake.
