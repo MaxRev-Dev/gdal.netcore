@@ -5,6 +5,7 @@ using OSGeo.OSR;
 using System;
 using System.IO;
 using System.Reflection;
+using OSGeo.OGR;
 
 namespace GdalCoreTest
 {
@@ -19,6 +20,11 @@ namespace GdalCoreTest
                 GdalBase.ConfigureAll();
                 GdalBase.ConfigureAll();
                 Console.WriteLine("GDAL configured");
+                Console.WriteLine("OGR Vector Drivers: {0}", Ogr.GetDriverCount());
+                var rasterCount = Enumerable
+                    .Range(0, Gdal.GetDriverCount()).Select(Gdal.GetDriver)
+                    .Count(x => x.GetMetadataItem("DCAP_RASTER", null) == "YES");
+                Console.WriteLine("GDAL Raster Drivers: {0}", rasterCount);
 
                 var version = Assembly.GetAssembly(typeof(MaxRev.Gdal.Core.GdalBase))
                          .GetCustomAttribute<AssemblyInformationalVersionAttribute>()

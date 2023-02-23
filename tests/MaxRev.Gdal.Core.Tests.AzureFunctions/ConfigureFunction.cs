@@ -1,19 +1,14 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 
 namespace MaxRev.Gdal.Core.Tests.AzureFunctions
 {
     public static class ConfigureFunction
     {
-        static ConfigureFunction()
-        {
-            GdalBase.ConfigureAll();
-        }
-
         [FunctionName("ConfigureFunction")]
         public static Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
@@ -31,6 +26,7 @@ namespace MaxRev.Gdal.Core.Tests.AzureFunctions
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             ILogger log)
         {
+            GdalBase.ConfigureAll();
             return GdalBase.IsConfigured;
         }
     }
