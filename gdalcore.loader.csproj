@@ -15,18 +15,17 @@
     <RepositoryType>git</RepositoryType>
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.6.1.120</Version>
+    <Version>3.6.2.100</Version>
     <Description>
-      GDAL (3.6.1) bindings for dotnet core (now linux-x64 and win-x64).
+      GDAL (3.6.2) bindings for dotnet core (now linux-x64 and win-x64).
       Bridge between gdal and netcore.
       Use dependency package for target runtime to get drivers.
       Works in docker containers without pkg installations!!
       Just call - GdalBase.ConfigureAll()
     </Description>
     <PackageReleaseNotes>
-      - GDAL Version 3.6.1
+      - GDAL Version 3.6.2
       - Built with VCPKG
-      - Automatically set GDAL_DATA option on startup
     </PackageReleaseNotes>
   </PropertyGroup>
 

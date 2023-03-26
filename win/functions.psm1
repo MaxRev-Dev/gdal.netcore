@@ -131,7 +131,7 @@ function Install-PwshModuleRequirements {
     Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     
     if (!(Get-Module "Pscx")) {        
-        Install-Module Pscx -AllowClobber  
+        Install-Module Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser
     }  
     
     if (!(Get-Module "VSSetup")) {  
@@ -147,7 +147,7 @@ function Install-PwshModuleRequirements {
     }
     
     if ($null -eq (Get-Command "choco" -ErrorAction SilentlyContinue)) {
-        Install-Module -Name Choco
+        Install-Module -Name Choco -Scope CurrentUser
     } 
     
     if ($null -eq (Get-Command "swig" -ErrorAction SilentlyContinue)) {

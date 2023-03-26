@@ -61,10 +61,13 @@ try {
     Build-Gdal $cleanGdalBuild $cleanGdalIntermediate
 
     Build-CsharpBindings -isDebug $isDebug
+} 
+catch
+{
+    Write-BuildError "Something threw an exception"
+    Write-Output $_
 }
 finally {
     Pop-Location -StackName "gdal.netcore|root"
-    Get-Variable |
-    Where-Object Name -notin $existingVariables.Name |
-    Remove-Variable
+    Get-Variable | Where-Object Name -notin $existingVariables.Name | Remove-Variable -ErrorAction SilentlyContinue
 }
