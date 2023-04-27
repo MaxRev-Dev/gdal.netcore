@@ -18,7 +18,7 @@ endif
 ###	Testing linux libraries (from nuget build output)
 test-restore:
 	cd $(TEST_TARGET) && \
-		dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_)
+		dotnet restore -s github -s nuget.org -s $(NUGET_)
 	
 test-update:
 	@cd $(TEST_TARGET) && \

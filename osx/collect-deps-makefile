@@ -23,7 +23,7 @@ BUILD_BASE = $(BASE)/bindings
 build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 
-linkall: initdirs copy-projdb copy-deps 
+linkall: initdirs copy-projdb collect-bindings copy-deps 
 	@echo "Libraries patched successfully"
 
 clean:

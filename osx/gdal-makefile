@@ -56,14 +56,18 @@ endif
 
 init_%: 
 	$(MAKE) -f gdal-makefile clone_$(REP) 
-	$(MAKE) -f gdal-makefile reset_$(REP) 
+	@if [ "$$CI" == "true" ]; then \
+		echo "Skipping reset"; \
+	else \
+		$(MAKE) -f gdal-makefile reset_$(REP); \
+	fi;
 	$(MAKE) -f gdal-makefile remove_cache_$(REP)
 	@echo "$(TO) Sources restore complete"
 
 clone_%:
 	echo "$($(UP)_ROOT)"
 	@if [ ! -d "$($(UP)_ROOT)" ]; then \
-		git clone $($(UP)_REPO) $($(UP)_ROOT); \
+		$(GIT) clone $(GIT_CLONE_DEPTH) --branch $($(UP)_COMMIT_VER) --single-branch $($(UP)_REPO) $($(UP)_ROOT); \
 	fi;
 
 reset_%:

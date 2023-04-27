@@ -1,0 +1,18 @@
+#
+#  gdal.netcore package automation
+# 
+#    Linux Runtime Identifier 
+#
+BASE=$(PWD)
+BASE_RUNTIME_RID=osx
+BASE_RUNTIME_PLATFORM=arm64
+VCPKG_RID=arm64
+
+RUNTIME_PROJECT=gdalcore.osxruntime.csproj
+
+# .NET RID
+RID=$(BASE_RUNTIME_RID)-$(BASE_RUNTIME_PLATFORM)
+SWIG=swig
+SHELL=/bin/bash
+
+DEL_DIR=rm -rf
