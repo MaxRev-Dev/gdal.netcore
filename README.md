@@ -61,6 +61,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 ```powershell
 Install-Package MaxRev.Gdal.WindowsRuntime.Minimal
 Install-Package MaxRev.Gdal.LinuxRuntime.Minimal
+Install-Package MaxRev.Gdal.OsxRuntime.Minimal
 ```
 3. Initialize libraries in runtime
 ```csharp
@@ -91,6 +92,10 @@ Enter [win](win/) directory to find out how.
 
 Detailed guide is here - [unix](unix/).
 
+## How to compile on macOS
+
+Detailed guide is here - [osx](osx/).
+
 ## About build configuration
 
 The current version targets **GDAL 3.6.1** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They can be packaged upon request.
@@ -98,7 +103,7 @@ The current version targets **GDAL 3.6.1** with **minimal drivers**. What stands
 Drivers included PROJ(7.2.1), GEOS(3.11.1), and more than 200 other drivers.
 To view full list of drivers, To view the complete list of drivers, you can view the full list with GDAL's API or see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
 
-**NOTE**: Windows and Linux drivers availability may differ. Ask me about a specific driver for runtime. Please issue if I need to mention any packages.
+**NOTE**: Runtime drivers availability may differ. Ask me about a specific driver for runtime. Please issue if I need to mention any packages.
 
 ## Building runtime libraries
 

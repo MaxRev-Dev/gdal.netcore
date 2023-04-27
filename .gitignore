@@ -23,6 +23,7 @@ build-*
 libshared/
 maxrev.gdal.core.libshared/
 tmp/
+utf8-data/**
 !tests/**/*.cs
 !compile/*.*
 
