@@ -1,0 +1,34 @@
+include RID.opt
+include ../shared/GdalCore.opt
+
+ifeq ($(PRERELEASE),)
+PRERELEASE_ARG= 
+else
+PRERELEASE_ARG=--prerelease
+endif
+
+ifeq ($(APP_RUN),)
+TEST_TARGET=$(TEST_DIR) 
+APP_RUN_TARGET=dotnet test
+else
+TEST_TARGET=$(TEST_DIR_APP)
+APP_RUN_TARGET=dotnet run
+endif
+
+###	Testing linux libraries (from nuget build output)
+test-restore:
+	cd $(TEST_TARGET) && \
+		dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_)
+	
+test-update:
+	@cd $(TEST_TARGET) && \
+		dotnet add package MaxRev.Gdal.OsxRuntime.Minimal -s $(NUGET_) $(PRERELEASE_ARG)
+	@cd $(TEST_TARGET) && \
+		dotnet add package MaxRev.Gdal.Core -s $(NUGET_) $(PRERELEASE_ARG) 
+
+test-only: test-restore
+	@cd $(TEST_TARGET) && \
+		$(APP_RUN_TARGET)
+
+test: test-restore test-update test-only
+	@exit 0
