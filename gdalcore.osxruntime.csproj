@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform>x64</Platform>
+    <Platform>arm64</Platform>
     <DebugType>portable</DebugType>
     <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
     <Copyright>MaxRev © 2023</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>MaxRev.Gdal.LinuxRuntime.Minimal</PackageId>
+    <PackageId>MaxRev.Gdal.OsxRuntime.Minimal</PackageId>
     <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
@@ -15,14 +15,12 @@
     <Version>3.6.1.100</Version>
     <Description>GDAL (3.6.1) minimal libraries package. 
 Drivers included PROJ (9.2.0), GEOS (3.11.1), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5
-Targets linux-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1,3.1], net6.0, net7.0
+Targets osx-arm64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1,3.1], net6.0, net7.0
 </Description>
-    <AssemblyName>MaxRev.Gdal.LinuxRuntime.Minimal</AssemblyName>
+    <AssemblyName>MaxRev.Gdal.OsxRuntime.Minimal</AssemblyName>
     <PackageReleaseNotes>
-- Bug fix release.
 - GDAL 3.6.1
-- targets .NET6 LTS, .NET7 
-- GEOS 3.11.1</PackageReleaseNotes>
+- Initial build for MacOS</PackageReleaseNotes>
   </PropertyGroup>
   
   <ItemGroup> 
@@ -32,12 +30,12 @@ Targets linux-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
     <None Remove="build-osx/**" />
-    <None Include="runtimes/linux-x64/**">
-      <PackagePath>runtimes/linux-x64/</PackagePath> 
+    <None Include="runtimes/osx-arm64/**">
+      <PackagePath>runtimes/osx-arm64/</PackagePath> 
       <Pack>true</Pack>
-    </None> 
-    <None Include="maxrev.gdal.core.libshared/linux-x64/**">
-      <PackagePath>runtimes/linux-x64/native/</PackagePath> 
+    </None>  
+    <None Include="maxrev.gdal.core.libshared/osx-arm64/**">
+      <PackagePath>runtimes/osx-arm64/native/</PackagePath> 
       <Pack>true</Pack>
     </None>
   </ItemGroup>

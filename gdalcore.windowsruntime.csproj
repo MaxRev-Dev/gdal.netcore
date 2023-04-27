@@ -4,7 +4,7 @@
     <Platform>x64</Platform>
     <DebugType>portable</DebugType>
     <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
-    <Copyright>MaxRev © 2022</Copyright>
+    <Copyright>MaxRev © 2023</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>MaxRev.Gdal.WindowsRuntime.Minimal</PackageId>
@@ -29,9 +29,9 @@ Targets win-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1
    <ItemGroup> 
     <Compile Remove="**/*.cs"></Compile>
     <Compile Remove="tests/**"></Compile>
+    <None Remove="tests/**" />
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
-
     <None Include="runtimes/win-x64/**">
       <PackagePath>runtimes/win-x64/</PackagePath> 
       <Pack>true</Pack>
@@ -40,11 +40,6 @@ Targets win-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1
       <PackagePath>runtimes/win-x64/native/</PackagePath> 
       <Pack>true</Pack>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Remove="tests\**" />
-    <None Remove="tests\**" />
   </ItemGroup>
     
   <PropertyGroup Condition="$(Configuration) == 'Debug'">
