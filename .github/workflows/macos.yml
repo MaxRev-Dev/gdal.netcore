@@ -1,0 +1,56 @@
+name: MacOS Build
+
+on:
+  push:
+    branches: 
+      - master
+      - 'feature/**' 
+  pull_request:
+    branches: 
+      - master
+
+jobs:
+  BuildNugetPackages-MacOS:
+    strategy:
+      matrix:
+        os: [macos-self-hosted]
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    steps:     
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+      - uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+      - name: Change package versions
+        run: |
+          sed -i "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1${{github.run_number}}/" gdalcore.osxruntime.csproj
+
+      - name: Build packages
+        working-directory: ./osx
+        run: |
+          chmod +x ./before-install.sh && ./before-install.sh
+          make
+
+      - name: Store packages as artifact 
+          uses: actions/upload-artifact@v3
+          with:
+            name: osx-packages
+            path: ./nuget/*.nuget
+
+      # - name: NuGet - Update credentials
+      #   run: | 
+      #     dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
+      #     dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
+
+      # - name: Run tests from nuget packages
+      #   run: |
+      #     dotnet test tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj
