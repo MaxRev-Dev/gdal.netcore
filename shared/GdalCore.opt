@@ -4,17 +4,20 @@
  
 ##### repo root
 ROOTDIR_=$(abspath $(BASE)/..)
+BUILD_NUMBER_TAIL=10
 
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
+GDAL_VERSION="3.6.1" # Dec 14, 2022
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
-GDAL_COMMIT_VER=v3.6.1 # Dec 14, 2022
+GDAL_COMMIT_VER=v$(GDAL_VERSION)
 
+PROJ_VERSION="9.2.0" # Mar 1, 2023
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
-PROJ_COMMIT_VER=9.2.0 # Mar 1, 2023
+PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 # ---------------------- VCPKG ----------------------
 

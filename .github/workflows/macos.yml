@@ -3,19 +3,30 @@ name: MacOS Build
 on:
   push:
     branches: 
-      - master
+      - main
       - 'feature/**' 
+      - 'hotfix/**' 
   pull_request:
     branches: 
-      - master
+      - main
 
 jobs:
   BuildNugetPackages-MacOS:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64]
+        os: [self-hosted-macos-arm64,self-hosted-macos-x64] # can be extended for x64
+        include:
+          - os: self-hosted-macos-arm64
+            arch: arm64
+          - os: self-hosted-macos-x64
+            arch: x64            
+
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    defaults:
+      run:
+        working-directory: osx
+
     steps:     
       - uses: actions/checkout@v3
         with:
@@ -30,38 +41,39 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '7.0.x'
-      
-      - name: Change package versions
-        run: |
-          sed -i '' 's/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1${{github.run_number}}/' './gdalcore.osxruntime.csproj'
 
-      - name: Fetch VCPKG
-        working-directory: ./osx
+      - name: Fetch VCPKG packages
         run: |
-          make -f vcpkg-makefile 
+          make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
+          
+      - name: Compile PROJ
+        run: |
+          make -f gdal-makefile proj
 
-      - name: Build GDAL & PROJ
-        working-directory: ./osx
+      - name: Compile GDAL
         run: |
-          make -f gdal-makefile
+          make -f gdal-makefile gdal
 
       - name: Collect deps
-        working-directory: ./osx
         run: |
-          make -f collect-deps-makefile 
+          make -f collect-deps-makefile
 
       - name: Create packages
-        working-directory: ./osx
         run: |
-          make -f publish-makefile pack 
+          make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }} 
 
       - name: Test packages
-        working-directory: ./osx
         run: |
-          make -f test-makefile test
+          make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
-      - name: Store packages as artifact 
+      - name: Store packages as artifact
+        if: ${{ github.event_name == 'pull_request' || ((startsWith(github.ref, 'refs/heads/feature') || startsWith(github.ref, 'refs/heads/hotix')) && github.event_name == 'push') }}
         uses: actions/upload-artifact@v3
         with:
           name: osx-packages
-          path: ./nuget/*.nupkg
+          path: nuget/*.nupkg
+      
+      - name: Push packages
+        if: ${{ github.event_name == 'push' && github.ref == 'main' }}
+        run: |
+          make -f push-packages-makefile

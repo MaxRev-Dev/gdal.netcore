@@ -15,7 +15,7 @@
     <RepositoryType>git</RepositoryType>
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.6.1.200</Version>
+    <Version>3.6.1.110</Version>
     <Description>
       GDAL (3.6.1) bindings for dotnet core (osx-arm64, linux-x64 and win-x64).
       Bridge between gdal and netcore.
@@ -65,11 +65,4 @@
       <Pack>true</Pack>
     </None>
   </ItemGroup> 
-
-  <ItemGroup>
-    <PackageReference Include="MSBump" Version="2.3.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
 </Project>

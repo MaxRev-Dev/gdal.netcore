@@ -8,27 +8,31 @@ PRERELEASE_ARG=--prerelease
 endif
 
 ifeq ($(APP_RUN),)
-TEST_TARGET=$(TEST_DIR) 
-APP_RUN_TARGET=dotnet test
+TEST_TARGET=$(TEST_DIR)
+CMD_TYPE=dotnet test
 else
 TEST_TARGET=$(TEST_DIR_APP)
-APP_RUN_TARGET=dotnet run
+CMD_TYPE=dotnet run
 endif
+
+PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
+
+any: test
 
 ###	Testing linux libraries (from nuget build output)
 test-restore:
 	cd $(TEST_TARGET) && \
-		dotnet restore -s github -s nuget.org -s $(NUGET_)
-	
+		dotnet restore -s $(NUGET_) --force --ignore-failed-sources
+
 test-update:
 	@cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.OsxRuntime.Minimal -s $(NUGET_) $(PRERELEASE_ARG)
+		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
 	@cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.Core -s $(NUGET_) $(PRERELEASE_ARG) 
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG) 
 
 test-only: test-restore
 	@cd $(TEST_TARGET) && \
-		$(APP_RUN_TARGET)
+		$(CMD_TYPE) --no-restore
 
 test: test-restore test-update test-only
 	@exit 0
