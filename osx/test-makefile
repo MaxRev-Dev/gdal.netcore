@@ -22,17 +22,17 @@ any: test
 ###	Testing linux libraries (from nuget build output)
 test-restore:
 	cd $(TEST_TARGET) && \
-		dotnet restore -s $(NUGET_) --force --ignore-failed-sources
+		dotnet restore --ignore-failed-sources
 
 test-update:
-	@cd $(TEST_TARGET) && \
+	cd $(TEST_TARGET) && \
 		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
-	@cd $(TEST_TARGET) && \
+	cd $(TEST_TARGET) && \
 		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG) 
 
 test-only: test-restore
-	@cd $(TEST_TARGET) && \
-		$(CMD_TYPE) --no-restore
+	cd $(TEST_TARGET) && \
+		$(CMD_TYPE) --no-restore $(TEST_DIR)/*.csproj
 
 test: test-restore test-update test-only
 	@exit 0

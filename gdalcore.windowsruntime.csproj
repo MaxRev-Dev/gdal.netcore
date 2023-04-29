@@ -10,6 +10,7 @@
     <PackageId>MaxRev.Gdal.WindowsRuntime.Minimal</PackageId>
     <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>3.6.1.110</Version>
@@ -27,6 +28,7 @@ Targets win-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1
   </PropertyGroup>
   
    <ItemGroup> 
+    <None Include="README.md" Pack="true" PackagePath="/"/>
     <Compile Remove="**/*.cs"></Compile>
     <Compile Remove="tests/**"></Compile>
     <None Remove="tests/**" />
@@ -51,10 +53,4 @@ Targets win-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1
     <BumpRevision>True</BumpRevision>
     <BumpResetLabel>dev</BumpResetLabel>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="MSBump" Version="2.3.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
 </Project>

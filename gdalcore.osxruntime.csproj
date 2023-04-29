@@ -10,6 +10,7 @@
     <PackageId>MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH)</PackageId>
     <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>3.6.1.110</Version>
@@ -24,6 +25,7 @@ Targets osx-arm64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2
   </PropertyGroup>
   
   <ItemGroup> 
+    <None Include="README.md" Pack="true" PackagePath="/"/>
     <Compile Remove="**/*.cs"></Compile>
     <Compile Remove="tests/**" />
     <None Remove="tests/**" />
