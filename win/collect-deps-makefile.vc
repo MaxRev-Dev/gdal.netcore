@@ -5,21 +5,30 @@
 !INCLUDE RID.opt
 !INCLUDE ../shared/GdalCore.opt
 
-OUTPUT=$(ROOTDIR_)/runtimes/win-x64/native
+OUTPUT=$(abspath $(ROOTDIR_)/runtimes/win-x64/native)
 OUTPUT=$(abspath $(OUTPUT))
 BUILD_ROOT=$(abspath $(BUILD_ROOT))
-
+BINDINGS_ROOT=$(abspath $(GDAL_CMAKE_TMP)/swig/csharp)
+BINDINGS_OUT=$(abspath $(BASE)/bindings)
 SDK_ROOT=$(ROOTDIR_)/build-win/sdk/release-1930-x64
 
 all: collect
 
 copyprojdb:
-	if not exist "$(LIBSHARED)" mkdir "$(LIBSHARED)"
+	@if not exist "$(LIBSHARED)" mkdir "$(LIBSHARED)"
 	$(COPY_I) "$(PROJ_BUILD)/share/proj/proj.db" "$(LIBSHARED)/"
 
-collect: copyprojdb
-	if not exist "$(OUTPUT)" mkdir "$(OUTPUT)"
-	$(COPY) $(abspath $(VCPKG_INSTALLED)\bin\*.dll) "$(OUTPUT)\"
+collect_bindings:
+	@if exist "$(BINDINGS_OUT)" $(DEL_DIR) "$(BINDINGS_OUT)"
+	@if not exist "$(BINDINGS_OUT)" mkdir "$(BINDINGS_OUT)"
+	$(COPY_TOP_DIR) "$(BINDINGS_ROOT)\const\*.cs" "$(BINDINGS_OUT)\const\"
+	$(COPY_TOP_DIR) "$(BINDINGS_ROOT)\gdal\*.cs" "$(BINDINGS_OUT)\gdal\"
+	$(COPY_TOP_DIR) "$(BINDINGS_ROOT)\osr\*.cs" "$(BINDINGS_OUT)\osr\"
+	$(COPY_TOP_DIR) "$(BINDINGS_ROOT)\ogr\*.cs" "$(BINDINGS_OUT)\ogr\"
+
+collect: collect_bindings copyprojdb
+	@if not exist "$(OUTPUT)" mkdir "$(OUTPUT)"
+	$(COPY) "$(abspath $(VCPKG_INSTALLED)\bin)\*.dll" "$(OUTPUT)\"
 	$(COPY) "$(abspath $(SDK_ROOT)\bin)\*.dll" "$(OUTPUT)\"
 	$(COPY) "$(abspath $(BUILD_ROOT)\gdal-build\share\csharp)\*_wrap.dll" "$(OUTPUT)\"
 	$(COPY_I) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).CRT\*.dll" "$(OUTPUT)\"
