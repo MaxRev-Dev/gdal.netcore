@@ -8,8 +8,9 @@
     <Platforms>x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MaxRev.Gdal.Core" Version="3.6.2.*" />
-    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal" Version="3.6.2.100" /> 
+    <PackageReference Include="MaxRev.Gdal.Core" Version="3.6.3.*" />
+    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal" Version="3.6.3.*" />
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal" Version="3.6.3.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
