@@ -40,7 +40,7 @@ jobs:
           TEST_PROJECT: tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj  
         run: |
           dotnet restore --ignore-failed-sources ${{ env.TEST_PROJECT }}
-          dotnet add package MaxRev.Gdal.Core ${{ env.TEST_PROJECT }}
-          dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal ${{ env.TEST_PROJECT }}
-          dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal ${{ env.TEST_PROJECT }}
+          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core
+          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.LinuxRuntime.Minimal
+          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.WindowsRuntime.Minimal
           dotnet test --no-restore ${{ env.TEST_PROJECT }}
