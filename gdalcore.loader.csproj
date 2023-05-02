@@ -12,6 +12,7 @@
     <RootNamespace>MaxRev.Gdal.Core</RootNamespace>
     <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
@@ -40,6 +41,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
     <None Remove="./*.cs" />
