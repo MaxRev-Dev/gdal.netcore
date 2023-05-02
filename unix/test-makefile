@@ -15,20 +15,24 @@ TEST_TARGET=$(TEST_DIR_APP)
 APP_RUN_TARGET=dotnet run
 endif
 
+all: test
+
 ###	Testing linux libraries (from nuget build output)
 test-restore:
-	cd $(TEST_TARGET) && \
-		dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_)
-	
+	-@cd $(TEST_TARGET) && dotnet remove package "MaxRev.Gdal.WindowsRuntime.Minimal"
+	-@cd $(TEST_TARGET) && dotnet remove package "MaxRev.Gdal.OsxRuntime.Minimal"
+	-@cd $(TEST_TARGET) && \
+		dotnet restore --force -s "$(NUGET_)" -s "https://api.nuget.org/v3/index.json" --ignore-failed-sources
+
 test-update:
-	@cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s $(NUGET_) $(PRERELEASE_ARG)
-	@cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.Core -s $(NUGET_) $(PRERELEASE_ARG) 
+	-@cd $(TEST_TARGET) && \
+		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s "$(NUGET_)" $(PRERELEASE_ARG)
+	-@cd $(TEST_TARGET) && \
+		dotnet add package MaxRev.Gdal.Core -s "$(NUGET_)" $(PRERELEASE_ARG) 
 
 test-only: test-restore
 	@cd $(TEST_TARGET) && \
-		$(APP_RUN_TARGET)
+		$(APP_RUN_TARGET) --no-restore
 
 test: test-restore test-update test-only
 	@exit 0

@@ -126,28 +126,29 @@ function Reset-PsSession {
         + [System.Environment]::GetEnvironmentVariable("Path", "User")  
 }
 
-function Install-PwshModuleRequirements {    
-    Import-PackageProvider NuGet -Force
-    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-    
-    if (!(Get-Module "Pscx")) {        
-        Install-Module Pscx -AllowClobber  
-    }  
-    
-    if (!(Get-Module "VSSetup")) {  
-        Install-Module VSSetup -Scope CurrentUser
+function Install-PwshModuleRequirements {   
+    if (!(Get-PackageProvider -Name "NuGet")) {
+        Import-PackageProvider NuGet -Force
+    } 
+
+    if (!(Get-PSRepository -Name "PSGallery")) {
+        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     }
+
+    if (!(Get-Module "Pscx")) {        
+        Install-Module Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser
+    }  
     
     if (!(Get-Module "7Zip4Powershell")) {
         Install-Module -Name 7Zip4Powershell -RequiredVersion 2.2.0 -Scope CurrentUser
     }
 
-    if (!(Get-Module "WebKitDev")) {
+    if (!(Get-Command "Invoke-WebRequest")) {
         Install-Module -Name WebKitDev -RequiredVersion 0.4.0 -Force -Scope CurrentUser
     }
     
     if ($null -eq (Get-Command "choco" -ErrorAction SilentlyContinue)) {
-        Install-Module -Name Choco
+        Install-Module -Name Choco -Scope CurrentUser
     } 
     
     if ($null -eq (Get-Command "swig" -ErrorAction SilentlyContinue)) {

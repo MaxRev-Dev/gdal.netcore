@@ -355,3 +355,5 @@ ASALocalRun/
 .mfractor/
 
 .ionide
+
+test*.vrt

@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
   workflow_dispatch:
 
@@ -37,4 +37,5 @@ jobs:
 
       - name: Run tests from nuget packages
         run: |
-          dotnet test tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj
+          dotnet restore --ignore-failed-sources tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj  
+          dotnet test --no-restore tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj 
