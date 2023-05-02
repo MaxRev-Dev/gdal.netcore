@@ -15,12 +15,18 @@ TEST_TARGET=$(TEST_DIR_APP)
 APP_RUN_TARGET=dotnet run
 endif
 
+MISSING_PACKAGES=MaxRev.Gdal.OsxRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal 
+
 all: test
 
 ###	Testing linux libraries (from nuget build output)
 test-restore:
-	-@cd $(TEST_TARGET) && dotnet remove package "MaxRev.Gdal.WindowsRuntime.Minimal"
-	-@cd $(TEST_TARGET) && dotnet remove package "MaxRev.Gdal.OsxRuntime.Minimal"
+# 	remove other packages as they don't exist in the local source
+	-@for v in $(MISSING_PACKAGES); do \
+		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests.AzureFunctions" && dotnet remove package $$v &> /dev/null; \
+		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests" && dotnet remove package $$v &> /dev/null;  \
+	done;
+
 	-@cd $(TEST_TARGET) && \
 		dotnet restore --force -s "$(NUGET_)" -s "https://api.nuget.org/v3/index.json" --ignore-failed-sources
 
