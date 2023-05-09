@@ -1,6 +1,6 @@
 # gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) ![Packages CI](https://github.com/MaxRev-Dev/gdal.netcore/workflows/CI/badge.svg?branch=master)
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.6.1 library for [.NET](https://dotnet.microsoft.com/download). 
+A simple (as is) build engine of [GDAL](https://gdal.org/) 3.7.0 library for [.NET](https://dotnet.microsoft.com/download). 
 
 ## Packages
 
@@ -43,7 +43,7 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
 
 - Only generates assemblies and binds everything into one package.
 - Provides easy access to GDAL by installing **only core and runtime package**
-- DOES NOT require installation of GDAL. From 3.6.1 version GDAL_DATA is also shipped. While it contains the `proj.db` database you can require `proj-data` grid shifts.
+- DOES NOT require installation of GDAL. From 3.7.0 version GDAL_DATA is also shipped. While it contains the `proj.db` database you can require `proj-data` grid shifts.
 
 ### What is not
 
@@ -98,7 +98,7 @@ Detailed guide is here - [osx](osx/).
 
 ## About build configuration
 
-The current version targets **GDAL 3.6.1** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They can be packaged upon request.
+The current version targets **GDAL 3.7.0** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They can be packaged upon request.
 
 Drivers included PROJ(7.2.1), GEOS(3.11.1), and more than 200 other drivers.
 To view full list of drivers, To view the complete list of drivers, you can view the full list with GDAL's API or see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
@@ -107,7 +107,7 @@ To view full list of drivers, To view the complete list of drivers, you can view
 
 ## Building runtime libraries
 
-Current version is targeting **GDAL 3.6.1** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**.
+Current version is targeting **GDAL 3.7.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**.
 
 To make everything work smoothly, each configuration targets the same drivers and their versions, respectively.
 
@@ -126,7 +126,7 @@ A: Yes, you can (see [unix](/unix/) folder for readme). All you have to do, is t
 A: This package only contains the [`proj.db` database](https://proj.org/resource_files.html#proj-db). Make sure you have installed `proj-data` package. It contains aditional grid shifts and other data required for projections. Add path to your data folder with `MaxRev.Gdal.Core.Proj.Configure()`. See [this](https://proj.org/resource_files.html) for more info.
 
 #### Q: Some drivers complain about missing data files
-A: This is related to the previous package versions (prior to 3.6.1). From 3.6.1 version, `GDAL_DATA` folder is also shipped with core package.
+A: This is related to the previous package versions (prior to 3.7.0). From 3.7.0 version, `GDAL_DATA` folder is also shipped with core package.
 
 #### Q: Missing {some} drivers, can you add more?
 
