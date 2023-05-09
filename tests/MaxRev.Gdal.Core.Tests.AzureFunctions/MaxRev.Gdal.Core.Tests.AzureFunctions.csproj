@@ -7,7 +7,7 @@
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MaxRev.Gdal.Core" Version="3.6.3.*" />
+    <PackageReference Include="MaxRev.Gdal.Core" Version="3.6.4.*" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.3" />
   </ItemGroup>
   <ItemGroup>
