@@ -36,5 +36,11 @@ jobs:
           dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
 
       - name: Run tests from nuget packages
+        env: 
+          TEST_PROJECT: tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj  
         run: |
-          dotnet test tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj
+          dotnet restore --ignore-failed-sources ${{ env.TEST_PROJECT }}
+          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core
+          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.LinuxRuntime.Minimal
+          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.WindowsRuntime.Minimal
+          dotnet test --no-restore ${{ env.TEST_PROJECT }}

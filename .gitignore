@@ -510,3 +510,5 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,visualstudio,visualstudiocode,windows
+
+test*.vrt

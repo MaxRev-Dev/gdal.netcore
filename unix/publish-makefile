@@ -9,21 +9,22 @@ export MSBUILDSINGLELOADCONTEXT = 1
 # using export to add dynamic libraries location
 export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
-# pack-core:
-# 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+all: pack
+
+pack-core:
+	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
 
 pack-runtime: 
 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
 
-pack: pack-runtime
+pack: pack-runtime pack-core
 	@exit 0
 
-# pack-core-dev: 
-# 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+pack-core-dev: 
+	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
 
-pack-runtime-dev: 
+pack-runtime-dev: pack-core-dev
 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
 
 pack-dev: pack-runtime-dev
 	@exit 0
-

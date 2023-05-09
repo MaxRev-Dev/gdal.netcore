@@ -26,6 +26,7 @@
     </Description>
     <PackageReleaseNotes>
       - GDAL Version 3.7.0
+      - Built with VCPKG
     </PackageReleaseNotes>
   </PropertyGroup>
 

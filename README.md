@@ -100,7 +100,7 @@ Detailed guide is here - [osx](osx/).
 
 The current version targets **GDAL 3.7.0** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They can be packaged upon request.
 
-Drivers included PROJ(7.2.1), GEOS(3.11.1), and more than 200 other drivers.
+Drivers included PROJ(9.2.0), GEOS(3.11.1), and more than 200 other drivers.
 To view full list of drivers, To view the complete list of drivers, you can view the full list with GDAL's API or see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
 
 **NOTE**: Runtime drivers availability may differ. Ask me about a specific driver for runtime. Please issue if I need to mention any packages.

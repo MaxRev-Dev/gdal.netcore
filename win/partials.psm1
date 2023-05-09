@@ -45,13 +45,16 @@ function Get-7ZipInstallation {
 function Get-GdalSdkIsAvailable {
     New-FolderIfNotExistsAndSetCurrentLocation $env:DOWNLOADS_DIR
     Write-BuildStep "Checking for GDAL SDK from GisInternals"
-    if (-Not (Test-Path -Path $env:SDK_ZIP )) { 
+    if (-Not (Test-Path -Path $env:SDK_ZIP -PathType Leaf)) { 
         Write-BuildInfo "Downloading GDAL SDK from GisInternals"
         Invoke-WebRequest "$env:SDK_URL" -OutFile "$env:SDK_ZIP" 
         Write-BuildStep "GDAL SDK was downloaded"
     }
     New-FolderIfNotExistsAndSetCurrentLocation "$env:BUILD_ROOT\sdk" 
-    exec { 7za x "$env:DOWNLOADS_DIR\$env:SDK_ZIP" -aoa }
+
+    if (-Not (Test-Path -Path "$env:BUILD_ROOT\sdk" -PathType Container)) { 
+        exec { 7za x "$env:DOWNLOADS_DIR\$env:SDK_ZIP" -aoa }
+    }
 }
 
 function Resolve-GdalThidpartyLibs {
@@ -162,7 +165,8 @@ function Get-ProjDatum {
 function Build-Gdal {
     param (
         [bool] $cleanGdalBuild = $true,
-        [bool] $cleanGdalIntermediate = $true
+        [bool] $cleanGdalIntermediate = $true,
+        [bool] $fetchGdal = $true
     )
 
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
@@ -186,15 +190,19 @@ function Build-Gdal {
             Remove-Item -Path "$env:BUILD_ROOT\gdal-build" -Recurse -Force
         } 
     }
+    
     if ($cleanGdalIntermediate) {
         Write-BuildInfo "Cleaning GDAL intermediate folder"
         Remove-Item -Path $env:GdalCmakeBuild -Recurse -Force
     }
     
     Set-Location "$PSScriptRoot"
-    nmake -f fetch-makefile.vc fetch-gdal
-    #Get-CloneAndCheckoutCleanGitRepo $env:GDAL_REPO $env:GDAL_COMMIT_VER "$env:GDAL_SOURCE"
 
+    if ($fetchGdal) {
+        Write-BuildInfo "Fetching GDAL source"
+        nmake -f fetch-makefile.vc fetch-gdal
+    } 
+            
     if ((Test-Path -Path "$env:GdalCmakeBuild\CMakeCache.txt" -PathType Leaf)) {
         Write-BuildInfo "Removing build cache (CMakeCache.txt)"
         Remove-Item "$env:GdalCmakeBuild\CMakeCache.txt"
@@ -221,7 +229,12 @@ function Build-Gdal {
         -DGDAL_USE_MSSQL_ODBC=OFF `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY $env:POPPLER_EXTRA_LIBRARIES `
         -DGDAL_USE_ZLIB_INTERNAL=ON -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" `
-        -DBUILD_APPS=OFF -DBUILD_CSHARP_BINDINGS=ON -DBUILD_JAVA_BINDINGS=OFF
+         -DGDAL_CSHARP_APPS=OFF `
+         -DGDAL_CSHARP_TESTS=OFF `
+         -DGDAL_CSHARP_BUILD_NUPKG=OFF `
+         -DBUILD_CSHARP_BINDINGS=ON `
+         -DBUILD_JAVA_BINDINGS=OFF `
+         -DBUILD_PYTHON_BINDINGS=OFF
 
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }

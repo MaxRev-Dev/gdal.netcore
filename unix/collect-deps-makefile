@@ -18,11 +18,12 @@ all: build
 
 OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
 BUILD_BASE = $(BASE)/bindings
+BINDINGS_SOURCE=$(BUILD_ROOT)/gdal-cmake-temp/swig/csharp
 
 build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 
-linkall: initdirs copy-deps copy-projdb
+linkall: initdirs copy-deps copy-projdb collect-bindings
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
 	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN' $(lib); fi;${\n})
 	@echo "Libraries patched successfully"
@@ -38,6 +39,15 @@ initdirs:
 	rm -rvf $(OUTPUT)/*.*
 	mkdir -p $(OUTPUT)
 
+collect-bindings:
+# copy generatated c# sources to project directory 
+# to make them available for windows package build
+	@if [ ! -d "$(BUILD_BASE)" ]; then mkdir "$(BUILD_BASE)"; fi;
+	mkdir -p $(BUILD_BASE)/const/ && cp -fRL $(BINDINGS_SOURCE)/const/*.cs  $(BUILD_BASE)/const/
+	mkdir -p $(BUILD_BASE)/gdal/ && cp -fRL $(BINDINGS_SOURCE)/gdal/*.cs $(BUILD_BASE)/gdal/
+	mkdir -p $(BUILD_BASE)/osr/ && cp -fRL $(BINDINGS_SOURCE)/osr/*.cs $(BUILD_BASE)/osr/
+	mkdir -p $(BUILD_BASE)/ogr/ && cp -fRL $(BINDINGS_SOURCE)/ogr/*.cs $(BUILD_BASE)/ogr/
+
 copy-deps: 
 #	copy gdal library
 	cp -rfL $(GDAL_BUILD)/lib/libgdal.so.?? $(OUTPUT)/
@@ -51,6 +61,7 @@ copy-deps:
 	ls $(OUTPUT)/ | grep -P 'libgdal.so.(?:\d+)' | \
 			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib xargs -I {} \
 			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)  
+	-rm $(OUTPUT)/libpthread.*
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)

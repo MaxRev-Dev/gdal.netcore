@@ -6,7 +6,7 @@ all:
 	@$(MAKE) -f vcpkg-makefile || exit 1
 
 #	install main libraries (proj,gdal)
-	@$(MAKE) -f gdal-makefile || exit 1
+	@$(MAKE) -f gdal-makefile proj-force gdal-force || exit 1
 
 #	collect dynamic libraries 
 	@$(MAKE) -f collect-deps-makefile || exit 1

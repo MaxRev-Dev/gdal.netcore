@@ -15,18 +15,20 @@ all: test
 
 test-restore:
 	-cd $(TEST_DIR)
-	dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_) 
+	-cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests.AzureFunctions" && dotnet remove package MaxRev.Gdal.LinuxRuntime.Minimal 
+	-cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests" && dotnet remove package MaxRev.Gdal.LinuxRuntime.Minimal  
+	-dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_) --ignore-failed-sources
 	-cd $(MAKEDIR)
 
 test-update:
 	-cd $(TEST_DIR)
-	dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) $(PRE_RELEASE_ARG)
-	dotnet add package MaxRev.Gdal.Core -s $(NUGET_) $(PRE_RELEASE_ARG)
+	-dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -s $(NUGET_) $(PRE_RELEASE_ARG)
+	-dotnet add package MaxRev.Gdal.Core -s $(NUGET_) $(PRE_RELEASE_ARG)
 	-cd $(MAKEDIR)
 
 test-only: test-restore
 	-cd $(TEST_DIR)
-	dotnet test
+	dotnet test --no-restore
 	-cd $(MAKEDIR)
 
 test: test-restore test-update test-only

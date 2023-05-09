@@ -12,6 +12,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>3.7.0.100</Version>
     <Description>GDAL (3.7.0) minimal libraries package. 
@@ -23,7 +24,7 @@ Targets linux-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2
 - Bug fix release.
 - GDAL 3.7.0
 - targets .NET6 LTS, .NET7 
-- GEOS 3.11.1</PackageReleaseNotes>
+- PROJ 9.2.0</PackageReleaseNotes>
   </PropertyGroup>
   
   <ItemGroup> 
