@@ -4,8 +4,6 @@ on:
   push:
     branches: 
       - main
-      - 'feature/**' 
-      - 'hotfix/**' 
   pull_request:
     branches: 
       - main
@@ -32,11 +30,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: NuGet - Update credentials
-        run: | 
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.GITHUB_TOKEN }}
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
-      
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
@@ -96,6 +89,13 @@ jobs:
           name: osx-packages
           path: nuget/
 
+      - name: NuGet - Update credentials
+        run: | 
+          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
+          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
+          dotnet nuget add source -n local.ci ${{ github.workspace}}/nuget/
+          dotnet nuget list source
+     
       - name: Test packages
         run: |
           make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}

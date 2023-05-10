@@ -1,10 +1,4 @@
 function Set-GdalVariables {
-    $env:GDAL_REPO = "https://github.com/OSGeo/gdal.git"
-    $env:GDAL_COMMIT_VER = "release/3.6"
-
-    $env:PROJ_REPO = "https://github.com/OSGeo/PROJ.git"
-    $env:PROJ_COMMIT_VER = "7.2"
-
     $env:VS_VERSION = "Visual Studio 17 2022"
     $env:SDK = "release-1930-x64" #2022 x64
     $env:SDK_ZIP = "$env:SDK" + "-dev.zip"
@@ -123,7 +117,6 @@ function Install-Proj {
 
     Set-Location "$PSScriptRoot"
     nmake -f fetch-makefile.vc fetch-proj
-    #Get-CloneAndCheckoutCleanGitRepo $env:PROJ_REPO $env:PROJ_COMMIT_VER $env:PROJ_SOURCE
  
     $env:ProjCmakeBuild = "$env:BUILD_ROOT\proj-cmake-temp"
     if ($cleanProjIntermediate) {

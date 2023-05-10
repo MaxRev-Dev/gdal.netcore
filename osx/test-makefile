@@ -19,7 +19,7 @@ PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
 
 any: test
 
-###	Testing linux libraries (from nuget build output)
+###	Testing macOS libraries (from nuget build output)
 test-restore:
 	cd $(TEST_TARGET) && \
 		dotnet restore --ignore-failed-sources

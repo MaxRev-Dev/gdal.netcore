@@ -12,7 +12,7 @@ fetch-gdal:
 !ENDIF
 	cd $(GDAL_ROOT)
 	git fetch origin 'refs/tags/*:refs/tags/*' --force
-	git checkout -fq $(GDAL_COMMIT_VER) 
+	git checkout -fq tags/$(GDAL_COMMIT_VER) 
 	git reset --hard
 	$(GIT_CLEAN)
 	cd $(BASE) 
@@ -23,7 +23,7 @@ fetch-proj:
 !ENDIF
 	cd $(PROJ_ROOT)
 	git fetch origin 'refs/tags/*:refs/tags/*' --force
-	git checkout -fq $(PROJ_COMMIT_VER)
+	git checkout -fq tags/$(PROJ_COMMIT_VER)
 	git reset --hard
 	$(GIT_CLEAN)
 	cd $(BASE)

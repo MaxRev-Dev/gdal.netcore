@@ -65,7 +65,7 @@ reset_%:
 	@echo "$(TO) Restoring $(LW) sources version to $($(UP)_COMMIT_VER)"
 	@echo "$(TO) Checking for remote changes..." 
 	@cd $($(UP)_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force
-	@cd $($(UP)_ROOT) && git checkout -q $($(UP)_COMMIT_VER) --force || exit 1
+	@cd $($(UP)_ROOT) && git checkout -q tags/$($(UP)_COMMIT_VER) --force || exit 1
 	@echo "$(TO) Resetting sources..." 
 	@cd $($(UP)_ROOT) && git reset --hard || exit 1
 	@echo "$(TO) Cleaning the repo before compiling from scratch..." 

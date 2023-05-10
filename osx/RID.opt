@@ -1,7 +1,7 @@
 #
 #  gdal.netcore package automation
 # 
-#    Linux Runtime Identifier 
+#    MacOS Runtime Identifier 
 #
 BASE=$(PWD)
 BASE_RUNTIME_RID=osx
