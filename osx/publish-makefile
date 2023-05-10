@@ -15,13 +15,13 @@ change-build-number-core:
 	gsed -i "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1$(PACKAGE_BUILD_NUMBER)/" $(ROOTDIR_)/gdalcore.loader.csproj
 
 change-build-number-runtime:
-	gsed -i "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1$(PACKAGE_BUILD_NUMBER)/" $(ROOTDIR_)/gdalcore.osxruntime.csproj
+	gsed -i "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1$(PACKAGE_BUILD_NUMBER)/" $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
 
 pack-core: change-build-number-core
 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
 
 pack-runtime: change-build-number-runtime
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.osxruntime.csproj
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
 
 pack: pack-core pack-runtime
 	@exit 0
@@ -30,7 +30,7 @@ pack-core-dev: change-build-number-core
 	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
 
 pack-runtime-dev: change-build-number-runtime
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.osxruntime.csproj
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
 
 pack-dev: pack-core-dev pack-runtime-dev
 	@exit 0

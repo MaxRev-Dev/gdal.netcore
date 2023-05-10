@@ -2,13 +2,13 @@
 
 A simple (as is) build engine of [GDAL](https://gdal.org/) 3.7.0 library for [.NET](https://dotnet.microsoft.com/download). 
 
-## Packages
+## Packages (NuGet)
 
-NuGet: [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br/>
-
-NuGet: [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/) <br/>
-
-NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)
+[MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br/>
+[MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/) <br/>
+[MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)<br/>
+[MaxRev.Gdal.MacosRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.x64/)<br/>
+[MaxRev.Gdal.MacosRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.arm64/)
 
 ## Table Of Contents
   * [**Packages**](#packages)
@@ -32,7 +32,8 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
       - [Q: GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
       - [Q: Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
       - [Q: In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
-      - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)
+      - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)      
+      - [Q: Packages does not work on MacOS Monterey or Big Sur](#q-packages-does-not-work-on-macos-monterey-or-big-sur)
   * [About and Contacts](#about-and-contacts)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
@@ -57,11 +58,12 @@ NuGet: [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRe
  ```powershell
  Install-Package MaxRev.Gdal.Core
  ```
-2. Install [libraries](#packages) for your runtime. You can install one of them or both with no conflicts. 
+2. Install [libraries](#packages) for your runtime. You can install one of them or all with no conflicts. 
 ```powershell
 Install-Package MaxRev.Gdal.WindowsRuntime.Minimal
 Install-Package MaxRev.Gdal.LinuxRuntime.Minimal
-Install-Package MaxRev.Gdal.OsxRuntime.Minimal
+Install-Package MaxRev.Gdal.MacosRuntime.Minimal.arm64
+Install-Package MaxRev.Gdal.MacosRuntime.Minimal.x64
 ```
 3. Initialize libraries in runtime
 ```csharp
@@ -107,7 +109,7 @@ To view full list of drivers, To view the complete list of drivers, you can view
 
 ## Building runtime libraries
 
-Current version is targeting **GDAL 3.7.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**.
+Current version is targeting **GDAL 3.7.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**. Still, the resulting core bindings are the same on each runtime package (OS).
 
 To make everything work smoothly, each configuration targets the same drivers and their versions, respectively.
 
@@ -148,12 +150,19 @@ A: Apparently, it's not a fault of the build engine. I did not face this issue a
 
 A: That's a problem with swig bindings. Please, use **SpatialReference** type from **OSR** namespace. More info [here](https://github.com/MaxRev-Dev/gdal.netcore/issues/2#issuecomment-539716268) and [here](https://github.com/MaxRev-Dev/gdal.netcore/issues/11#issuecomment-651465581).
 
+#### Q: Packages does not work on MacOS Monterey or Big Sur
+
+A: The current version of packages was compiled on MacOS Ventura and 13.3 SDK respectively. In future, this can be changed to build upon a lower SDK version starting version 11 but not below. 
+
 
 ## About and Contacts
 
-based on https://github.com/OSGeo/gdal && https://github.com/jgoday/gdal
+This work is based on [GDAL](https://github.com/OSGeo/gdal) and [GDAL bindings by jgoday](https://github.com/jgoday/gdal).
 
-Contact me: [Telegram - MaxRev](http://t.me/maxrev)
+Contact me in Telegram - [MaxRev](http://t.me/maxrev).
 
 Enjoy!
 
+## Acknowledgements
+
+As the maintainer of this repository, I want to express my heartfelt thanks to [Verge Agriculture Inc.](https://vergeag.com/). They generously provided the necessary resources that made compiling the **macOS** bindings and the latest versions of GDAL possible.

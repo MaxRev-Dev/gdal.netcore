@@ -15,7 +15,7 @@ TEST_TARGET=$(TEST_DIR_APP)
 APP_RUN_TARGET=dotnet run
 endif
 
-MISSING_PACKAGES=MaxRev.Gdal.OsxRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal 
+MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal 
 
 all: test
 
