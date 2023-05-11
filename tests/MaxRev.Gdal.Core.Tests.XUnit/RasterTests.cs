@@ -18,7 +18,7 @@ namespace GdalCore_XUnit
         private readonly string dataDirectoryPath;
         private readonly string englishInputFilePath;
         private readonly string cyrillicInputFilePath;
-
+        
         public Utf8Tests(ITestOutputHelper outputHelper)
         {
             _outputHelper = outputHelper;
@@ -82,13 +82,13 @@ namespace GdalCore_XUnit
             var result = RunTest(cyrillicInputFilePath, dataDirectoryPath, outputFilePath);
 
             // this works like a charm on linux even without config flag
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
             {
                 Assert.True(result);
             }
 
             // windows can't find a file though
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            else if (OperatingSystem.IsWindows())
             {
                 Assert.False(result);
             }

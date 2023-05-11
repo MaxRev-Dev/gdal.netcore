@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
 using OSGeo.OSR;
@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using OSGeo.OGR;
+using System.Runtime.InteropServices;
 
 namespace GdalCoreTest
 {
@@ -15,6 +16,10 @@ namespace GdalCoreTest
         {
             try
             {
+                Console.WriteLine($"About OS: {RuntimeInformation.OSDescription}");
+                Console.WriteLine($"OS Architecture: {RuntimeInformation.OSArchitecture}");
+                Console.WriteLine($"Runtime Identifier: {RuntimeInformation.RuntimeIdentifier}");
+
                 Console.WriteLine($"Working directory: {Directory.GetCurrentDirectory()}");
                 Console.WriteLine("Trying to configure all twice");
                 GdalBase.ConfigureAll();

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform>x64</Platform>
+    <Platforms>x64;arm64</Platforms>
     <DebugType>portable</DebugType>
     <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
     <Copyright>MaxRev © 2023</Copyright>
@@ -16,24 +16,25 @@
     <RepositoryType>git</RepositoryType>
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.6.4.100</Version>
+    <Version>3.7.0.110</Version>
     <Description>
-      GDAL (3.6.4) bindings for dotnet core (now linux-x64 and win-x64).
+      GDAL (3.7.0) bindings for dotnet core (osx-arm64, linux-x64 and win-x64).
       Bridge between gdal and netcore.
       Use dependency package for target runtime to get drivers.
       Works in docker containers without pkg installations!!
       Just call - GdalBase.ConfigureAll()
     </Description>
     <PackageReleaseNotes>
-      - GDAL Version 3.6.4
+      - GDAL Version 3.7.0
       - Built with VCPKG
     </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/"/>
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
+    <None Remove="build-osx/**" />
     <None Remove="./*.cs" />
     <None Remove="build/**" />
     <None Remove="tests/**" />
@@ -42,24 +43,19 @@
     <Compile Remove="tests/**" />
     <Compile Remove="win/**" />
     <Compile Remove="unix/**" />
+    <Compile Remove="osx/**" />
     <Compile Remove="build-win/**" />
     <Compile Remove="build-unix/**" />
-    <EmbeddedResource Remove="tests/**" />
     <Compile Include="compile/**/*.cs" />
+    <Compile Include="osx/**/*.cs" />
+    <Compile Include="win/**/*.cs" />
+    <Compile Include="unix/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="build-win/gdal-build/share/gdal/**">
-      <PackagePath>runtimes/any-x64/native/gdal-data/</PackagePath>
+      <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(OS)' == 'Unix' AND '$(Platform)'=='x64'">
-    <Compile Include="unix/**/*.cs" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(OS)' == 'Windows_NT' AND '$(Platform)'=='x64'">
-    <Compile Include="win/**/*.cs" />
-  </ItemGroup>
+  </ItemGroup> 
 </Project>

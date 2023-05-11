@@ -5,13 +5,14 @@
 include RID.opt 
 include ../shared/GdalCore.opt 
 
-# default targets on linux
+# default targets on osx
 TARGETS = proj gdal
 
 all: $(TARGETS)
 	@echo "$(PRE) Everything looks good. Linux libraries for GDAL is ready to packaging!"
-	@echo "$(PRE) Configured libraries (vcpkg): $(VCPKG_REQUIRE_UNIX)"
-	@echo "$(PRE) Configured libraries: $(TARGETS)"
+	@echo "$(PRE) Installed libraries (vcpkg static): $(VCPKG_REQUIRE_OSX)"
+	@echo "$(PRE) Installed libraries (vcpkg dynamic): $(VCPKG_REQUIRE_OSX_DYNAMIC)"
+	@echo "$(PRE) Compiled libraries: $(TARGETS)"
 
 pre_vcpkg:
 	@echo "$(PRE) Precheck for VCPKG libraries installation..."
@@ -53,12 +54,19 @@ else
 	@echo "$(PRE) Can not make $(REP)"
 endif 
 
-init_%: clone_% reset_% remove_cache_%
+init_%: 
+	$(MAKE) -f gdal-makefile clone_$(REP) 
+	@if [ "$$CI" == "true" ]; then \
+		echo "Skipping reset"; \
+	else \
+		$(MAKE) -f gdal-makefile reset_$(REP); \
+	fi;
+	$(MAKE) -f gdal-makefile remove_cache_$(REP)
 	@echo "$(TO) Sources restore complete"
 
-clone_%: 
+clone_%:
 	@if [ ! -d "$($(UP)_ROOT)" ]; then \
-		git clone $($(UP)_REPO) $($(UP)_ROOT); \
+		$(GIT) clone $(GIT_CLONE_DEPTH) --single-branch -b $($(UP)_COMMIT_VER) $($(UP)_REPO) $($(UP)_ROOT); \
 	fi;
 
 reset_%:
@@ -89,25 +97,21 @@ configure_gdal:
 	@cd $(GDAL_CMAKE_TMP) && cmake $(GDAL_ROOT) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_FLAGS="-fPIC" \
 		-DCMAKE_CXX_FLAGS="-fPIC" \
 		-DGDAL_USE_DEFLATE=OFF \
 		-DGDAL_USE_ZLIB_INTERNAL=ON \
-		-DBUILD_APPS=OFF \
-		-DGDAL_CSHARP_APPS=OFF \
-		-DGDAL_CSHARP_TESTS=OFF \
-		-DGDAL_CSHARP_BUILD_NUPKG=OFF \
-		-DBUILD_PYTHON_BINDINGS=OFF \
+		-DBUILD_APPS=ON \
 		-DBUILD_CSHARP_BINDINGS=ON \
 		-DBUILD_JAVA_BINDINGS=OFF \
+		-DBUILD_PYTHON_BINDINGS=OFF \
 		-DBUILD_SHARED_LIBS=ON \
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
-		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.so \
+		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.dylib \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
 		
 	@echo "$(TO) GDAL was configured!"
 	
-configure_proj: 
+configure_proj:
 	@echo "$(TO) PROJ Configuring..." 	
 	@if [[ -d "$(BUILD_ROOT)/proj-build" ]]; then rm -r "$(BUILD_ROOT)/proj-build"; fi;
 	@if [[ -d "$(PROJ_ROOT)/test" ]]; then rm -r "$(PROJ_ROOT)/test"; fi;
@@ -123,12 +127,11 @@ configure_proj:
 			-DBUILD_SHARED_LIBS=ON \
         	-DENABLE_CURL=ON -DENABLE_TIFF=ON \
 			-DTIFF_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
-			-DCURL_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
-			-DEXE_SQLITE3="$(VCPKG_INSTALLED_DYNAMIC)/tools/sqlite3" \
-			-DSQLITE3_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
-			-DSQLITE3_LIBRARY="$(VCPKG_INSTALLED_DYNAMIC)/lib/libsqlite3.so" \
-			-DTIFF_LIBRARY_RELEASE="$(VCPKG_INSTALLED_DYNAMIC)/lib/libtiff.so" \
-			-DCURL_LIBRARY="$(VCPKG_INSTALLED_DYNAMIC)/lib/libcurl.so" \
+			-DEXE_SQLITE3="$(VCPKG_INSTALLED)/tools/sqlite3" \
+			-DSQLITE3_INCLUDE_DIR="$(VCPKG_INSTALLED)/include" \
+			-DSQLITE3_LIBRARY="$(VCPKG_INSTALLED)/lib/libsqlite3.a" \
+			-DTIFF_LIBRARY_RELEASE="$(VCPKG_INSTALLED_DYNAMIC)/lib/libtiff.dylib" \
+			-DCMAKE_PREFIX_PATH="$(VCPKG_INSTALLED_DYNAMIC)" \
 			|| exit 1
 
 	@echo "$(TO) PROJ was configured!"
@@ -144,3 +147,4 @@ reset: reset_proj reset_gdal
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig:$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
 LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
+DYLD_LIBRARY_PATH=$$DYLD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib

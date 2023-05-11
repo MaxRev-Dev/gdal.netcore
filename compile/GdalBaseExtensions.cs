@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace MaxRev.Gdal.Core
 {
@@ -15,14 +16,22 @@ namespace MaxRev.Gdal.Core
 
         internal static string GetEnvRID()
         {
+            if (File.Exists(@"/System/Library/CoreServices/SystemVersion.plist"))
+            {
+                if (RuntimeInformation.ProcessArchitecture is Architecture.Arm64)
+                    return "osx-arm64";
+                else
+                    return "osx-x64";
+            }
+
             return Environment.OSVersion.Platform switch
             {
                 PlatformID.Unix => "linux-x64",
                 PlatformID.Win32NT => "win-x64",
                 _ => throw new PlatformNotSupportedException(),
             };
-        } 
-        
+        }
+
         internal static IEnumerable<string> GetPackageDataPossibleLocations(string runtimesPath, string libsharedFolder)
         {
             var entryAsm = Assembly.GetEntryAssembly() ?? Assembly.GetCallingAssembly();

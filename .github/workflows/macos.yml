@@ -1,0 +1,105 @@
+name: MacOS Build
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches: 
+      - main
+
+jobs:
+  BuildNugetPackages-MacOS:
+    strategy:
+      matrix:
+        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
+        include:
+          - os: self-hosted-macos-arm64
+            arch: arm64
+          - os: self-hosted-macos-x64
+            arch: x64            
+
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    defaults:
+      run:
+        working-directory: osx
+
+    steps:     
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
+      - name: Fetch VCPKG packages
+        run: |
+          make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
+          
+      - name: Compile PROJ
+        run: |
+          make -f gdal-makefile proj BUILD_ARCH=${{ matrix.arch }}
+
+      - name: Compile GDAL
+        run: |
+          make -f gdal-makefile gdal BUILD_ARCH=${{ matrix.arch }}
+
+      - name: Collect deps
+        run: |
+          make -f collect-deps-makefile BUILD_ARCH=${{ matrix.arch }}
+
+      - name: Create packages
+        run: |
+          make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }} 
+
+      - name: Store packages as artifact
+        if: ${{ github.event_name == 'pull_request' || ((startsWith(github.ref, 'refs/heads/feature') || startsWith(github.ref, 'refs/heads/hotix')) && github.event_name == 'push') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: osx-packages
+          path: nuget/*.nupkg
+
+  TestAndPushPackages-MacOS:
+    strategy:
+      matrix:
+        os: [self-hosted-macos-arm64,self-hosted-macos-x64] # can be extended for x64
+        include:
+          - os: self-hosted-macos-arm64
+            arch: arm64
+          - os: self-hosted-macos-x64
+            arch: x64            
+    needs: BuildNugetPackages-MacOS
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    defaults:
+      run:
+        working-directory: osx
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0    
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: osx-packages
+          path: nuget/
+
+      - name: NuGet - Update credentials
+        run: | 
+          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
+          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
+          dotnet nuget add source -n local.ci ${{ github.workspace}}/nuget/
+     
+      - name: Test packages
+        run: |
+          make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+      
+      - name: Push packages
+        if: ${{ github.event_name == 'push' && github.ref == 'main' }}
+        run: |
+          make -f push-packages-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
