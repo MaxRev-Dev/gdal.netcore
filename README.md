@@ -1,6 +1,6 @@
 # gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) ![Packages CI](https://github.com/MaxRev-Dev/gdal.netcore/workflows/CI/badge.svg?branch=master)
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.6.4 library for [.NET](https://dotnet.microsoft.com/download). 
+A simple (as is) build engine of [GDAL](https://gdal.org/) 3.7.0 library for [.NET](https://dotnet.microsoft.com/download). 
 
 ## Packages
 
@@ -93,7 +93,7 @@ Detailed guide is here - [unix](unix/).
 
 ## About build configuration
 
-The current version targets **GDAL 3.6.4** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They can be packaged upon request.
+The current version targets **GDAL 3.7.0** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They can be packaged upon request.
 
 Drivers included PROJ(9.2.0), GEOS(3.11.1), and more than 200 other drivers.
 To view full list of drivers, To view the complete list of drivers, you can view the full list with GDAL's API or see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
@@ -102,7 +102,7 @@ To view full list of drivers, To view the complete list of drivers, you can view
 
 ## Building runtime libraries
 
-Current version is targeting **GDAL 3.6.4** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**.
+Current version is targeting **GDAL 3.7.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**.
 
 To make everything work smoothly, each configuration targets the same drivers and their versions, respectively.
 
