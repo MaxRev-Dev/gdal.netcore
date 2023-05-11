@@ -62,7 +62,7 @@ jobs:
           name: osx-packages
           path: nuget/*.nupkg
 
-  TestPackages-MacOS:
+  TestAndPushPackages-MacOS:
     strategy:
       matrix:
         os: [self-hosted-macos-arm64,self-hosted-macos-x64] # can be extended for x64

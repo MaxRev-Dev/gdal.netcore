@@ -35,6 +35,7 @@ A simple (as is) build engine of [GDAL](https://gdal.org/) 3.7.0 library for [.N
       - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)      
       - [Q: Packages does not work on MacOS Monterey or Big Sur](#q-packages-does-not-work-on-macos-monterey-or-big-sur)
   * [About and Contacts](#about-and-contacts)
+  * [Acknowledgements](#acknowledgements)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
