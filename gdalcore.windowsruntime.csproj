@@ -13,7 +13,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.6.4.100</Version>
+    <Version>3.6.4.400</Version>
     <Description>GDAL (3.6.4) minimal libraries package. 
 Drivers included PROJ (9.2.0), GEOS (3.11.1), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5
 Targets win-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1,3.1], net6.0, net7.0
