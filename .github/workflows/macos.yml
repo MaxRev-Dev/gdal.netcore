@@ -56,7 +56,6 @@ jobs:
           make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }} 
 
       - name: Store packages as artifact
-        if: ${{ github.event_name == 'pull_request' || ((startsWith(github.ref, 'refs/heads/feature') || startsWith(github.ref, 'refs/heads/hotix')) && github.event_name == 'push') }}
         uses: actions/upload-artifact@v3
         with:
           name: osx-packages
@@ -65,7 +64,7 @@ jobs:
   TestAndPushPackages-MacOS:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64] # can be extended for x64
+        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
         include:
           - os: self-hosted-macos-arm64
             arch: arm64
@@ -100,6 +99,6 @@ jobs:
           make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
       
       - name: Push packages
-        if: ${{ github.event_name == 'push' && github.ref == 'main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
-          make -f push-packages-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          make -f push-packages-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
