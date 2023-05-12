@@ -4,27 +4,32 @@
  
 ##### repo root
 ROOTDIR_=$(abspath $(BASE)/..)
+BUILD_NUMBER_TAIL=10
 
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
+# May 2, 2023
+GDAL_VERSION=3.7.0
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
-GDAL_COMMIT_VER=tags/v3.7.0RC1 # 2 May, 2023
+GDAL_COMMIT_VER=v$(GDAL_VERSION)RC1
 
+# Mar 1, 2023
+PROJ_VERSION=9.2.0
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
-PROJ_COMMIT_VER=tags/9.2.0 # Mar 1, 2023
+PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 # ---------------------- VCPKG ----------------------
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=8b8196f0f81123c928165f9740120e10e8510340 
+VCPKG_COMMIT_VER=2023.04.15
 # latest on Nov 23, 2022
 
 # base requirements for both runtimes
-VCPKG_REQUIRE=geos tiff curl "sqlite3[tool,rtree]"
+VCPKG_REQUIRE=geos tiff curl 
 
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj 
@@ -37,8 +42,12 @@ VCPKG_REQUIRE_WIN_STATIC=
 # icu-devtools libdeflate-dev libfreexl-dev libfreexl1 libgeos-3.9.0 libgeos-c1v5 libgeos-dev
 # libicu-dev libjbig-dev liblzma-dev libmariadb-dev libmariadb-dev-compat libmariadb3 libmysql++3v5 libproj-dev
 # libproj19 librttopo-dev librttopo1 libspatialite7 libsqlite3-dev libssl-dev libtiff-dev libtiffxx5 libxml2-dev mariadb-common mysql-common proj-data
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libmysql
 VCPKG_REQUIRE_UNIX=
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libmysql
+
+# osx requires the same libs as linux except sqlite3 should link as static
+VCPKG_REQUIRE_OSX="sqlite3[tool,rtree]"
+VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE_UNIX_DYNAMIC) libkml
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
@@ -84,5 +93,7 @@ NUGET_=$(ROOTDIR_)/nuget
 TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.XUnit
 TEST_DIR_APP=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests
 
-GIT_CLEAN=git clean -fqdx
+GIT=git
+GIT_CLEAN=$(GIT) clean -fqdx
+GIT_CLONE_DEPTH=--depth=1
 # --------------------- !CONFIG! --------------------

@@ -1,46 +1,43 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform>x64</Platform>
+    <Platform>$(BUILD_ARCH)</Platform>
     <DebugType>portable</DebugType>
     <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0</TargetFrameworks>
     <Copyright>MaxRev © 2023</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>MaxRev.Gdal.WindowsRuntime.Minimal</PackageId>
+    <PackageId>MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH)</PackageId>
     <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>3.7.0.100</Version>
     <Description>GDAL (3.7.0) minimal libraries package. 
 Drivers included PROJ (9.2.0), GEOS (3.11.1), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5
-Targets win-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1,3.1], net6.0, net7.0
+Targets osx-arm64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1,3.1], net6.0, net7.0
 </Description>
-    <AssemblyName>MaxRev.Gdal.WindowsRuntime.Minimal</AssemblyName> 
+    <AssemblyName>MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH)</AssemblyName>
     <PackageReleaseNotes>
-- targets .NET6 LTS, .NET7
 - GDAL 3.7.0
-- PROJ 9.2.0
-- GEOS 3.11.1</PackageReleaseNotes>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> 
+- Initial build for MacOS $(BUILD_ARCH)</PackageReleaseNotes>
   </PropertyGroup>
   
-   <ItemGroup> 
+  <ItemGroup> 
     <None Include="README.md" Pack="true" PackagePath="/"/>
     <Compile Remove="**/*.cs"></Compile>
-    <Compile Remove="tests/**"></Compile>
+    <Compile Remove="tests/**" />
     <None Remove="tests/**" />
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
-    <None Include="runtimes/win-x64/**">
-      <PackagePath>runtimes/win-x64/</PackagePath> 
+    <None Remove="build-osx/**" />
+    <None Include="runtimes/osx-$(BUILD_ARCH)/**">
+      <PackagePath>runtimes/osx-$(BUILD_ARCH)/</PackagePath> 
       <Pack>true</Pack>
-    </None>   
-    <None Include="maxrev.gdal.core.libshared/win-x64/**">
-      <PackagePath>runtimes/win-x64/native/</PackagePath> 
+    </None>  
+    <None Include="maxrev.gdal.core.libshared/osx-$(BUILD_ARCH)/**">
+      <PackagePath>runtimes/osx-$(BUILD_ARCH)/native/</PackagePath> 
       <Pack>true</Pack>
     </None>
   </ItemGroup>
