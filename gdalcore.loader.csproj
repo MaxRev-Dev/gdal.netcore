@@ -16,9 +16,9 @@
     <RepositoryType>git</RepositoryType>
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.7.0.110</Version>
+    <Version>3.7.0.200</Version>
     <Description>
-      GDAL (3.7.0) bindings for dotnet core (osx-arm64, linux-x64 and win-x64).
+      GDAL (3.7.0) bindings for dotnet core (osx-arm64, osx-x64, linux-x64 and win-x64).
       Bridge between gdal and netcore.
       Use dependency package for target runtime to get drivers.
       Works in docker containers without pkg installations!!
@@ -39,13 +39,6 @@
     <None Remove="build/**" />
     <None Remove="tests/**" />
     <Compile Remove="./**/*.cs" />
-    <Compile Remove="build/**" />
-    <Compile Remove="tests/**" />
-    <Compile Remove="win/**" />
-    <Compile Remove="unix/**" />
-    <Compile Remove="osx/**" />
-    <Compile Remove="build-win/**" />
-    <Compile Remove="build-unix/**" />
     <Compile Include="compile/**/*.cs" />
     <Compile Include="osx/**/*.cs" />
     <Compile Include="win/**/*.cs" />
@@ -54,6 +47,18 @@
 
   <ItemGroup>
     <None Include="build-win/gdal-build/share/gdal/**">
+      <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup> 
+  <ItemGroup>
+    <None Include="build-osx/gdal-build/share/gdal/**">
+      <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup> 
+  <ItemGroup> 
+    <None Include="build-unix/gdal-build/share/gdal/**">
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
