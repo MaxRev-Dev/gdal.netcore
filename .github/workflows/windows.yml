@@ -101,5 +101,5 @@ jobs:
         env:
           API_KEY_GITHUB: ${{ secrets.API_KEY_GITHUB }}
           API_KEY_NUGET: ${{ secrets.API_KEY_NUGET }}
-        run: |
-         ./push-packages.ps1 -buildNumberTail:${{ github.run_number }}
+        run: '& ./push-packages.ps1 -buildNumberTail:${{ github.run_number }}'
+        shell: pwsh

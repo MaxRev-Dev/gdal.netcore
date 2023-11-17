@@ -28,11 +28,11 @@ function Get-7ZipInstallation {
         Invoke-WebRequest "$env:7Z_URL" -OutFile "$env:7Z_ROOT\7z.7z"
         Expand-PscxArchive -Path "$env:7Z_ROOT\7z.7z" -OutputPath "$env:7Z_ROOT\"
         Write-BuildStep "Installed 7z into $env:7Z_ROOT"
-        $env:PATH += ";$env:7Z_ROOT"    
     }
     else {
         Write-BuildStep "7z is available at $env:7Z_ROOT"
     }
+    $env:PATH += ";$env:7Z_ROOT"
 }
 
 function Get-GdalSdkIsAvailable {
@@ -45,7 +45,7 @@ function Get-GdalSdkIsAvailable {
     }
     New-FolderIfNotExistsAndSetCurrentLocation "$env:BUILD_ROOT\sdk" 
 
-    if (-Not (Test-Path -Path "$env:BUILD_ROOT\sdk" -PathType Container)) { 
+    if (-Not (Test-Path -Path "$env:BUILD_ROOT\sdk\release-*" -PathType Container)) {
         exec { 7za x "$env:DOWNLOADS_DIR\$env:SDK_ZIP" -aoa }
     }
 }

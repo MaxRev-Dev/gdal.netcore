@@ -91,12 +91,13 @@ jobs:
   TestAndPushPackages-MacOS:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
+       # os: [self-hosted-macos-arm64,self-hosted-macos-x64]
+        os: [self-hosted-macos-arm64]
         include:
           - os: self-hosted-macos-arm64
             arch: arm64
-          - os: self-hosted-macos-x64
-            arch: x64            
+          # - os: self-hosted-macos-x64
+          #   arch: x64            
     needs: BuildNugetPackages-MacOS
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
