@@ -128,7 +128,7 @@ function Reset-PsSession {
 
 function Install-PwshModuleRequirements {   
     if (!(Get-PackageProvider -Name "VSSetup")) {
-        Install-Module VSSetup -Scope CurrentUser
+        Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser
     } 
 
     if (!(Get-PackageProvider -Name "NuGet")) {
