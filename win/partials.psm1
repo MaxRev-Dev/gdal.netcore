@@ -108,7 +108,7 @@ function Install-Proj {
     if ($cleanProjBuild) {
         Write-BuildInfo "Cleaning PROJ build folder"
         if (Test-Path -Path "$env:BUILD_ROOT\proj-build" -PathType Container) {
-            Remove-Item -Path "$env:BUILD_ROOT\proj-build" -Recurse -Force
+            Remove-Item -Path "$env:BUILD_ROOT\proj-build" -Recurse -Force -ErrorAction SilentlyContinue
         }
     }    
     $env:PROJ_SOURCE = "$env:BUILD_ROOT\proj-source"
@@ -120,11 +120,11 @@ function Install-Proj {
     $env:ProjCmakeBuild = "$env:BUILD_ROOT\proj-cmake-temp"
     if ($cleanProjIntermediate) {
         Write-BuildInfo "Cleaning GDAL intermediate folder"
-        Remove-Item -Path $env:ProjCmakeBuild -Recurse -Force
+        Remove-Item -Path $env:ProjCmakeBuild -Recurse -Force -ErrorAction SilentlyContinue
     }
     if ((Test-Path -Path "$env:ProjCmakeBuild\CMakeCache.txt" -PathType Leaf)) {
         Write-BuildInfo "Removing build cache (CMakeCache.txt)"
-        Remove-Item "$env:ProjCmakeBuild\CMakeCache.txt"
+        Remove-Item "$env:ProjCmakeBuild\CMakeCache.txt" -ErrorAction SilentlyContinue
     }
  
     Write-BuildInfo "Configuring PROJ..."
@@ -168,10 +168,10 @@ function Reset-GdalSourceBindings {
     $env:ConstCsharpBindings = "$env:GdalCmakeBuild\swig\csharp\const\obj"
 
     Write-BuildInfo "Cleaning up GDAL source bindings..."
-    Remove-Item -Path $env:GdalCsharpBindings -Recurse -Force
-    Remove-Item -Path $env:OgrCsharpBindings -Recurse -Force
-    Remove-Item -Path $env:OsrCsharpBindings -Recurse -Force
-    Remove-Item -Path $env:ConstCsharpBindings -Recurse -Force
+    Remove-Item -Path $env:GdalCsharpBindings -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path $env:OgrCsharpBindings -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path $env:OsrCsharpBindings -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path $env:ConstCsharpBindings -Recurse -Force -ErrorAction SilentlyContinue
     Write-BuildInfo "GDAL source bindings were cleaned up"
 }
 
@@ -200,13 +200,13 @@ function Build-Gdal {
     if ($cleanGdalBuild) {
         Write-BuildInfo "Cleaning GDAL build folder"
         if (Test-Path -Path "$env:BUILD_ROOT\gdal-build" -PathType Container) {
-            Remove-Item -Path "$env:BUILD_ROOT\gdal-build" -Recurse -Force
+            Remove-Item -Path "$env:BUILD_ROOT\gdal-build" -Recurse -Force  -ErrorAction SilentlyContinue
         } 
     }
     
     if ($cleanGdalIntermediate) {
         Write-BuildInfo "Cleaning GDAL intermediate folder"
-        Remove-Item -Path $env:GdalCmakeBuild -Recurse -Force
+        Remove-Item -Path $env:GdalCmakeBuild -Recurse -Force  -ErrorAction SilentlyContinue
     }
     
     Set-Location "$PSScriptRoot"
@@ -218,7 +218,7 @@ function Build-Gdal {
             
     if ((Test-Path -Path "$env:GdalCmakeBuild\CMakeCache.txt" -PathType Leaf)) {
         Write-BuildInfo "Removing build cache (CMakeCache.txt)"
-        Remove-Item "$env:GdalCmakeBuild\CMakeCache.txt"
+        Remove-Item "$env:GdalCmakeBuild\CMakeCache.txt"  -ErrorAction SilentlyContinue
     }
  
     # PATCH 1: replace build root of SDK with our own
@@ -229,7 +229,7 @@ function Build-Gdal {
 
     Set-Location "$env:GDAL_SOURCE"
 
-    Remove-Item -Path $env:GDAL_SOURCE/autotest -Recurse -Force
+    Remove-Item -Path $env:GDAL_SOURCE/autotest -Recurse -Force  -ErrorAction SilentlyContinue
     # PATCH 2: apply patch to cmake pipeline. remove redundant compile steps
     git apply "$PSScriptRoot\..\shared\patch\CMakeLists.txt.patch"
 
