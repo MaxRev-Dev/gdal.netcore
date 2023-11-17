@@ -127,6 +127,10 @@ function Reset-PsSession {
 }
 
 function Install-PwshModuleRequirements {   
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    
+    Install-Module PowerShellGet -Force -AllowClobber
+
     if (!(Get-PackageProvider -Name "VSSetup")) {
         Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser
     } 
