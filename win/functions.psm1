@@ -128,12 +128,6 @@ function Reset-PsSession {
 
 function Install-PwshModuleRequirements {   
     [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-    
-    Install-Module PowerShellGet -Force -AllowClobber
-
-    if (!(Get-PackageProvider -Name "VSSetup")) {
-        Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser
-    } 
 
     if (!(Get-PackageProvider -Name "NuGet")) {
         Import-PackageProvider NuGet -Scope CurrentUser
@@ -142,6 +136,10 @@ function Install-PwshModuleRequirements {
     if (!(Get-PSRepository -Name "PSGallery")) {
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     }
+
+    if (!(Get-PackageProvider -Name "VSSetup")) {
+        Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser
+    } 
 
     if (!(Get-Module "Pscx")) {        
         Install-Module Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser
