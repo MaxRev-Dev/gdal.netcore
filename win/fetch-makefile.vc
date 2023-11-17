@@ -8,7 +8,7 @@
 fetch-gdal:
 	@echo $(PRE) Fetching GDAL sources...
 !IF !EXISTS($(GDAL_ROOT))
-    git clone $(GDAL_REPO) $(GDAL_ROOT_BASE)
+    git clone $(GDAL_REPO) $(GDAL_ROOT)
 !ENDIF
 	cd $(GDAL_ROOT)
 	git fetch origin 'refs/tags/*:refs/tags/*' --force
