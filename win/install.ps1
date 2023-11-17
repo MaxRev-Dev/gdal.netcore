@@ -66,6 +66,9 @@ catch
 {
     Write-BuildError "Something threw an exception"
     Write-Output $_
+    
+    $host.SetShouldExit(-1)
+    throw
 }
 finally {
     Pop-Location -StackName "gdal.netcore|root"
