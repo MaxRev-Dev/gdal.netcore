@@ -143,10 +143,6 @@ function Install-PwshModuleRequirements {
 
     if (!(Get-Module -Name "Pscx")) {        
         Install-Module -Name Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
-    }  
-
-    if (!(Get-Module -Name "PS7Zip")) {
-        Install-Module -Name PS7Zip -AllowClobber -RequiredVersion 2.2.0  -Force -Scope CurrentUser
     }
 
     if (!(Get-Command "Invoke-WebRequest")) {
