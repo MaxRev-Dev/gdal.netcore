@@ -138,15 +138,15 @@ function Install-PwshModuleRequirements {
     }
 
     if (!(Get-Module -Name "VSSetup")) {
-        Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser
+        Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser -Force
     } 
 
     if (!(Get-Module "Pscx")) {        
-        Install-Module Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser
+        Install-Module Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
     }  
     
     if (!(Get-Module "7Zip4Powershell")) {
-        Install-Module -Name 7Zip4Powershell -RequiredVersion 2.2.0 -Scope CurrentUser
+        Install-Module -Name 7Zip4Powershell -RequiredVersion 2.2.0  -Force -Scope CurrentUser
     }
 
     if (!(Get-Command "Invoke-WebRequest")) {
@@ -154,7 +154,7 @@ function Install-PwshModuleRequirements {
     }
     
     if ($null -eq (Get-Command "choco" -ErrorAction SilentlyContinue)) {
-        Install-Module -Name Choco -Scope CurrentUser
+        Install-Module -Name Choco -Scope CurrentUser -Force
     } 
     
     if ($null -eq (Get-Command "swig" -ErrorAction SilentlyContinue)) {
