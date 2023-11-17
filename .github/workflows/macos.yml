@@ -7,6 +7,11 @@ on:
   pull_request:
     branches: 
       - main
+
+concurrency: 
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
