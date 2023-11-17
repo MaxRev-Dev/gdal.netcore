@@ -27,12 +27,19 @@ jobs:
     defaults:
       run:
         working-directory: win
-    env:
-      DOTNET_INSTALL_DIR: "./.dotnet"
     steps:     
       - uses: actions/checkout@v3.0.0
         with:
           fetch-depth: 0
+
+      - name: Restore cached packages
+        id: build-packages-cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            build-osx
+            .dotnet
+          key: ${{ runner.os }}-packages
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
@@ -48,6 +55,15 @@ jobs:
         with:
           name: win-packages
           path: nuget/*.nupkg
+        
+      - name: Save packages cache
+        id: build-packages-cache-save
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            build-osx
+            .dotnet
+          key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
   TestAndPushPackages-Windows:
     strategy:
