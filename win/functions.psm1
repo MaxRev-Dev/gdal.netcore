@@ -141,11 +141,11 @@ function Install-PwshModuleRequirements {
         Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser -Force
     } 
 
-    if (!(Get-Module "Pscx")) {        
-        Install-Module Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
+    if (!(Get-Module -Name "Pscx")) {        
+        Install-Module -Name Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
     }  
 
-    if (!(Get-Module "PS7Zip")) {
+    if (!(Get-Module -Name "PS7Zip")) {
         Install-Module -Name PS7Zip -AllowClobber -RequiredVersion 2.2.0  -Force -Scope CurrentUser
     }
 
@@ -153,11 +153,11 @@ function Install-PwshModuleRequirements {
         Install-Module -Name WebKitDev -RequiredVersion 0.4.0 -Force -Scope CurrentUser
     }
     
-    if ($null -eq (Get-Command "choco" -ErrorAction SilentlyContinue)) {
+    if (!(Get-Command "choco")) {
         Install-Module -Name Choco -Scope CurrentUser -Force
     } 
     
-    if ($null -eq (Get-Command "swig" -ErrorAction SilentlyContinue)) {
+    if (!(Get-Command "swig")) {
         exec { cinst -y --no-progress --force swig }
     }
 }
