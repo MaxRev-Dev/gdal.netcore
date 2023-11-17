@@ -26,7 +26,8 @@ function Get-7ZipInstallation {
     $env:7Z_URL = "https://www.7-zip.org/a/7z2107-extra.7z"
     if (-Not (Test-Path -Path "$env:7Z_ROOT\7za.exe" -PathType Leaf)) { 
         Invoke-WebRequest "$env:7Z_URL" -OutFile "$env:7Z_ROOT\7z.7z"
-        Expand-Archive -Path "$env:7Z_ROOT\7z.7z" -OutputPath "$env:7Z_ROOT\"
+        Install-Module -Name 7Zip4PowerShell -Force
+        Expand-7Zip -ArchiveFileName "$env:7Z_ROOT\7z.7z" -TargetPath "$env:7Z_ROOT\"
         Write-BuildStep "Installed 7z into $env:7Z_ROOT"
     }
     else {
