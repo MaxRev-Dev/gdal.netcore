@@ -38,7 +38,7 @@ else
 endif
 
 pull:
-	@if [ ! -d "$(VCPKG_ROOT)/bootstrap-vcpkg.sh" ]; then \
+	@if [ ! -f "$(VCPKG_ROOT)/bootstrap-vcpkg.sh" ]; then \
 		$(GIT) clone $(GIT_CLONE_DEPTH) --branch $(VCPKG_COMMIT_VER) --single-branch $(VCPKG_REPO) $(VCPKG_ROOT); \
 	fi;
 
