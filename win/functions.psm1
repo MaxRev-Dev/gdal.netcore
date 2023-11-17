@@ -127,8 +127,12 @@ function Reset-PsSession {
 }
 
 function Install-PwshModuleRequirements {   
+    if (!(Get-PackageProvider -Name "VSSetup")) {
+        Install-Module VSSetup -Scope CurrentUser
+    } 
+
     if (!(Get-PackageProvider -Name "NuGet")) {
-        Import-PackageProvider NuGet -Force
+        Import-PackageProvider NuGet -Scope CurrentUser
     } 
 
     if (!(Get-PSRepository -Name "PSGallery")) {
