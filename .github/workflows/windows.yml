@@ -90,7 +90,7 @@ jobs:
         run: | 
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
           dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
-          dotnet nuget update source local.ci ${{ github.workspace}}/nuget/
+          dotnet nuget update source local.ci -s ${{ github.workspace}}/nuget/
      
       - name: Test packages
         run: '& ./test.ps1 -buildNumberTail:${{ github.run_number }}'
