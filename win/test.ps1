@@ -1,5 +1,6 @@
 param (
-    [bool] $preRelease = $true 
+    [bool] $preRelease = $true ,
+    [int] $buildNumberTail = 10 
 )
 # reset previous imports
 Remove-Module *
@@ -21,7 +22,8 @@ try {
     if ($preRelease){
         $preReleaseArg = "PRE_RELEASE=1"
     }
-    nmake -f "$PSScriptRoot/test-makefile.vc" $preReleaseArg
+    $buildNumberArg = $buildNumberTail + 100
+    nmake -f "$PSScriptRoot/test-makefile.vc" $preReleaseArg $buildNumberArg
 }
 finally {
     Pop-Location -StackName "gdal.netcore|root"

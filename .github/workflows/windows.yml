@@ -1,4 +1,4 @@
-name: MacOS Build
+name: Windows Build
 
 on:
   push:
@@ -9,21 +9,16 @@ on:
       - main
 
 jobs:
-  BuildNugetPackages-MacOS:
+  BuildNugetPackages-Windows:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
-        include:
-          - os: self-hosted-macos-arm64
-            arch: arm64
-          # - os: self-hosted-macos-x64
-          #   arch: x64            
+        os: [self-hosted-win-x64] 
 
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
-        working-directory: osx
+        working-directory: win
 
     steps:     
       - uses: actions/checkout@v3
@@ -37,45 +32,24 @@ jobs:
 
       - name: Fetch VCPKG packages
         run: |
-          make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
-          
-      - name: Compile PROJ
-        run: |
-          make -f gdal-makefile proj BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Compile GDAL
-        run: |
-          make -f gdal-makefile gdal BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Collect deps
-        run: |
-          make -f collect-deps-makefile BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Create packages
-        run: |
-          make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }} 
-
+           ./install.ps1 -buildNumberTail ${{ github.run_number }}
+        
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: osx-packages
+          name: win-packages
           path: nuget/*.nupkg
 
-  TestAndPushPackages-MacOS:
+  TestAndPushPackages-Windows:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
-        include:
-          - os: self-hosted-macos-arm64
-            arch: arm64
-          - os: self-hosted-macos-x64
-            arch: x64            
-    needs: BuildNugetPackages-MacOS
+        os: [self-hosted-win-x64] 
+    needs: BuildNugetPackages-Windows
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
-        working-directory: osx
+        working-directory: win
 
     steps:
       - uses: actions/checkout@v3
@@ -85,7 +59,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: osx-packages
+          name: win-packages
           path: nuget/
 
       - name: NuGet - Update credentials
@@ -96,9 +70,12 @@ jobs:
      
       - name: Test packages
         run: |
-          make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          ./test.ps1 -buildNumberTail:${{ github.run_number }} 
       
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        env:
+          API_KEY_GITHUB: ${{ secrets.API_KEY_GITHUB }}
+          API_KEY_NUGET: ${{ secrets.API_KEY_NUGET }}
         run: |
-          make -f push-packages-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
+         ./push-packages.ps1 -buildNumberTail:${{ github.run_number }}

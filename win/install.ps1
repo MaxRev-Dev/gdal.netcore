@@ -7,7 +7,8 @@ param (
     [bool] $fetchGdal = $true, # fetch gdal from git, otherwise use local copy
     [bool] $bootstrapVcpkg = $true, # bootstrap vcpkg, otherwise use local copy
     [bool] $installVcpkgPackages = $true, # install vcpkg packages, otherwise use local copy
-    [bool] $isDebug = $false # build debug version of csharp bindings
+    [bool] $isDebug = $false, # build debug version of csharp bindings
+    [int] $buildNumberTail = 10 # build number for csharp bindings
 )
 
 # reset previous imports
@@ -52,11 +53,14 @@ try {
     
     Get-ProjDatum
 
+    Reset-GdalSourceBindings
     $env:INCLUDE = Add-EnvVar $env:INCLUDE "$env:SDK_PREFIX\include"
     $env:LIB = Add-EnvVar $env:LIB "$env:SDK_PREFIX\lib"
     Build-Gdal -cleanGdalBuild $cleanGdalBuild -cleanGdalIntermediate $cleanGdalIntermediate -fetchGdal $fetchGdal
 
-    Build-CsharpBindings -isDebug $isDebug
+    $buildNumber = $buildNumberTail + 100
+    $packageVersion = "$env:GDAL_VERSION.$buildNumber"
+    Build-CsharpBindings -isDebug $isDebug -packageVersion $packageVersion
 } 
 catch
 {

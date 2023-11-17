@@ -155,6 +155,27 @@ function Get-ProjDatum {
     }
 }
 
+function Get-GdalVersion{
+    return (Get-Content "$env:GDAL_SOURCE\VERSION")
+}
+
+function Reset-GdalSourceBindings {
+    $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
+
+    # remove swig/csharp/[gdal|ogr|osr|const]/obj folders
+    $env:GdalCsharpBindings = "$env:GdalCmakeBuild\swig\csharp\gdal\obj"
+    $env:OgrCsharpBindings = "$env:GdalCmakeBuild\swig\csharp\ogr\obj"
+    $env:OsrCsharpBindings = "$env:GdalCmakeBuild\swig\csharp\osr\obj"
+    $env:ConstCsharpBindings = "$env:GdalCmakeBuild\swig\csharp\const\obj"
+
+    Write-BuildInfo "Cleaning up GDAL source bindings..."
+    Remove-Item -Path $env:GdalCsharpBindings -Recurse -Force
+    Remove-Item -Path $env:OgrCsharpBindings -Recurse -Force
+    Remove-Item -Path $env:OsrCsharpBindings -Recurse -Force
+    Remove-Item -Path $env:ConstCsharpBindings -Recurse -Force
+    Write-BuildInfo "GDAL source bindings were cleaned up"
+}
+
 function Build-Gdal {
     param (
         [bool] $cleanGdalBuild = $true,
@@ -234,20 +255,38 @@ function Build-Gdal {
     Write-BuildStep "GDAL was built successfully"
 }
 
+function Update-GdalVersion {
+    param (
+        [string] $packageVersion
+    )
+
+    Write-BuildStep "Updating GDAL version..."
+
+    Get-ChildItem "$PSScriptRoot\..\gdalcore.*.csproj" | ForEach {
+        (Get-Content $_ | ForEach  { $_ -replace "\<Version\>.*?\<\/Version\>",  "<Version>$packageVersion</Version>" }) |
+        Set-Content $_
+    }
+    
+    Write-BuildStep "GDAL version was set to $packageVersion"
+}
+
 function Build-CsharpBindings {   
     param (
-        [bool] $isDebug = $false
+        [bool] $isDebug = $false,
+        [string] $packageVersion
     )
     Write-BuildStep "Building GDAL C# bindings"
     
     Set-Location $PSScriptRoot
     
-    nmake -f collect-deps-makefile.vc
+    exec { & nmake -f collect-deps-makefile.vc }
     
+    Update-GdalVersion -packageVersion $packageVersion
+
     if ($isDebug) {
-        nmake -f publish-makefile.vc pack-dev DEBUG=1
+        exec { & nmake -f publish-makefile.vc pack-dev DEBUG=1 PACKAGE_BUILD_NUMBER=$packageVersion }
     }
     else {
-        nmake -f publish-makefile.vc pack
+        exec { & nmake -f publish-makefile.vc pack PACKAGE_BUILD_NUMBER=$packageVersion }
     }
 }
