@@ -46,6 +46,7 @@ cleanpackages:
 initdirs:
 	rm -rvf $(OUTPUT)/*.*
 	mkdir -p $(OUTPUT)
+	mkdir -p $(NUGET_)
 
 collect-bindings:
 # copy generatated c# sources to project directory 
