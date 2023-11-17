@@ -11,7 +11,7 @@ on:
 concurrency: 
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-  
+
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
@@ -40,8 +40,8 @@ jobs:
           dotnet-version: '7.0.x'
 
       - name: Fetch VCPKG packages
-        run: |
-           ./install.ps1 -buildNumberTail ${{ github.run_number }}
+        run: '& ./install.ps1 -buildNumberTail ${{ github.run_number }}'
+        shell: pwsh
         
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
@@ -77,8 +77,8 @@ jobs:
           dotnet nuget add source -n local.ci ${{ github.workspace}}/nuget/
      
       - name: Test packages
-        run: |
-          ./test.ps1 -buildNumberTail:${{ github.run_number }} 
+        run: '& ./test.ps1 -buildNumberTail:${{ github.run_number }}'
+        shell: pwsh
       
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
