@@ -137,7 +137,7 @@ function Install-PwshModuleRequirements {
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     }
 
-    if (!(Get-PackageProvider -Name "VSSetup")) {
+    if (!(Get-Module -Name "VSSetup")) {
         Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser
     } 
 
