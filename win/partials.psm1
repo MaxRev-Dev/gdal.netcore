@@ -261,6 +261,9 @@ function Build-Gdal {
 
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
+
+    # remove source. this was added by GDAL
+    exec { dotnet nuget remove source local }
     Write-BuildStep "GDAL was built successfully"
 }
 

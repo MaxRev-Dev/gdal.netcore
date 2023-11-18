@@ -9,7 +9,11 @@ export MSBUILDSINGLELOADCONTEXT = 1
 # using export to add dynamic libraries location
 export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
-all: pack
+all: prepare pack
+
+prepare:
+    # remove source. this was added by GDAL. ignore error
+    -dotnet nuget remove source local
 
 pack-core:
 	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
