@@ -241,6 +241,7 @@ function Build-Gdal {
 
 
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild
+    New-FolderIfNotExists "$PSScriptRoot\..\nuget"
 
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
