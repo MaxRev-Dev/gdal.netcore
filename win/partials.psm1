@@ -194,6 +194,9 @@ function Build-Gdal {
     $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
 
+    $webpRoot = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
+    $env:WEBP_ROOT="-DWEBP_INCLUDE_DIR=$webpRoot\include -DWEBP_LIBRARY=$webpRoot\lib\libwebp.lib"
+
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
 
@@ -243,14 +246,17 @@ function Build-Gdal {
         $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" `
         -DCMAKE_CXX_FLAGS=" /WX $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
         -DGDAL_USE_MSSQL_ODBC=OFF `
-        $env:PROJ_ROOT $env:MYSQL_LIBRARY $env:POPPLER_EXTRA_LIBRARIES `
-        -DGDAL_USE_ZLIB_INTERNAL=ON -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" `
-         -DGDAL_CSHARP_APPS=OFF `
-         -DGDAL_CSHARP_TESTS=OFF `
-         -DGDAL_CSHARP_BUILD_NUPKG=OFF `
-         -DBUILD_CSHARP_BINDINGS=ON `
-         -DBUILD_JAVA_BINDINGS=OFF `
-         -DBUILD_PYTHON_BINDINGS=OFF
+        $env:WEBP_ROOT `
+        $env:PROJ_ROOT $env:MYSQL_LIBRARY `
+        $env:POPPLER_EXTRA_LIBRARIES `
+        -DGDAL_USE_ZLIB_INTERNAL=ON `
+        -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" `
+        -DGDAL_CSHARP_APPS=OFF `
+        -DGDAL_CSHARP_TESTS=OFF `
+        -DGDAL_CSHARP_BUILD_NUPKG=OFF `
+        -DBUILD_CSHARP_BINDINGS=ON `
+        -DBUILD_JAVA_BINDINGS=OFF `
+        -DBUILD_PYTHON_BINDINGS=OFF
 
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }

@@ -38,8 +38,8 @@ try {
 
     Get-VcpkgInstallation -bootstrapVcpkg $bootstrapVcpkg
     
-    Set-GdalVariables 
-    
+    Set-GdalVariables
+
     Write-BuildStep "Setting Visual Studio Environment"
     Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
     Write-BuildStep "Visual Studio Environment was initialized"
@@ -49,6 +49,7 @@ try {
     Get-7ZipInstallation
     Get-GdalSdkIsAvailable
     Resolve-GdalThidpartyLibs
+    return;
     Install-Proj -cleanProjBuild $cleanProjBuild -cleanProjIntermediate $cleanProjIntermediate 
     
     Get-ProjDatum
