@@ -49,7 +49,7 @@ try {
     Get-7ZipInstallation
     Get-GdalSdkIsAvailable
     Resolve-GdalThidpartyLibs
-    return;
+    
     Install-Proj -cleanProjBuild $cleanProjBuild -cleanProjIntermediate $cleanProjIntermediate 
     
     Get-ProjDatum
