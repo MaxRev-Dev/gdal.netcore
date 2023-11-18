@@ -120,7 +120,7 @@ jobs:
         run: | 
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
           dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
-          dotnet nuget remove source local.ci 1>null
+          dotnet nuget remove source local.ci || true 
           dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci
      
       - name: Test packages
