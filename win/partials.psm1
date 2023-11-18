@@ -195,7 +195,8 @@ function Build-Gdal {
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
 
     $webpRoot = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
-    $env:WEBP_ROOT="-DWEBP_INCLUDE_DIR=$webpRoot\include -DWEBP_LIBRARY=$webpRoot\lib\libwebp.lib"
+    $env:WEBP_ROOT="-DWEBP_INCLUDE_DIR=$webpRoot\include"
+    $env:WEBP_LIB="-DWEBP_LIBRARY=$webpRoot\lib\libwebp.lib"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -246,7 +247,7 @@ function Build-Gdal {
         $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" `
         -DCMAKE_CXX_FLAGS=" /WX $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
         -DGDAL_USE_MSSQL_ODBC=OFF `
-        $env:WEBP_ROOT `
+        $env:WEBP_ROOT  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:POPPLER_EXTRA_LIBRARIES `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
