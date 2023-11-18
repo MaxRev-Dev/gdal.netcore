@@ -37,8 +37,8 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: |
-            build-osx
-            .dotnet
+            ${{ github.workspace }}/build-osx
+            ${{ github.workspace }}/.dotnet
           key: ${{ runner.os }}-packages
 
       - name: Setup .NET Core SDK
@@ -61,8 +61,8 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: |
-            build-osx
-            .dotnet
+            ${{ github.workspace }}/build-osx
+            ${{ github.workspace }}/.dotnet
           key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
   TestAndPushPackages-Windows:
@@ -90,8 +90,9 @@ jobs:
         run: | 
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
           dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
-          dotnet nuget remove source local.ci || true
+          dotnet nuget remove source local 1>$null
           dotnet nuget add source local.ci -s ${{ github.workspace}}/nuget/
+        shell: pwsh
      
       - name: Test packages
         run: '& ./test.ps1 -buildNumberTail:${{ github.run_number }}'

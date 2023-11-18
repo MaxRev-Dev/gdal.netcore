@@ -11,9 +11,9 @@ export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
 PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
 
+# remove source. this was added by GDAL. ignore error
 prepare:
-    # remove source. this was added by GDAL. ignore error
-    -dotnet nuget remove source local
+	-dotnet nuget remove source local
 
 change-build-number-core:
 	gsed -i "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1$(PACKAGE_BUILD_NUMBER)/" $(ROOTDIR_)/gdalcore.loader.csproj

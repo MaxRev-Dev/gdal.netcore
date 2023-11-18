@@ -44,8 +44,8 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: |
-            build-osx
-            .dotnet
+            ${{ github.workspace }}/build-osx
+            ${{ github.workspace }}/.dotnet
           key: ${{ runner.os }}-packages
 
       - name: Setup .NET Core SDK
@@ -84,8 +84,8 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: |
-            build-osx
-            .dotnet
+            ${{ github.workspace }}/build-osx
+            ${{ github.workspace }}/.dotnet
           key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
   TestAndPushPackages-MacOS:
