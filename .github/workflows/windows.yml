@@ -37,7 +37,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: |
-            ${{ github.workspace }}/build-osx
+            ${{ github.workspace }}/build-win
             ${{ github.workspace }}/.dotnet
           key: ${{ runner.os }}-packages
 
@@ -55,15 +55,13 @@ jobs:
         with:
           name: win-packages
           path: nuget/*.nupkg
-      - name: Add mingw64 to path
-        run: |
-          echo "C:\utils\mingw64\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
       - name: Save packages cache
         id: build-packages-cache-save
         uses: actions/cache/save@v3
         with:
           path: |
-            ${{ github.workspace }}/build-osx
+            ${{ github.workspace }}/build-win
             ${{ github.workspace }}/.dotnet
           key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
