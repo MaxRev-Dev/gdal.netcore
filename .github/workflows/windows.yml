@@ -52,11 +52,6 @@ jobs:
           ./install.ps1 -buildNumberTail ${{ github.run_number }}
           echo "$env:GDAL_VERSION"
           echo "GDAL_VERSION=$env:GDAL_VERSION" >> "$env:GITHUB_OUTPUT"
-
-      - name: Set Gdal Package Version
-        id: gdal-package-version
-        run: |
-          echo "$env:GDAL_VERSION"
         
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
@@ -105,7 +100,7 @@ jobs:
 
       - name: Test packages
         env:
-          GDAL_VERSION: ${{ steps.gdal-package-version.outputs.GDAL_VERSION }}
+          GDAL_VERSION: ${{ steps.compile-source.outputs.GDAL_VERSION }}
         run: ./test.ps1 -buildNumberTail ${{ github.run_number }}
         shell: pwsh
       
@@ -114,6 +109,6 @@ jobs:
         env:
           API_KEY_GITHUB: ${{ secrets.API_KEY_GITHUB }}
           API_KEY_NUGET: ${{ secrets.API_KEY_NUGET }}
-          GDAL_VERSION: ${{ steps.gdal-package-version.outputs.GDAL_VERSION }}
+          GDAL_VERSION: ${{ steps.compile-source.outputs.GDAL_VERSION }}
         run: ./push-packages.ps1 -buildNumberTail ${{ github.run_number }}
         shell: pwsh
