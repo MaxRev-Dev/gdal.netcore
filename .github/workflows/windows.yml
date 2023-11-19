@@ -52,7 +52,9 @@ jobs:
 
       - name: Set Gdal Package Version
         id: gdal-package-version
-        run: echo "GDAL_VERSION=$env:GDAL_VERSION" >> "$env:GITHUB_OUTPUT"
+        run: |
+          echo "GDAL_VERSION=$env:GDAL_VERSION" >> "$env:GITHUB_OUTPUT"
+          echo "$env:GDAL_VERSION"
         
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
