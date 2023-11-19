@@ -63,7 +63,7 @@ try {
         $env:GDAL_VERSION = Get-GdalVersion
     }
     $buildNumber = $buildNumberTail + 100
-    $env:GDAL_PACKAGE_VERSION = "$GDAL_VERSION.$buildNumber"
+    $env:GDAL_PACKAGE_VERSION = "$env:GDAL_VERSION.$buildNumber"
     Build-CsharpBindings -isDebug $isDebug -packageVersion $env:GDAL_PACKAGE_VERSION
 } 
 catch
