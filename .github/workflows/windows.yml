@@ -51,7 +51,7 @@ jobs:
         run: |
           ./install.ps1 -buildNumberTail ${{ github.run_number }}
           echo "GDAL_VERSION=$env:GDAL_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-        
+
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
         with:
@@ -66,6 +66,8 @@ jobs:
             ${{ github.workspace }}/build-win
             ${{ github.workspace }}/.dotnet
           key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
+    outputs:
+      gdal-version: ${{ steps.compile-source.outputs.GDAL_VERSION }}
 
   TestAndPushPackages-Windows:
     strategy:
@@ -77,6 +79,8 @@ jobs:
     defaults:
       run:
         working-directory: win
+    env:
+      GDAL_VERSION: ${{ jobs.BuildNugetPackages-Windows.outputs.GDAL_VERSION }}
     steps:
       - uses: actions/checkout@v3.0.0
         with:
@@ -98,8 +102,6 @@ jobs:
         shell: pwsh
 
       - name: Test packages
-        env:
-          GDAL_VERSION: ${{ steps.compile-source.outputs.GDAL_VERSION }}
         run: ./test.ps1 -buildNumberTail ${{ github.run_number }}
         shell: pwsh
       
@@ -108,6 +110,5 @@ jobs:
         env:
           API_KEY_GITHUB: ${{ secrets.API_KEY_GITHUB }}
           API_KEY_NUGET: ${{ secrets.API_KEY_NUGET }}
-          GDAL_VERSION: ${{ steps.compile-source.outputs.GDAL_VERSION }}
         run: ./push-packages.ps1 -buildNumberTail ${{ github.run_number }}
         shell: pwsh
