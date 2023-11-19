@@ -17,7 +17,7 @@ $existingVariables = Get-Variable
 try { 
     Set-GdalVariables
 
-    if (!(Get-Command "nmake" -ErrorAction SilenptlyContinue)) {
+    if (!(Get-Command "nmake" -ErrorAction SilentlyContinue)) {
         Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
     }
     $preReleaseArg = ""
