@@ -9,8 +9,12 @@ Import-Module (Resolve-Path "functions.psm1") -Force
 # reset session
 Reset-PsSession
 
+if ($null -eq $env:GDAL_VERSION) { 
+    $env:GDAL_VERSION = Get-GdalVersion
+}
 $buildNumber = $buildNumberTail + 100
-$version = "$gdalVersion.$buildNumber"
+$version = "$env:GDAL_VERSION.$buildNumber"
+Write-BuildStep "Publishing version $version"
 $packages = @(
     "MaxRev.Gdal.Core.$version.nupkg"
     "MaxRev.Gdal.LinuxRuntime.Minimal.$version.nupkg"

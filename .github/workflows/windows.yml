@@ -81,8 +81,6 @@ jobs:
     defaults:
       run:
         working-directory: win
-    env:
-      GDAL_VERSION: ${{ steps.gdal-package-version.outputs.GDAL_VERSION }}
     steps:
       - uses: actions/checkout@v3.0.0
         with:
@@ -104,6 +102,8 @@ jobs:
         shell: pwsh
 
       - name: Test packages
+        env:
+          GDAL_VERSION: ${{ steps.gdal-package-version.outputs.GDAL_VERSION }}
         run: '& ./test.ps1 -buildNumberTail ${{ github.run_number }}'
         shell: pwsh
       
@@ -112,5 +112,6 @@ jobs:
         env:
           API_KEY_GITHUB: ${{ secrets.API_KEY_GITHUB }}
           API_KEY_NUGET: ${{ secrets.API_KEY_NUGET }}
+          GDAL_VERSION: ${{ steps.gdal-package-version.outputs.GDAL_VERSION }}
         run: '& ./push-packages.ps1 -buildNumberTail ${{ github.run_number }}'
         shell: pwsh
