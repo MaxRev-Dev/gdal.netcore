@@ -17,18 +17,19 @@ $existingVariables = Get-Variable
 try { 
     Set-GdalVariables
 
-    Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
+    if (!(Get-Command "nmake" -ErrorAction SilentlyContinue)) {
+        Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
+    }
     $preReleaseArg = ""
     if ($preRelease){
         $preReleaseArg = "PRE_RELEASE=1"
     }
     $gdalVersion = Get-GdalVersion
     $buildNumberArg = $buildNumberTail + 100
+    Write-BuildStep "Executing tests for $gdalVersion.$buildNumberArg"
     exec { nmake -f "$PSScriptRoot/test-makefile.vc" $preReleaseArg GDAL_VERSION=$gdalVersion PACKAGE_BUILD_NUMBER=$buildNumberArg }
 }
 finally {
     Pop-Location -StackName "gdal.netcore|root"
-    Get-Variable |
-    Where-Object Name -notin $existingVariables.Name |
-    Remove-Variable
+    Get-Variable | Where-Object Name -notin $existingVariables.Name | Remove-Variable -ErrorAction SilentlyContinue
 }
