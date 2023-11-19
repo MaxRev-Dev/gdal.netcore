@@ -80,7 +80,7 @@ jobs:
       run:
         working-directory: win
     env:
-      GDAL_VERSION: ${{ needs.BuildNugetPackages-Windows.outputs.GDAL_VERSION }}
+      GDAL_VERSION: ${{ needs.BuildNugetPackages-Windows.outputs.gdal-version }}
     steps:
       - uses: actions/checkout@v3.0.0
         with:
