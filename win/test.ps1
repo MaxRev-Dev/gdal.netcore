@@ -22,8 +22,9 @@ try {
     if ($preRelease){
         $preReleaseArg = "PRE_RELEASE=1"
     }
+    $gdalVersion = Get-GdalVersion
     $buildNumberArg = $buildNumberTail + 100
-    nmake -f "$PSScriptRoot/test-makefile.vc" $preReleaseArg $buildNumberArg
+    exec { nmake -f "$PSScriptRoot/test-makefile.vc" $preReleaseArg GDAL_VERSION=$gdalVersion PACKAGE_BUILD_NUMBER=$buildNumberArg }
 }
 finally {
     Pop-Location -StackName "gdal.netcore|root"

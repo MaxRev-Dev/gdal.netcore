@@ -15,9 +15,12 @@ function Set-GdalVariables {
     $env:CMAKE_ARCHITECTURE = "x64"
     $env:CMAKE_PARALLEL_JOBS = 4
 
+    $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
     $env:PROJ_INSTALL_DIR = (Get-ForceResolvePath "$env:BUILD_ROOT\proj-build") 
     $env:DOWNLOADS_DIR = (Get-ForceResolvePath "$env:BUILD_ROOT\downloads") 
     $env:SDK_PREFIX = "$env:BUILD_ROOT\sdk\$env:SDK"
+    $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
+    $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
 }
 
 function Get-7ZipInstallation {   
@@ -159,7 +162,6 @@ function Get-GdalVersion{
 }
 
 function Reset-GdalSourceBindings {
-    $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
 
     # remove swig/csharp/[gdal|ogr|osr|const]/obj folders
     $env:GdalCsharpBindings = "$env:GdalCmakeBuild\swig\csharp\gdal\obj"
@@ -191,8 +193,6 @@ function Build-Gdal {
     $env:CMAKE_PREFIX_PATH = "-DCMAKE_PREFIX_PATH=$env:SDK_PREFIX"
     $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
     $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=$env:SDK_LIB\freetype.lib;$env:SDK_LIB\harfbuzz.lib"
-    $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
-    $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
 
     $webpRoot = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
     $env:WEBP_ROOT="-DWEBP_INCLUDE_DIR=$webpRoot\include"
@@ -217,7 +217,7 @@ function Build-Gdal {
 
     if ($fetchGdal) {
         Write-BuildInfo "Fetching GDAL source"
-        nmake -f fetch-makefile.vc fetch-gdal
+        exec { nmake -f fetch-makefile.vc fetch-gdal }
     } 
             
     if ((Test-Path -Path "$env:GdalCmakeBuild\CMakeCache.txt" -PathType Leaf)) {
