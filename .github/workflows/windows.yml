@@ -46,14 +46,16 @@ jobs:
         with:
           dotnet-version: '7.0.x'
 
-      - name: Fetch VCPKG packages
-        run: '& ./install.ps1 -buildNumberTail ${{ github.run_number }}'
-        shell: pwsh
+      - name: Compile GDAL and create packages
+        id: compile-source
+        run: |
+          ./install.ps1 -buildNumberTail ${{ github.run_number }}
+          echo "$env:GDAL_VERSION"
+          echo "GDAL_VERSION=$env:GDAL_VERSION" >> "$env:GITHUB_OUTPUT"
 
       - name: Set Gdal Package Version
         id: gdal-package-version
         run: |
-          echo "GDAL_VERSION=$env:GDAL_VERSION" >> "$env:GITHUB_OUTPUT"
           echo "$env:GDAL_VERSION"
         
       - name: Store packages as artifact
@@ -104,7 +106,7 @@ jobs:
       - name: Test packages
         env:
           GDAL_VERSION: ${{ steps.gdal-package-version.outputs.GDAL_VERSION }}
-        run: '& ./test.ps1 -buildNumberTail ${{ github.run_number }}'
+        run: ./test.ps1 -buildNumberTail ${{ github.run_number }}
         shell: pwsh
       
       - name: Push packages
@@ -113,5 +115,5 @@ jobs:
           API_KEY_GITHUB: ${{ secrets.API_KEY_GITHUB }}
           API_KEY_NUGET: ${{ secrets.API_KEY_NUGET }}
           GDAL_VERSION: ${{ steps.gdal-package-version.outputs.GDAL_VERSION }}
-        run: '& ./push-packages.ps1 -buildNumberTail ${{ github.run_number }}'
+        run: ./push-packages.ps1 -buildNumberTail ${{ github.run_number }}
         shell: pwsh
