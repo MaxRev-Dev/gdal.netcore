@@ -47,8 +47,7 @@ jobs:
           dotnet-version: '7.0.x'
 
       - name: Fetch VCPKG packages
-        run: |
-          '& ./install.ps1 -buildNumberTail ${{ github.run_number }}'
+        run: '& ./install.ps1 -buildNumberTail ${{ github.run_number }}'
         shell: pwsh
 
       - name: Set Gdal Package Version
