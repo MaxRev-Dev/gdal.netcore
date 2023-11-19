@@ -47,7 +47,13 @@ jobs:
           dotnet-version: '7.0.x'
 
       - name: Fetch VCPKG packages
-        run: '& ./install.ps1 -buildNumberTail ${{ github.run_number }}'
+        run: |
+          '& ./install.ps1 -buildNumberTail ${{ github.run_number }}'
+        shell: pwsh
+
+      - name: Set Gdal Package Version
+        id: gdal-package-version
+        run: echo "GDAL_VERSION=$env:GDAL_VERSION" >> "$env:GITHUB_OUTPUT"
         shell: pwsh
         
       - name: Store packages as artifact
@@ -75,6 +81,8 @@ jobs:
     defaults:
       run:
         working-directory: win
+    env:
+      GDAL_VERSION: ${{ steps.gdal-package-version.outputs.GDAL_VERSION }}
     steps:
       - uses: actions/checkout@v3.0.0
         with:
@@ -94,7 +102,7 @@ jobs:
           dotnet nuget remove source local.ci 1>$null
           dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci
         shell: pwsh
-     
+
       - name: Test packages
         run: '& ./test.ps1 -buildNumberTail ${{ github.run_number }}'
         shell: pwsh

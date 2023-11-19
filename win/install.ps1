@@ -59,10 +59,12 @@ try {
     $env:LIB = Add-EnvVar $env:LIB "$env:SDK_PREFIX\lib"
     Build-Gdal -cleanGdalBuild $cleanGdalBuild -cleanGdalIntermediate $cleanGdalIntermediate -fetchGdal $fetchGdal
 
-    $gdalVersion = Get-GdalVersion
+    if ($null -eq $env:GDAL_VERSION) { 
+        $env:GDAL_VERSION = Get-GdalVersion
+    }
     $buildNumber = $buildNumberTail + 100
-    $packageVersion = "$gdalVersion.$buildNumber"
-    Build-CsharpBindings -isDebug $isDebug -packageVersion $packageVersion
+    $env:GDAL_PACKAGE_VERSION = "$GDAL_VERSION.$buildNumber"
+    Build-CsharpBindings -isDebug $isDebug -packageVersion $env:GDAL_PACKAGE_VERSION
 } 
 catch
 {
