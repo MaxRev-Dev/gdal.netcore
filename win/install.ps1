@@ -22,7 +22,7 @@ Import-Module (Resolve-Path "partials.psm1") -Force
 
 Push-Location -StackName "gdal.netcore|root"
 
-$existingVariables = Get-Variable
+#$existingVariables = Get-Variable
 try { 
     $ErrorActionPreference = 'Stop'
     # $ConfirmPreference = 'Low'
@@ -59,9 +59,7 @@ try {
     $env:LIB = Add-EnvVar $env:LIB "$env:SDK_PREFIX\lib"
     Build-Gdal -cleanGdalBuild $cleanGdalBuild -cleanGdalIntermediate $cleanGdalIntermediate -fetchGdal $fetchGdal
 
-    if ($null -eq $env:GDAL_VERSION) { 
-        $env:GDAL_VERSION = Get-GdalVersion
-    }
+    $env:GDAL_VERSION = Get-GdalVersion
     $buildNumber = $buildNumberTail + 100
     $env:GDAL_PACKAGE_VERSION = "$env:GDAL_VERSION.$buildNumber"
     Build-CsharpBindings -isDebug $isDebug -packageVersion $env:GDAL_PACKAGE_VERSION
@@ -76,5 +74,5 @@ catch
 }
 finally {
     Pop-Location -StackName "gdal.netcore|root"
-    Get-Variable | Where-Object Name -notin $existingVariables.Name | Remove-Variable -ErrorAction SilentlyContinue
+    #Get-Variable | Where-Object Name -notin $existingVariables.Name | Remove-Variable -ErrorAction SilentlyContinue
 }

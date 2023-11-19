@@ -24,7 +24,7 @@ try {
     if ($preRelease){
         $preReleaseArg = "PRE_RELEASE=1"
     }
-    if ($null -eq $env:GDAL_VERSION) { 
+    if ($null -eq $env:GDAL_VERSION) {
         $env:GDAL_VERSION = Get-GdalVersion
     }
     $buildNumber = $buildNumberTail + 100
