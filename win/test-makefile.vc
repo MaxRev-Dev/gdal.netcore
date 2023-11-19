@@ -5,12 +5,6 @@
 !INCLUDE RID.opt
 !INCLUDE ../shared/GdalCore.opt
 
-!IFDEF PRE_RELEASE
-PRE_RELEASE_ARG=--prerelease
-!ELSE
-PRE_RELEASE_ARG= 
-!ENDIF
-
 all: test
 
 test-restore:
@@ -22,8 +16,8 @@ test-restore:
 
 test-update:
 	-cd $(TEST_DIR)
-	-dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRE_RELEASE_ARG)
-	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRE_RELEASE_ARG)
+	-dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) 
+	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
 	-cd $(MAKEDIR)
 
 test-only: test-restore
