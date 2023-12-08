@@ -1,7 +1,8 @@
 {
     "files.associations": {
         "*.vc": "makefile",
-        "*makefile": "makefile", 
+        "*makefile": "makefile",
         "*.opt": "makefile",
-    }
+    },
+    "files.trimTrailingWhitespace": true
 }
