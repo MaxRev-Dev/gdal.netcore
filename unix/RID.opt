@@ -5,10 +5,11 @@
 #
 BASE=$(PWD)
 BASE_RUNTIME_RID=unix
-VCPKG_RID=x64-linux
+ARCH=x64
+VCPKG_RID=$(ARCH)-linux
 
 # .NET RID
-RID=linux-x64
+RID=linux-$(ARCH)
 SWIG=swig
 SHELL=/bin/bash
 

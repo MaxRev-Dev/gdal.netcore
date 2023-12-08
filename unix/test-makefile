@@ -2,20 +2,20 @@ include RID.opt
 include ../shared/GdalCore.opt
 
 ifeq ($(PRERELEASE),)
-PRERELEASE_ARG= 
+PRERELEASE_ARG=
 else
 PRERELEASE_ARG=--prerelease
 endif
 
 ifeq ($(APP_RUN),)
-TEST_TARGET=$(TEST_DIR) 
+TEST_TARGET=$(TEST_DIR)
 APP_RUN_TARGET=dotnet test
 else
 TEST_TARGET=$(TEST_DIR_APP)
 APP_RUN_TARGET=dotnet run
 endif
 
-MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal 
+MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal
 
 all: test
 
@@ -34,7 +34,7 @@ test-update:
 	-@cd $(TEST_TARGET) && \
 		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s "$(NUGET_)" $(PRERELEASE_ARG)
 	-@cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.Core -s "$(NUGET_)" $(PRERELEASE_ARG) 
+		dotnet add package MaxRev.Gdal.Core -s "$(NUGET_)" $(PRERELEASE_ARG)
 
 test-only: test-restore
 	@cd $(TEST_TARGET) && \
