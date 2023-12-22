@@ -6,7 +6,7 @@ include RID.opt
 include ../shared/GdalCore.opt
 
 # default targets on linux
-TARGETS = proj gdal
+TARGETS = hdf proj gdal
 
 all: $(TARGETS)
 	@echo "$(PRE) Everything looks good. Linux libraries for GDAL is ready to packaging!"
@@ -75,6 +75,34 @@ remove_cache_%:
 	@if [[ -d "$($(UP)_CMAKE_TMP)" ]]; then \
 		rm -r $($(UP)_CMAKE_TMP); \
 	fi;
+
+HDF_zip=CMake-hdf-$(HDF_VERSION).zip
+HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)
+
+download_hdf:
+	curl -o "$(BUILD_ROOT)/$(HDF_zip).zip" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF$(HDF_VERSION)/src/$(HDF_zip).zip"
+	mkdir -p "$(BUILD_ROOT)/hdf-source"
+	cd $(BUILD_ROOT)/hdf-source; unzip "$(BUILD_ROOT)/$(HDF_zip)" -d ../
+
+check_hdf_sources:
+	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
+		$(MAKE) -f gdal-makefile download_hdf; \
+	fi;
+
+configure_hdf:
+	@echo "$(TO) HDF Configuring..."
+
+	@if [[ -d "$(BUILD_ROOT)/hdf-build" ]]; then rm -r "$(BUILD_ROOT)/hdf-build"; fi;
+
+	-mkdir -p $(HDF_CMAKE_TMP)
+	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE)/hdf-$(HDF_VERSION) \
+		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_FLAGS="-Wno-dev" \
+		-DCMAKE_CXX_FLAGS="-fPIC -Wno-dev" \
+		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
+
+	@echo "$(TO) HDF was configured!"
 
 configure_gdal:
 	@echo "$(TO) GDAL Configuring..."
