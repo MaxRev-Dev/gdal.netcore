@@ -25,8 +25,7 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=2023.04.15
-# latest on Nov 23, 2022
+VCPKG_COMMIT_VER=f30434939d5516ce764c549ab04e3d23d312180a
 
 # base requirements for both runtimes
 VCPKG_REQUIRE=geos tiff curl
