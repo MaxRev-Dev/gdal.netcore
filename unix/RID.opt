@@ -8,6 +8,8 @@ BASE_RUNTIME_RID=unix
 ARCH=arm64
 VCPKG_RID=$(ARCH)-linux
 
+RUNTIME_PROJECT_NAME=gdalcore.linuxruntime.csproj
+
 # .NET RID
 RID=linux-$(ARCH)
 SWIG=swig
