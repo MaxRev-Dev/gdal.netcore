@@ -79,23 +79,33 @@ reset_%:
 	@echo "$(TO) Cleaning the repo before compiling from scratch..."
 	@cd $($(UP)_ROOT) && $(GIT_CLEAN) || exit 1
 
-init_hdf:
-	exit 0
-clone_hdf:
-	curl -o "$(BUILD_ROOT)/CMake-hdf-4.2.16-2.zip" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF4.2.16-2/src/CMake-hdf-4.2.16-2.zip"
-	unzip "$(BUILD_ROOT)/CMake-hdf-4.2.16-2.zip" -d "$(BUILD_ROOT)/hdf-source"
+init_hdf: check_hdf_sources
+	@echo "$(TO) HDF sources restore complete"
 
-	exit 0
+HDF_zip=CMake-hdf-$(HDF_VERSION).zip
+HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)
+
+download_hdf:
+	curl -o "$(BUILD_ROOT)/$(HDF_zip).zip" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF$(HDF_VERSION)/src/$(HDF_zip).zip"
+	mkdir -p "$(BUILD_ROOT)/hdf-source"
+	cd $(BUILD_ROOT)/hdf-source; unzip "$(BUILD_ROOT)/$(HDF_zip).zip" -d ../
+
+check_hdf_sources:
+	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
+		$(MAKE) -f gdal-makefile download_hdf; \
+	fi;
+
 configure_hdf:
 	@echo "$(TO) HDF Configuring..."
 
 	@if [[ -d "$(BUILD_ROOT)/hdf-build" ]]; then rm -r "$(BUILD_ROOT)/hdf-build"; fi;
 
 	-mkdir -p $(HDF_CMAKE_TMP)
-	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_ROOT) \
+	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE)/hdf-$(HDF_VERSION) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_CXX_FLAGS="-fPIC" \
+		-DCMAKE_C_FLAGS="-Wno-dev" \
+		-DCMAKE_CXX_FLAGS="-fPIC -Wno-dev" \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
 
 	@echo "$(TO) HDF was configured!"
@@ -127,6 +137,9 @@ configure_gdal:
 		-DBUILD_PYTHON_BINDINGS=OFF \
 		-DBUILD_SHARED_LIBS=ON \
 		-DHDF4_INCLUDE_DIR=$(BUILD_ROOT)/hdf-build/include \
+		-DHDF4_df_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libhdf.dylib \
+		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.dylib \
+		-DHDF4_xdr_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libxdr.dylib \
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
 		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.dylib \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1

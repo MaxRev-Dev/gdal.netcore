@@ -72,6 +72,11 @@ BASE_SWIG_=$(GDAL_ROOT)/swig
 BASE_CSHARP_=$(BASE_SWIG_)/csharp
 SWIG_INCLUDE_=$(BASE_SWIG_)/include
 
+##### HDF build location
+HDF_BUILD=$(BUILD_ROOT)/hdf-build
+HDF_CMAKE_TMP=$(BUILD_ROOT)/hdf-cmake-temp
+HDF_VERSION=4.2.16-2
+
 ##### PROJ build location
 PROJ_BUILD=$(BUILD_ROOT)/proj-build
 PROJ_CMAKE_TMP=$(BUILD_ROOT)/proj-cmake-temp
