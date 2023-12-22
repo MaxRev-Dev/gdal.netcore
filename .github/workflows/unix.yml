@@ -27,7 +27,7 @@ jobs:
           - os: linux/arm64
             arch: arm64
 
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted-linux-arm64,self-hosted-linux-x64]
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
@@ -38,9 +38,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --debug
+
       - name: Build docker image
         run: |
-          docker build --platform=${{ matrix.os }} --progress=plain -t maxrev-dev/gdal.netcore.builder:latest -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' ${{ github.workspace }}
+          docker buildx build --platform=${{ matrix.os }} --progress=plain -t maxrev-dev/gdal.netcore.builder:latest -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' ${{ github.workspace }}
 
       - name: Extract packages
         run: |
