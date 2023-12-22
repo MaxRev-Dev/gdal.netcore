@@ -2,13 +2,13 @@ name: Windows Build
 
 on:
   push:
-    branches: 
+    branches:
       - main
   pull_request:
-    branches: 
+    branches:
       - main
 
-concurrency: 
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
@@ -20,21 +20,21 @@ jobs:
   BuildNugetPackages-Windows:
     strategy:
       matrix:
-        os: [self-hosted-win-x64] 
+        os: [self-hosted-win-x64]
 
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: win
-    steps:     
+    steps:
       - uses: actions/checkout@v3.0.0
         with:
           fetch-depth: 0
 
       - name: Restore cached packages
         id: build-packages-cache-restore
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v3.2.0
         with:
           path: |
             ${{ github.workspace }}/build-win
@@ -60,7 +60,7 @@ jobs:
 
       - name: Save packages cache
         id: build-packages-cache-save
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v3.2.0
         with:
           path: |
             ${{ github.workspace }}/build-win
@@ -72,7 +72,7 @@ jobs:
   TestAndPushPackages-Windows:
     strategy:
       matrix:
-        os: [self-hosted-win-x64] 
+        os: [self-hosted-win-x64]
     needs: BuildNugetPackages-Windows
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
@@ -84,7 +84,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.0
         with:
-          fetch-depth: 0    
+          fetch-depth: 0
 
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -93,7 +93,7 @@ jobs:
           path: nuget/
 
       - name: NuGet - Update credentials
-        run: | 
+        run: |
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
           dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
           dotnet nuget remove source local 1>$null
@@ -104,7 +104,7 @@ jobs:
       - name: Test packages
         run: ./test.ps1 -buildNumberTail ${{ github.run_number }}
         shell: pwsh
-      
+
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         env:
