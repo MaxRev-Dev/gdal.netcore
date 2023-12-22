@@ -20,11 +20,11 @@ jobs:
   BuildNugetPackages-Linux:
     strategy:
       matrix:
-        os: [linux-x64, linux-arm64]
+        os: [linux/amd64, linux/arm64]
         include:
-          - os: linux-x64
+          - os: linux/amd64
             arch: x64
-          - os: linux-arm64
+          - os: linux/arm64
             arch: arm64
 
     runs-on: ubuntu-latest
@@ -58,9 +58,9 @@ jobs:
     strategy:
       matrix:
        # os: [self-hosted-linux-arm64,self-hosted-linux-x64]
-        os: [linux-x64]
+        os: [linux/amd64]
         include:
-          - os: x64
+          - os: linux/amd64
             arch: x64
           # - os: self-hosted-linux-x64
           #   arch: x64
