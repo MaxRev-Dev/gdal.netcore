@@ -34,7 +34,6 @@ REP = $(shell echo '$(LW)' | sed "s/-force//g")
 
 # target pretty output
 TO = $(PRE) ${UP} |
-SHELL=/bin/bash
 
 # accepts any user params
 % :
@@ -99,12 +98,14 @@ configure_gdal:
 		-DGDAL_CSHARP_BUILD_NUPKG=OFF \
 		-DBUILD_PYTHON_BINDINGS=OFF \
 		-DBUILD_CSHARP_BINDINGS=ON \
-		-DCSHARP_LIBRARY_VERSION=$(DOTNET_VERSION) \
+		-DCSHARP_LIBRARY_VERSION=net$(DOTNET_VERSION) \
+		-DCSHARP_APPLICATION_VERSION=net$(DOTNET_VERSION) \
 		-DBUILD_JAVA_BINDINGS=OFF \
 		-DBUILD_SHARED_LIBS=ON \
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
 		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.so \
-		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
+		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) \
+		|| exit 1
 
 	@echo "$(TO) GDAL was configured!"
 

@@ -2,8 +2,8 @@
 #  gdal.netcore package automation
 #
 
-include RID.opt 
-include ../shared/GdalCore.opt 
+include RID.opt
+include ../shared/GdalCore.opt
 
 # default targets on osx
 TARGETS = proj gdal
@@ -22,7 +22,7 @@ pre_vcpkg:
 complete: pre_vcpkg all
 	@exit 0
 
-# forcing targets to execute	
+# forcing targets to execute
 force: $(addsuffix -force, $(TARGETS))
 	@exit 0
 
@@ -38,10 +38,10 @@ TO = $(PRE) ${UP} |
 SHELL=/bin/bash
 
 # accepts any user params
-% : 
+% :
 ifneq ($(filter $(REP),$(TARGETS)),'')
 	@echo "$(TO) trying to make stuff for => $(REP)"
-	
+
 	@if [ ! -d "$(BUILD_ROOT)/$(REP)-build" ] || [[ "$(LW)" == *"-force" ]]; then \
 		$(MAKE) -f gdal-makefile init_$(REP) || exit 1; \
 		$(MAKE) -f gdal-makefile configure_$(REP) || exit 1; \
@@ -52,10 +52,10 @@ ifneq ($(filter $(REP),$(TARGETS)),'')
 	fi;
 else
 	@echo "$(PRE) Can not make $(REP)"
-endif 
+endif
 
-init_%: 
-	$(MAKE) -f gdal-makefile clone_$(REP) 
+init_%:
+	$(MAKE) -f gdal-makefile clone_$(REP)
 	@if [ "$$CI" == "true" ]; then \
 		echo "Skipping reset"; \
 	else \
@@ -71,25 +71,25 @@ clone_%:
 
 reset_%:
 	@echo "$(TO) Restoring $(LW) sources version to $($(UP)_COMMIT_VER)"
-	@echo "$(TO) Checking for remote changes..." 
+	@echo "$(TO) Checking for remote changes..."
 	@cd $($(UP)_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force
 	@cd $($(UP)_ROOT) && git checkout -q tags/$($(UP)_COMMIT_VER) --force || exit 1
-	@echo "$(TO) Resetting sources..." 
+	@echo "$(TO) Resetting sources..."
 	@cd $($(UP)_ROOT) && git reset --hard || exit 1
-	@echo "$(TO) Cleaning the repo before compiling from scratch..." 
+	@echo "$(TO) Cleaning the repo before compiling from scratch..."
 	@cd $($(UP)_ROOT) && $(GIT_CLEAN) || exit 1
 
 remove_cache_%:
-	@echo "$(TO) Removing build cache..." 	
+	@echo "$(TO) Removing build cache..."
 	@if [[ -d "$($(UP)_CMAKE_TMP)" ]]; then \
 		rm -r $($(UP)_CMAKE_TMP); \
 	fi;
 
 configure_gdal:
-	@echo "$(TO) GDAL Configuring..."  
+	@echo "$(TO) GDAL Configuring..."
 	@cd $(GDAL_ROOT) && \
 		git apply "$(ROOTDIR_)/shared/patch/CMakeLists.txt.patch" || exit 1
-		
+
 	@if [[ -d "$(BUILD_ROOT)/gdal-build" ]]; then rm -r "$(BUILD_ROOT)/gdal-build"; fi;
 	@if [[ -d "$(GDAL_ROOT)/autotest" ]]; then rm -r "$(GDAL_ROOT)/autotest"; fi;
 
@@ -108,24 +108,24 @@ configure_gdal:
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
 		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.dylib \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
-		
+
 	@echo "$(TO) GDAL was configured!"
-	
+
 configure_proj:
-	@echo "$(TO) PROJ Configuring..." 	
+	@echo "$(TO) PROJ Configuring..."
 	@if [[ -d "$(BUILD_ROOT)/proj-build" ]]; then rm -r "$(BUILD_ROOT)/proj-build"; fi;
 	@if [[ -d "$(PROJ_ROOT)/test" ]]; then rm -r "$(PROJ_ROOT)/test"; fi;
 	-mkdir -p $(PROJ_CMAKE_TMP)
 	@cd $(PROJ_CMAKE_TMP) && \
 		cmake $(PROJ_ROOT) \
-        	-DCMAKE_BUILD_TYPE=Release \
+			-DCMAKE_BUILD_TYPE=Release \
 			-DCMAKE_MAKE_PROGRAM=make \
 			-DCMAKE_C_FLAGS="-Wno-deprecated-declarations" \
 			-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" \
 			-DCMAKE_INSTALL_PREFIX=$(PROJ_BUILD) \
-        	-DBUILD_TESTING=OFF \
+			-DBUILD_TESTING=OFF \
 			-DBUILD_SHARED_LIBS=ON \
-        	-DENABLE_CURL=ON -DENABLE_TIFF=ON \
+			-DENABLE_CURL=ON -DENABLE_TIFF=ON \
 			-DTIFF_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
 			-DEXE_SQLITE3="$(VCPKG_INSTALLED)/tools/sqlite3" \
 			-DSQLITE3_INCLUDE_DIR="$(VCPKG_INSTALLED)/include" \
@@ -141,8 +141,8 @@ build_%:
 	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j4 --target install || exit 1
 	@echo "$(TO) $(LW) was built successfully!"
 
-reset: reset_proj reset_gdal 
-	@echo "$(TO) Reset ALL is complete" 
+reset: reset_proj reset_gdal
+	@echo "$(TO) Reset ALL is complete"
 
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig:$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig

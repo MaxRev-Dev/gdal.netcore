@@ -2,7 +2,6 @@ include RID.opt
 include ../shared/GdalCore.opt
 
 BUILD_BASE_LIB=$(GDAL_BUILD)/lib
-SHELL=/bin/bash
 
 # output helper
 define \n

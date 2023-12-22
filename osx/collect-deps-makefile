@@ -1,6 +1,6 @@
 include RID.opt
 include ../shared/GdalCore.opt
- 
+
 ifeq ($(RID),)
 RID=osx-arm64
 endif
@@ -33,15 +33,15 @@ $(WRAP_TARGETS): force
 build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 
-linkall: initdirs copy-projdb collect-bindings copy-deps 
+linkall: initdirs copy-projdb collect-bindings copy-deps
 	@echo "Libraries patched successfully"
 
 clean:
 	(cd $(BUILD_BASE) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
 	(cd $(PWD) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
-	
+
 cleanpackages:
-	@if [ -d "$(NUGET_)" ]; then rm -rf "$(NUGET_)"; fi; 
+	@if [ -d "$(NUGET_)" ]; then rm -rf "$(NUGET_)"; fi;
 
 initdirs:
 	rm -rvf $(OUTPUT)/*.*
@@ -49,7 +49,7 @@ initdirs:
 	mkdir -p $(NUGET_)
 
 collect-bindings:
-# copy generatated c# sources to project directory 
+# copy generatated c# sources to project directory
 # to make them available for windows package build
 	@if [ ! -d "$(BUILD_BASE)" ]; then mkdir "$(BUILD_BASE)"; fi;
 	mkdir -p $(BUILD_BASE)/const/ && cp -fRL $(BINDINGS_SOURCE)/const/*.cs  $(BUILD_BASE)/const/
@@ -57,16 +57,16 @@ collect-bindings:
 	mkdir -p $(BUILD_BASE)/osr/ && cp -fRL $(BINDINGS_SOURCE)/osr/*.cs $(BUILD_BASE)/osr/
 	mkdir -p $(BUILD_BASE)/ogr/ && cp -fRL $(BINDINGS_SOURCE)/ogr/*.cs $(BUILD_BASE)/ogr/
 
-copy-deps: 
+copy-deps:
 #	copy gdal library
 	cp -rfL $(GDAL_BUILD)/lib/libgdal.??.dylib $(OUTPUT)/
 #	copy dynamic wrappers
 	cp -rfL $(BUILD_ROOT)/gdal-cmake-temp/swig/csharp/*.dylib $(OUTPUT)/
-#   including all deps installed in this repo
-#   and some external dependencies
-#   1. copy gdal.dylib.XX
+#	including all deps installed in this repo
+#	and some external dependencies
+#	1. copy gdal.dylib.XX
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
-#   3. copy to output
+#	3. copy to output
 
 	dylibbundler -b  \
 		$(addprefix  -x , $(addprefix $(OUTPUT)/,$(notdir $(WRAP_TARGETS)))) \

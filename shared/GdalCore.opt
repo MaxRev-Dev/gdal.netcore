@@ -1,7 +1,7 @@
 
 ##### ----------- gdal.netcore ----------- #####
-##### ------- SHARED CONFIGURATION ------- ##### 
- 
+##### ------- SHARED CONFIGURATION ------- #####
+
 ##### repo root
 ROOTDIR_=$(abspath $(BASE)/..)
 BUILD_NUMBER_TAIL=10
@@ -29,25 +29,20 @@ VCPKG_COMMIT_VER=2023.04.15
 # latest on Nov 23, 2022
 
 # base requirements for both runtimes
-VCPKG_REQUIRE=geos tiff curl 
+VCPKG_REQUIRE=geos tiff curl
 
 # windows runtime now depends on GisInternals SDK
-# we have nothing to install except custom geos and proj 
+# we have nothing to install except custom geos and proj
 VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]"
-VCPKG_REQUIRE_WIN_STATIC= 
+VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
-# NOTE: some of these drivers can be installed from apt as require many boost deps
-# libnetcdf-dev libspatialite-dev librasterlite2-dev libpoppler-dev libmysql++-dev
-# icu-devtools libdeflate-dev libfreexl-dev libfreexl1 libgeos-3.9.0 libgeos-c1v5 libgeos-dev
-# libicu-dev libjbig-dev liblzma-dev libmariadb-dev libmariadb-dev-compat libmariadb3 libmysql++3v5 libproj-dev
-# libproj19 librttopo-dev librttopo1 libspatialite7 libsqlite3-dev libssl-dev libtiff-dev libtiffxx5 libxml2-dev mariadb-common mysql-common proj-data
 VCPKG_REQUIRE_UNIX=
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libmysql
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libmysql libkml
 
 # osx requires the same libs as linux except sqlite3 should link as static
 VCPKG_REQUIRE_OSX="sqlite3[tool,rtree]"
-VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE_UNIX_DYNAMIC) libkml
+VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE_UNIX_DYNAMIC)
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
@@ -57,8 +52,8 @@ VCPKG_INSTALLED_DYNAMIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
 # triplets
 VPCKG_CUSTOM_TRIPLETS=$(VCPKG_ROOT)/custom-triplets
 VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets
-VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --clean-after-build  
-VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse 
+VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --clean-after-build
+VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
 
 # --------------------- !VCPKG! --------------------
 

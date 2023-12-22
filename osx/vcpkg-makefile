@@ -3,7 +3,7 @@
 #
 include RID.opt
 include ../shared/GdalCore.opt
- 
+
 VCPKG=$(abspath $(VCPKG_ROOT))/vcpkg
 
 # lowercase func
@@ -43,26 +43,26 @@ pull:
 	fi;
 
 bootstrap: checkout_ver
-	cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh || exit 1; 
+	cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh || exit 1;
 
 install_vcpkg: pull bootstrap
 	@exit 0
-install_requirements: install_vcpkg checkout_ver patch_vcpkg_triplets install_packages 
-	@exit 0 
-install_requirements_only: patch_vcpkg_triplets install_packages 
+install_requirements: install_vcpkg checkout_ver patch_vcpkg_triplets install_packages
+	@exit 0
+install_requirements_only: patch_vcpkg_triplets install_packages
 	@exit 0
 
 checkout_ver:
-	@echo "$(TO) Checking for remote changes..." 
+	@echo "$(TO) Checking for remote changes..."
 	@cd $(VCPKG_ROOT) && git fetch || exit 1
 	@echo "$(TO) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
 	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force || exit 1
- 
+
 upgrade: checkout_ver
 	$(VCPKG) upgrade $(VCPKG_TRIPLETS_OVERLAY)
-upgrade-force: checkout_ver 
+upgrade-force: checkout_ver
 	$(VCPKG) upgrade --no-dry-run $(VCPKG_TRIPLETS_OVERLAY)
-update: checkout_ver 
+update: checkout_ver
 	$(VCPKG) update $(VCPKG_TRIPLETS_OVERLAY)
 
 $(VCPKG_CLEANUP):
@@ -91,19 +91,18 @@ define VCPKG_TRIPLET_OSX_STATIC_RELEASE
 	set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
 endef
 
-export VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE 
-export VCPKG_TRIPLET_OSX_STATIC_RELEASE 
+export VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE
+export VCPKG_TRIPLET_OSX_STATIC_RELEASE
 
 patch_vcpkg_triplets:
 	@(cd $(VCPKG_ROOT) && mkdir -p custom-triplets)
-	@echo "$$VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE" > $(VCPKG_ROOT)/custom-triplets/$(VCPKG_RID)-dynamic.cmake 
-	@echo "$$VCPKG_TRIPLET_OSX_STATIC_RELEASE" > $(VCPKG_ROOT)/custom-triplets/$(VCPKG_RID).cmake 
+	@echo "$$VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE" > $(VCPKG_ROOT)/custom-triplets/$(VCPKG_RID)-dynamic.cmake
+	@echo "$$VCPKG_TRIPLET_OSX_STATIC_RELEASE" > $(VCPKG_ROOT)/custom-triplets/$(VCPKG_RID).cmake
 
-install_packages: 
-	@$(foreach pack,$(VCPKG_REQUIRE_OSX),$(VCPKG) install $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL);) 
-	@$(foreach pack,$(VCPKG_REQUIRE_OSX_DYNAMIC),$(VCPKG) install $(pack):$(VCPKG_RID)-dynamic  $(VCPKG_PARAMS_INSTALL);) 
+install_packages:
+	@$(foreach pack,$(VCPKG_REQUIRE_OSX),$(VCPKG) install $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL);)
+	@$(foreach pack,$(VCPKG_REQUIRE_OSX_DYNAMIC),$(VCPKG) install $(pack):$(VCPKG_RID)-dynamic  $(VCPKG_PARAMS_INSTALL);)
 
-remove_packages: 
-	@$(foreach pack,$(VCPKG_REQUIRE_OSX), $(VCPKG) remove $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE);) 
-	@$(foreach pack,$(VCPKG_REQUIRE_OSX_DYNAMIC), $(VCPKG) remove $(pack):$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_REMOVE);) 
-	 
+remove_packages:
+	@$(foreach pack,$(VCPKG_REQUIRE_OSX), $(VCPKG) remove $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE);)
+	@$(foreach pack,$(VCPKG_REQUIRE_OSX_DYNAMIC), $(VCPKG) remove $(pack):$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_REMOVE);)
