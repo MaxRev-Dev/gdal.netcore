@@ -26,13 +26,13 @@ ARG BUILDPLATFORM
 
 RUN if [ $TARGETPLATFORM = "linux/arm64" ]; \
     then \
-        echo "ARCH=arm64" >> /tmp/gdal-netcore-arch; \
+        echo "BUILD_ARCH=arm64" >> /tmp/gdal-netcore-arch; \
         echo "VCPKG_FORCE_SYSTEM_BINARIES=1" >> /tmp/gdal-netcore-env; \
     fi
 
 RUN if [ $TARGETPLATFORM = "linux/amd64" ]; \
     then \
-        echo "ARCH=amd64" >> /tmp/gdal-netcore-arch; \
+        echo "BUILD_ARCH=amd64" >> /tmp/gdal-netcore-arch; \
     fi
 
 # env DOTNET_SYSTEM_GLOBALIZATION_INVARIANT is a workaround on https://github.com/dotnet/runtime/issues/71275

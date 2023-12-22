@@ -5,13 +5,13 @@
 #
 BASE=$(PWD)
 BASE_RUNTIME_RID=unix
-ARCH=arm64
-VCPKG_RID=$(ARCH)-linux
+BUILD_ARCH=arm64
+VCPKG_RID=$(BUILD_ARCH)-linux
 
 RUNTIME_PROJECT_NAME=gdalcore.linuxruntime.csproj
 
 # .NET RID
-RID=linux-$(ARCH)
+RID=linux-$(BUILD_ARCH)
 SWIG=swig
 SHELL=/bin/bash
 
