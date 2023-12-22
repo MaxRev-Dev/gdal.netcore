@@ -80,7 +80,7 @@ HDF_zip=CMake-hdf-$(HDF_VERSION).zip
 HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)
 
 download_hdf:
-	curl -o "$(BUILD_ROOT)/$(HDF_zip).zip" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF$(HDF_VERSION)/src/$(HDF_zip).zip"
+	curl -o "$(BUILD_ROOT)/$(HDF_zip)" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF$(HDF_VERSION)/src/$(HDF_zip)"
 	mkdir -p "$(BUILD_ROOT)/hdf-source"
 	unzip "$(BUILD_ROOT)/$(HDF_zip)" -d "$(BUILD_ROOT)/hdf-source"
 
