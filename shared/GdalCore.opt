@@ -25,7 +25,7 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=f30434939d5516ce764c549ab04e3d23d312180a
+VCPKG_COMMIT_VER=2023.12.12
 
 # base requirements for both runtimes
 VCPKG_REQUIRE=geos tiff curl
@@ -37,7 +37,7 @@ VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
 VCPKG_REQUIRE_UNIX=
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libmysql libkml
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" openssl zlib expat xerces-c netcdf-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libmysql libkml
 
 # osx requires the same libs as linux except sqlite3 should link as static
 VCPKG_REQUIRE_OSX="sqlite3[tool,rtree]"
