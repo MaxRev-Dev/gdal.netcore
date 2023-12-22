@@ -11,33 +11,30 @@ param (
     [int] $buildNumberTail = 10 # build number for csharp bindings
 )
 
-# reset previous imports
-Remove-Module *
 # using predefined set of helper functions
 Import-Module (Resolve-Path "functions.psm1") -Force
-# reset session
-Reset-PsSession
 
 Import-Module (Resolve-Path "partials.psm1") -Force
 
 Push-Location -StackName "gdal.netcore|root"
 
 #$existingVariables = Get-Variable
-try { 
+try {
     $ErrorActionPreference = 'Stop'
     # $ConfirmPreference = 'Low'
     # $VerbosePreference = Continue
-    Install-PwshModuleRequirements 
+    Install-PwshModuleRequirements
 
     $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
     $env:7Z_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\7z")
     Add-EnvPath $env:7Z_ROOT
 
     $env:VCPKG_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
-    Add-EnvPath $env:VCPKG_ROOT 
+    Add-EnvPath $env:VCPKG_ROOT
+    Get-7ZipInstallation
 
     Get-VcpkgInstallation -bootstrapVcpkg $bootstrapVcpkg
-    
+
     Set-GdalVariables
 
     Write-BuildStep "Setting Visual Studio Environment"
@@ -45,13 +42,12 @@ try {
     Write-BuildStep "Visual Studio Environment was initialized"
 
     Install-VcpkgPackagesSharedConfig $installVcpkgPackages
-    
-    Get-7ZipInstallation
+
     Get-GdalSdkIsAvailable
     Resolve-GdalThidpartyLibs
-    
-    Install-Proj -cleanProjBuild $cleanProjBuild -cleanProjIntermediate $cleanProjIntermediate 
-    
+
+    Install-Proj -cleanProjBuild $cleanProjBuild -cleanProjIntermediate $cleanProjIntermediate
+
     Get-ProjDatum
 
     Reset-GdalSourceBindings
@@ -63,12 +59,12 @@ try {
     $buildNumber = $buildNumberTail + 100
     $env:GDAL_PACKAGE_VERSION = "$env:GDAL_VERSION.$buildNumber"
     Build-CsharpBindings -isDebug $isDebug -packageVersion $env:GDAL_PACKAGE_VERSION
-} 
+}
 catch
 {
     Write-BuildError "Something threw an exception"
     Write-Output $_
-    
+
     $host.SetShouldExit(-1)
     throw
 }
