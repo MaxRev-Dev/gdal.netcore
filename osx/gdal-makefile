@@ -101,7 +101,7 @@ configure_hdf:
 	@if [[ -d "$(BUILD_ROOT)/hdf-build" ]]; then rm -r "$(BUILD_ROOT)/hdf-build"; fi;
 
 	-mkdir -p $(HDF_CMAKE_TMP)
-	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE)/hdf-$(HDF_VERSION) \
+	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_FLAGS="-Wno-dev" \
