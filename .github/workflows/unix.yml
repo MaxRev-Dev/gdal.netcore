@@ -1,4 +1,4 @@
-name: MacOS Build
+name: Linux Build
 
 on:
   push:
@@ -17,91 +17,59 @@ env:
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
 
 jobs:
-  BuildNugetPackages-MacOS:
+  BuildNugetPackages-Linux:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
+        os: [linux-x64, linux-arm64]
         include:
-          - os: self-hosted-macos-arm64
+          - os: linux-x64
+            arch: x64
+          - os: linux-arm64
             arch: arm64
-          - os: self-hosted-macos-x64
-             arch: x64
 
-    runs-on: ${{ matrix.os }}
+    runs-on: linux-x64
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
-        working-directory: osx
+        working-directory: unix
 
     steps:
       - uses: actions/checkout@v3.0.0
         with:
           fetch-depth: 0
 
-      - name: Restore cached packages
-        id: build-packages-cache-restore
-        uses: actions/cache/restore@v3
-        with:
-          path: |
-            ${{ github.workspace }}/build-osx
-            ${{ github.workspace }}/.dotnet
-          key: ${{ runner.os }}-packages
-
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '7.0.x'
-
-      - name: Fetch VCPKG packages
+      - name: Build docker image
         run: |
-          make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
+          docker build --platform ${{ matrix.os }} --progress=plain -t maxrev-dev/gdal.netcore.builder:latest -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' ${{ github.workspace }}
 
-      - name: Compile PROJ
+      - name: Extract packages
         run: |
-          make -f gdal-makefile proj BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Compile GDAL
-        run: |
-          make -f gdal-makefile gdal BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Collect deps
-        run: |
-          make -f collect-deps-makefile BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Create packages
-        run: |
-          make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          docker create --name tmpcontainer maxrev-dev/gdal.netcore.builder:latest
+          docker cp tmpcontainer:/build/nuget '${{ github.workspace }}/nuget'
+          docker rm -f tmpcontainer
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: osx-packages
+          name: unix-packages
           path: nuget/*.nupkg
 
-      - name: Save packages cache
-        id: build-packages-cache-save
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            ${{ github.workspace }}/build-osx
-            ${{ github.workspace }}/.dotnet
-          key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
-
-  TestAndPushPackages-MacOS:
+  TestAndPushPackages-Linux:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
+       # os: [self-hosted-linux-arm64,self-hosted-linux-x64]
+        os: [linux-x64]
         include:
-          - os: self-hosted-macos-arm64
-            arch: arm64
-          - os: self-hosted-macos-x64
+          - os: x64
             arch: x64
-    needs: BuildNugetPackages-MacOS
+          # - os: self-hosted-linux-x64
+          #   arch: x64
+    needs: BuildNugetPackages-Linux
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
-        working-directory: osx
+        working-directory: unix
 
     steps:
       - uses: actions/checkout@v3.0.0
@@ -111,7 +79,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: osx-packages
+          name: unix-packages
           path: nuget/
 
       - name: NuGet - Update credentials

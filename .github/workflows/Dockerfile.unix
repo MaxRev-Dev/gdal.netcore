@@ -1,0 +1,67 @@
+FROM debian:11 as base
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl zip unzip tar git wget \
+    pkg-config \
+    ninja-build \
+    autoconf libtool autoconf-archive libudev-dev \
+    python3 python3-pip \
+    linux-libc-dev \
+    libhdf4-dev libnetcdf-dev linux-libc-dev \
+    swig patchelf
+
+# install cmake latest
+RUN pip install cmake --upgrade
+
+ARG DOTNET_VERSION=8.0
+# install dotnet
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet \
+    && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+
+FROM base as build
+
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+RUN if [ $TARGETPLATFORM = "linux/arm64" ]; \
+    then \
+        echo "ARCH=arm64" >> /tmp/gdal-netcore-arch; \
+        echo "VCPKG_FORCE_SYSTEM_BINARIES=1" >> /tmp/gdal-netcore-env; \
+    fi
+
+RUN if [ $TARGETPLATFORM = "linux/amd64" ]; \
+    then \
+        echo "ARCH=amd64" >> /tmp/gdal-netcore-arch; \
+    fi
+
+# env DOTNET_SYSTEM_GLOBALIZATION_INVARIANT is a workaround on https://github.com/dotnet/runtime/issues/71275
+# env DOTNET_EnableWriteXorExecute=0 is a workaround on https://github.com/dotnet/runtime/issues/80733
+
+RUN if [ $BUILDPLATFORM = "linux/arm64" ]; \
+    then \
+        echo "DOTNET_EnableWriteXorExecute=0" >> /tmp/gdal-netcore-env; \
+    fi
+
+RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
+
+WORKDIR /build/unix
+
+COPY shared /build/shared
+COPY unix /build/unix
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
+
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile proj $(cat /tmp/gdal-netcore-arch)
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile gdal DOTNET_VERSION=$DOTNET_VERSION $(cat /tmp/gdal-netcore-arch)
+
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f collect-deps-makefile $(cat /tmp/gdal-netcore-arch)
+
+COPY . /build
+
+ARG BUILD_NUMBER_TAIL
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
