@@ -20,14 +20,15 @@ jobs:
   BuildNugetPackages-Linux:
     strategy:
       matrix:
-        os: [linux/amd64, linux/arm64]
         include:
           - os: linux/amd64
             arch: x64
+            actions-runner: self-hosted-linux-x64
           - os: linux/arm64
             arch: arm64
+            actions-runner: self-hosted-linux-arm64
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.actions-runner }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
@@ -45,7 +46,7 @@ jobs:
 
       - name: Build docker image
         run: |
-          docker buildx build --platform=${{ matrix.os }} --progress=plain -t maxrev-dev/gdal.netcore.builder:latest -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' ${{ github.workspace }}
+          docker buildx build --load --platform=${{ matrix.os }} --progress=plain -t maxrev-dev/gdal.netcore.builder:latest -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' ${{ github.workspace }}
 
       - name: Extract packages
         run: |
