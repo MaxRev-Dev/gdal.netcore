@@ -72,6 +72,7 @@ copy-deps:
 		$(addprefix  -x , $(addprefix $(OUTPUT)/,$(notdir $(WRAP_TARGETS)))) \
 		-s ${VCPKG_INSTALLED_DYNAMIC}/lib \
 		-s $(PROJ_BUILD)/lib \
+		-s $(HDF_BUILD)/lib \
 		-cd -d $(OUTPUT)/ -p "@loader_path/"
 
 copy-projdb:

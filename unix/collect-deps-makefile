@@ -54,7 +54,7 @@ copy-deps:
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
 #   3. copy to output
 	ls $(OUTPUT)/ | grep -P 'libgdal.so.(?:\d+)' | \
-			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib xargs -I {} \
+			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib:$(HDF_BUILD)/lib xargs -I {} \
 			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)
 	-rm $(OUTPUT)/libpthread.*
 
