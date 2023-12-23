@@ -45,7 +45,7 @@ jobs:
 
       - name: Build docker image
         run: |
-          docker buildx build --platform=${{ matrix.os }} --progress=plain -t maxrev-dev/gdal.netcore.builder:latest -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' ${{ github.workspace }}
+          docker build --platform=${{ matrix.os }} --progress=plain -t maxrev-dev/gdal.netcore.builder:latest -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' ${{ github.workspace }}
 
       - name: Extract packages
         run: |
