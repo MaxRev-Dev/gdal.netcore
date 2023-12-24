@@ -23,10 +23,10 @@ jobs:
         include:
           - os: linux/amd64
             arch: x64
-            actions-runner: self-hosted-linux-x64
+            actions-runner: self-hosted-macos-x64
           - os: linux/arm64
             arch: arm64
-            actions-runner: self-hosted-linux-arm64
+            actions-runner: self-hosted-macos-arm64
 
     runs-on: ${{ matrix.actions-runner }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
