@@ -52,7 +52,8 @@ jobs:
         uses: Homebrew/actions/setup-homebrew@master
 
       - name: Install CMake
-        uses: lukka/get-cmake@latest
+        run: |
+          python3 -m pip install cmake
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
