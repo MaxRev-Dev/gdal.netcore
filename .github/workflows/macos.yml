@@ -45,7 +45,7 @@ jobs:
           path: |
             ${{ github.workspace }}/build-osx
             ${{ github.workspace }}/.dotnet
-          key: ${{ runner.os }}-packages
+          key: ${{ runner.os }}-packages-${{ matrix.os }}
 
       - name: Set up Homebrew
         id: set-up-homebrew
@@ -127,6 +127,11 @@ jobs:
         with:
           name: osx-packages
           path: nuget/
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
 
       - name: NuGet - Update credentials
         run: |
