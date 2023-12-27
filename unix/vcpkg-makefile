@@ -84,6 +84,11 @@ define VCPKG_TRIPLET_LINUX_DYNAMIC_RELEASE
 	set(VCPKG_LIBRARY_LINKAGE dynamic)
 	set(VCPKG_BUILD_TYPE release)
 	set(VCPKG_CMAKE_SYSTEM_NAME Linux)
+	if(PORT STREQUAL "libmysql")
+		list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS
+			-DHAVE_SUPPORTED_CLANG_VERSION_EXITCODE=
+		)
+	endif()
 endef
 
 define VCPKG_TRIPLET_LINUX_STATIC_RELEASE
@@ -103,7 +108,7 @@ patch_vcpkg_triplets:
 	@echo "$$VCPKG_TRIPLET_LINUX_STATIC_RELEASE" > $(VCPKG_ROOT)/custom-triplets/$(VCPKG_RID).cmake
 
 install_packages:
-	@$(foreach pack,$(VCPKG_REQUIRE_UNIX),$(VCPKG) install --debug $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL);)
+	@$(foreach pack,$(VCPKG_REQUIRE_UNIX),$(VCPKG) install $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL);)
 	@$(foreach pack,$(VCPKG_REQUIRE_UNIX_DYNAMIC),$(VCPKG) install $(pack):$(VCPKG_RID)-dynamic  $(VCPKG_PARAMS_INSTALL);)
 
 remove_packages:

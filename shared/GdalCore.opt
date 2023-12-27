@@ -36,8 +36,8 @@ VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]"
 VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
-VCPKG_REQUIRE_UNIX="libmysql[tools]"
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" openssl zlib expat xerces-c netcdf-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml
+VCPKG_REQUIRE_UNIX=
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" openssl zlib expat xerces-c netcdf-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libmysql
 
 # osx requires the same libs as linux except sqlite3 should link as static
 VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX)
