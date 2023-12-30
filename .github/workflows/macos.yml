@@ -59,12 +59,13 @@ jobs:
         with:
           dotnet-version: '7.0.x'
 
-      - name: Install VCPKG
+      - name: Install deps
         run: |
           ${{ github.workspace }}/osx/before-install.sh
 
       - name: Fetch VCPKG packages
         run: |
+          make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }} build_cleanup
           make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
 
       - name: Compile HDF
