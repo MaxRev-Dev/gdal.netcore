@@ -16,7 +16,7 @@ REP = $(shell echo '$*' | sed "s/-force//g")
 TO = $(PRE) VCPKG |
 SHELL=/bin/bash
 
-all: install_vcpkg install_requirements
+all: install_vcpkg build_cleanup install_requirements
 	@exit 0
 force: $(addsuffix -force, $(TARGETS))
 	@exit 0
