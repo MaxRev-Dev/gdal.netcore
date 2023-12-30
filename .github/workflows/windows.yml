@@ -14,7 +14,6 @@ concurrency:
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
-  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
 
 jobs:
   BuildNugetPackages-Windows:

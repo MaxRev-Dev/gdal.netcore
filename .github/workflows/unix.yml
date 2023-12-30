@@ -57,19 +57,19 @@ jobs:
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: unix-packages
+          name: unix-packages-${{ matrix.arch }}
           path: nuget/*.nupkg
 
   TestAndPushPackages-Linux:
     strategy:
       matrix:
-       # os: [self-hosted-linux-arm64,self-hosted-linux-x64]
-        os: [linux/amd64]
         include:
           - os: linux/amd64
             arch: x64
-          # - os: self-hosted-linux-x64
-          #   arch: x64
+            actions-runner: self-hosted-macos-x64
+          - os: linux/arm64
+            arch: arm64
+            actions-runner: self-hosted-macos-arm64
     needs: BuildNugetPackages-Linux
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
@@ -85,7 +85,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: unix-packages
+          name: unix-packages-${{ matrix.arch }}
           path: nuget/
 
       - name: NuGet - Update credentials
