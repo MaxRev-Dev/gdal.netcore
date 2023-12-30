@@ -71,7 +71,7 @@ jobs:
             arch: arm64
             actions-runner: self-hosted-macos-arm64
     needs: BuildNugetPackages-Linux
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.actions-runner }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
