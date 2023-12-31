@@ -44,6 +44,7 @@ jobs:
           path: |
             ${{ github.workspace }}/build-osx
             ${{ github.workspace }}/.dotnet
+            /root/.cache/vcpkg/archives
           key: ${{ runner.os }}-packages-${{ matrix.os }}
 
       - name: Set up Homebrew
@@ -101,6 +102,7 @@ jobs:
           path: |
             ${{ github.workspace }}/build-osx
             ${{ github.workspace }}/.dotnet
+            /root/.cache/vcpkg/archives
           key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
   TestAndPushPackages-MacOS:

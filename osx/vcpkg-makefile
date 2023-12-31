@@ -95,6 +95,7 @@ endef
 
 export VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE
 export VCPKG_TRIPLET_OSX_STATIC_RELEASE
+export MAKELEVEL=0
 
 patch_vcpkg_triplets:
 	@(cd $(VCPKG_ROOT) && mkdir -p custom-triplets)
