@@ -88,6 +88,11 @@ jobs:
           name: unix-packages-${{ matrix.arch }}
           path: nuget/
 
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '7.0.x'
+
       - name: NuGet - Update credentials
         run: |
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
