@@ -46,7 +46,11 @@ jobs:
 
       - name: Build docker image
         run: |
-          docker buildx build --load --platform=${{ matrix.os }} --progress=plain -t maxrev-dev/gdal.netcore.builder:latest -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' ${{ github.workspace }}
+          docker buildx build --load --platform=${{ matrix.os }} \
+            --build-arg  BUILD_NUMBER_TAIL=${{ github.run_number }} \
+            --progress=plain -t maxrev-dev/gdal.netcore.builder:latest \
+            -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' \
+            ${{ github.workspace }}
 
       - name: Extract packages
         run: |
@@ -70,6 +74,7 @@ jobs:
           - os: linux/arm64
             arch: arm64
             actions-runner: self-hosted-macos-arm64
+
     needs: BuildNugetPackages-Linux
     runs-on: ${{ matrix.actions-runner }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"

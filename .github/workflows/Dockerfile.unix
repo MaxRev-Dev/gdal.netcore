@@ -49,6 +49,7 @@ WORKDIR /build/unix
 
 COPY shared /build/shared
 COPY unix /build/unix
+
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
 
