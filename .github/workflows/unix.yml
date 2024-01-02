@@ -93,22 +93,22 @@ jobs:
           name: unix-packages-${{ matrix.arch }}
           path: nuget/
 
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
         with:
-          dotnet-version: '7.0.x'
+          buildkitd-flags: --debug
 
-      - name: NuGet - Update credentials
+      - name: Build docker image
         run: |
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
-          dotnet nuget remove source local || true
-          dotnet nuget remove source local.ci || true
-          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci
-
+          docker buildx build --load --platform=${{ matrix.os }} \
+            --build-arg  BUILD_NUMBER_TAIL=${{ github.run_number }} \
+            --progress=plain -t maxrev-dev/gdal.netcore.tester:latest \
+            -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' \
+            ${{ github.workspace }}
+            
       - name: Test packages
         run: |
-          make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          docker run -it maxrev-dev/gdal.netcore.tester:latest
 
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

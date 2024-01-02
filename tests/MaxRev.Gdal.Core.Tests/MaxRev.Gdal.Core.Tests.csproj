@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Platform>x64</Platform>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <StartupObject>GdalCoreTest.Program</StartupObject>
-    <Platforms>x64</Platforms>
+    <Platforms>arm64;x64</Platforms>
     <RootNamespace>MaxRev.Gdal.Core.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
