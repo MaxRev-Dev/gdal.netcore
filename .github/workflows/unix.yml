@@ -108,7 +108,7 @@ jobs:
 
       - name: Test packages
         run: |
-          docker run -it maxrev-dev/gdal.netcore.tester:latest
+          docker run -at maxrev-dev/gdal.netcore.tester:latest
 
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
