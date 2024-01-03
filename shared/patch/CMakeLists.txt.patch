@@ -7,25 +7,25 @@ index 9e3e91a243..b327dc97f6 100644
 +option(GDAL_CSHARP_APPS "Build C# apps" OFF)
 +option(GDAL_CSHARP_TESTS "Build C# tests" OFF)
 +option(GDAL_CSHARP_BUILD_NUPKG "Build C# tests" OFF)
- 
+
  if (GDAL_CSHARP_ONLY)
    find_package(GDAL REQUIRED)
 @@ -18,10 +21,10 @@ set(GDAL_CSHARP_INSTALL_DIR
- 
+
  if (DOTNET_FOUND)
    set(CSHARP_LIBRARY_VERSION
 -      "net6.0"
-+      "net7.0"
++      "net8.0"
        CACHE STRING ".NET version to be used for libraries")
    set(CSHARP_APPLICATION_VERSION
 -      "net6.0"
-+      "net7.0"
++      "net8.0"
        CACHE STRING ".NET version to be used for the sample Applications")
  else ()
    set(CSHARP_LIBRARY_VERSION
 @@ -278,8 +281,10 @@ function (gdal_csharp_dll)
    endif ()
- 
+
    set(_CSHARP_IMPORTS ${CMAKE_CURRENT_BINARY_DIR}/${_CSHARP_TARGET_SUBDIR}/${_CSHARP_TARGET})
 -  if (DOTNET_FOUND)
 -    list(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${_PACKAGE_NAME}.${_VERSION_STRING}.nupkg)
@@ -34,29 +34,29 @@ index 9e3e91a243..b327dc97f6 100644
 +      list(APPEND ${CMAKE_CURRENT_BINARY_DIR}/${_PACKAGE_NAME}.${_VERSION_STRING}.nupkg)
 +    endif ()
    endif ()
- 
+
    install(
 @@ -373,7 +378,7 @@ set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "gdal;ogr;osr;co
- 
+
  # ######################################################################################################################
  # sample commands
 -
 +if (GDAL_CSHARP_APPS)
  function (gdal_build_csharp_sample)
- 
+
    # setup arguments
 @@ -736,6 +741,7 @@ gdal_build_csharp_sample(
    osr_csharp
    SYSTEM_DEPENDS
    OSGeo.OGR)
 +endif()
- 
+
  # Custom Target to make the C# wrap Libraries and use SWIG to build the .cs files
  add_custom_target(csharp_interface DEPENDS gdalconst_wrap osr_wrap ogr_wrap gdal_wrap)
 @@ -743,6 +749,7 @@ add_custom_target(csharp_interface DEPENDS gdalconst_wrap osr_wrap ogr_wrap gdal
  # Custom Target to make the c# bindings - will be run as part of ALL but can also be built separately
  add_custom_target(csharp_binding ALL DEPENDS csharp_interface OSGeo.GDAL.CONST OSGeo.GDAL OSGeo.OGR OSGeo.OSR)
- 
+
 +if (GDAL_BUILD_CSHARP_APPS)
  # Custom Target to build the C# bindings and the sample binaries
  add_custom_target(
@@ -66,7 +66,7 @@ index 9e3e91a243..b327dc97f6 100644
            OSGeo.GDAL.Samples.OGRFeatureEdit
            OSGeo.GDAL.Samples.GetCRSInfo.exe)
 +endif()
- 
+
  # set up the tests
 +if (GDAL_CSHARP_TESTS)
 +  include(GdalSetRuntimeEnv)
@@ -82,7 +82,7 @@ index 9e3e91a243..b327dc97f6 100644
 +    list(APPEND TEST_ENV "MONO_PATH=${_MONO_PATH}")
 +    set(_ex ".exe")
 +  endif ()
- 
+
 -include(GdalSetRuntimeEnv)
 -gdal_set_runtime_env(TEST_ENV)
 -
