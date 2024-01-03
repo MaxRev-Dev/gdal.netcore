@@ -14,6 +14,7 @@ concurrency:
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
   BuildNugetPackages-Windows:
@@ -43,7 +44,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Compile GDAL and create packages
         id: compile-source
@@ -90,6 +91,11 @@ jobs:
         with:
           name: win-packages
           path: nuget/
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: NuGet - Update credentials
         run: |

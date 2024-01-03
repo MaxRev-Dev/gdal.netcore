@@ -14,6 +14,7 @@ concurrency:
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
   BuildNugetPackages-MacOS:
@@ -58,7 +59,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install deps
         run: |
@@ -135,7 +136,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: NuGet - Update credentials
         run: |
