@@ -49,7 +49,7 @@ jobs:
           docker buildx build --load --platform=${{ matrix.os }} \
             --build-arg  BUILD_NUMBER_TAIL=${{ github.run_number }} \
             --progress=plain -t maxrev-dev/gdal.netcore.builder:latest \
-            -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix' \
+            -f '${{ github.workspace }}/ci/Dockerfile.unix' \
             ${{ github.workspace }}
 
       - name: Extract packages
@@ -102,7 +102,7 @@ jobs:
         run: |
           docker buildx build --load --platform=${{ matrix.os }} \
             --progress=plain -t maxrev-dev/gdal.netcore.tester:latest \
-            -f '${{ github.workspace }}/.github/workflows/Dockerfile.unix.test' \
+            -f '${{ github.workspace }}/ci/Dockerfile.unix.test' \
             ${{ github.workspace }}
 
       - name: Test packages
