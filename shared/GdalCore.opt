@@ -28,7 +28,7 @@ VCPKG_REPO=https://github.com/microsoft/vcpkg.git
 VCPKG_COMMIT_VER=2023.12.12
 
 # base requirements for both runtimes
-VCPKG_REQUIRE=geos tiff curl
+VCPKG_REQUIRE=geos tiff "curl[brotli]"
 VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c netcdf-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libmysql libpng libjxl
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj
