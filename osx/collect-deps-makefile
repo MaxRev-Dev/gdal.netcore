@@ -73,6 +73,7 @@ copy-deps:
 		-s ${VCPKG_INSTALLED_DYNAMIC}/lib \
 		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
+		-i "/opt/homebrew/opt/jpeg-xl/lib" \
 		-cd -d $(OUTPUT)/ -p "@loader_path/"
 
 copy-projdb:
