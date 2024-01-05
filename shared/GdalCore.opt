@@ -25,22 +25,22 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=2023.12.12
+VCPKG_COMMIT_VER=master
 
 # base requirements for both runtimes
-VCPKG_REQUIRE=geos tiff curl
-VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c netcdf-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libmysql libpng libjxl
+VCPKG_REQUIRE=geos tiff
+VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c netcdf-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml "icu[core,tools]" libmysql libpng "libjxl[tools]"
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" curl
 VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
 VCPKG_REQUIRE_UNIX=
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[tool,rtree]" curl 
 
 # osx requires the same libs as linux except sqlite3 should link as static
-VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX) "sqlite3[tool,rtree]" curl
+VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX) "sqlite3[tool,rtree]" curl 
 VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC)
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
@@ -51,7 +51,7 @@ VCPKG_INSTALLED_DYNAMIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
 # triplets
 VPCKG_CUSTOM_TRIPLETS=$(VCPKG_ROOT)/custom-triplets
 VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets
-VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --clean-after-build
+VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --no-print-usage
 VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
 
 # --------------------- !VCPKG! --------------------

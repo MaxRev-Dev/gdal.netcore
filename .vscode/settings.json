@@ -4,5 +4,5 @@
         "*makefile": "makefile",
         "*.opt": "makefile",
     },
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": false
 }
