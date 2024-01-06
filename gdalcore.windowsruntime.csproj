@@ -31,9 +31,16 @@ Targets win-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1
     <None Include="README.md" Pack="true" PackagePath="/"/>
     <Compile Remove="**/*.cs"></Compile>
     <Compile Remove="tests/**"></Compile>
+    <EmbeddedResource Remove="tests/**" />
     <None Remove="tests/**" />
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
+    <EmbeddedResource Remove="build-osx/**" />
+    <EmbeddedResource Remove="build-win/**" />
+    <EmbeddedResource Remove="build-unix/**" />
+    <Content Remove="build-osx/**" />
+    <Content Remove="build-unix/**" />
+    <Content Remove="build-win/**" />
     <None Include="runtimes/win-x64/**">
       <PackagePath>runtimes/win-x64/</PackagePath>
       <Pack>true</Pack>

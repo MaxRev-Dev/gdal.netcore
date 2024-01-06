@@ -29,9 +29,16 @@ Targets osx-arm64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2
     <Compile Remove="**/*.cs"></Compile>
     <Compile Remove="tests/**" />
     <None Remove="tests/**" />
+    <EmbeddedResource Remove="tests/**" />
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
     <None Remove="build-osx/**" />
+    <EmbeddedResource Remove="build-osx/**" />
+    <EmbeddedResource Remove="build-win/**" />
+    <EmbeddedResource Remove="build-unix/**" />
+    <Content Remove="build-osx/**" />
+    <Content Remove="build-unix/**" />
+    <Content Remove="build-win/**" />
     <None Include="runtimes/osx-$(BUILD_ARCH)/**">
       <PackagePath>runtimes/osx-$(BUILD_ARCH)/</PackagePath>
       <Pack>true</Pack>
