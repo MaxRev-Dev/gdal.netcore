@@ -31,13 +31,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="/"/>
+    <None Include="README.md" Pack="true" PackagePath="/" />
     <None Remove="build-win/**" />
     <None Remove="build-unix/**" />
     <None Remove="build-osx/**" />
+    <EmbeddedResource Remove="build-osx/**" />
+    <EmbeddedResource Remove="build-win/**" />
+    <EmbeddedResource Remove="build-unix/**" />
+    <Content Remove="build-osx/**" />
+    <Content Remove="build-unix/**" />
+    <Content Remove="build-win/**" />
     <None Remove="./*.cs" />
     <None Remove="build/**" />
+    <EmbeddedResource Remove="build/**" />
+    <Content Remove="build/**" />
     <None Remove="tests/**" />
+    <EmbeddedResource Remove="tests/**" />
+    <Content Remove="tests/**" />
     <Compile Remove="./**/*.cs" />
     <Compile Include="compile/**/*.cs" />
     <Compile Include="osx/**/*.cs" />
