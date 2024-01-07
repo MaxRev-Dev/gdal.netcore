@@ -19,8 +19,6 @@ ARG DOTNET_VERSION=8.0
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet \
     && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
-FROM base as build
-
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
 
@@ -45,29 +43,47 @@ RUN if [ $BUILDPLATFORM = "linux/arm64" ]; \
 
 RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
 
+FROM base as build
 WORKDIR /build/unix
+COPY shared/GdalCore.opt /build/shared/
+COPY unix/RID.opt /build/unix/RID.opt
+COPY unix/vcpkg-makefile /build/unix/
+COPY unix/gdal-makefile /build/unix/
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) install_vcpkg
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile $(cat /tmp/gdal-netcore-arch) init_gdal init_proj
 
+FROM --platform=$TARGETPLATFORM base as gdalbuild
+WORKDIR /build/unix
+COPY --from=build /tmp/gdal-netcore-env /tmp/gdal-netcore-env
+COPY --from=build /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
+COPY --from=build /build/build-unix/vcpkg/ /build/build-unix/vcpkg/
 COPY shared /build/shared
 COPY unix /build/unix
-
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
-
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f gdal-makefile proj $(cat /tmp/gdal-netcore-arch)
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f gdal-makefile gdal DOTNET_VERSION=$DOTNET_VERSION $(cat /tmp/gdal-netcore-arch)
+    make -f gdal-makefile gdal DOTNET_VERSION=$DOTNET_VERSION $(cat /tmp/gdal-netcore-arch) 
 
+FROM --platform=$TARGETPLATFORM base as collector
+WORKDIR /build/unix
+COPY --from=build /tmp/gdal-netcore-env /tmp/gdal-netcore-env
+COPY --from=build /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
+COPY --from=gdalbuild /build/build-unix/ /build/build-unix/
+COPY shared /build/shared
+COPY unix /build/unix
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f collect-deps-makefile $(cat /tmp/gdal-netcore-arch)
 
-COPY . /build
-
 ARG BUILD_NUMBER_TAIL
+COPY . /build
 RUN rm -rf /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
 
 FROM --platform=$TARGETPLATFORM scratch
-COPY --from=build /build/nuget /build/nuget
+COPY --from=collector /build/nuget /build/nuget
 ENTRYPOINT ["bash"]
