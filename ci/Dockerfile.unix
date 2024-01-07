@@ -64,7 +64,7 @@ RUN set -a && . /tmp/gdal-netcore-env && set +a; \
 COPY . /build
 
 ARG BUILD_NUMBER_TAIL
-RUN rm -r /build/nuget
+RUN rm -rf /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
 
