@@ -46,7 +46,9 @@ pull: ## pull the package
 	fi;
 
 bootstrap: checkout_ver
-	cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh || exit 1;
+	@if [ ! -f "$(VCPKG_ROOT)/vcpkg" ]; then \
+		cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh || exit 1; \
+	fi;
 
 install_vcpkg: pull bootstrap
 	@exit 0
