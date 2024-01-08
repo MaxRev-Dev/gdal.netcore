@@ -2,10 +2,9 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>MaxRev.Gdal.Core.Tests.XUnit</RootNamespace>
-    <Platform>x64</Platform>
     <NoWarn>NU1605</NoWarn>
     <IsPackable>false</IsPackable>
-    <Platforms>arm64;x64</Platforms>
+    <Platforms>x64;arm64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MaxRev.Gdal.Core" Version="3.7.0.*" />

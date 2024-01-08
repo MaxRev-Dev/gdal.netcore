@@ -34,5 +34,5 @@ COPY nuget /build/nuget
 COPY tests /build/tests
 
 ARG BUILD_NUMBER_TAIL
-# ENTRYPOINT set -a && . /tmp/gdal-netcore-env && set +a; \
-#     make -f test-makefile $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
+ENTRYPOINT set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f test-makefile $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
