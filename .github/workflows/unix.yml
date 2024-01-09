@@ -58,18 +58,18 @@ jobs:
         run: |
           docker buildx build --load --platform=${{ matrix.os }} \
             --build-arg  BUILD_NUMBER_TAIL=${{ github.run_number }} \
-            --progress=plain -t maxrev-dev/gdal.netcore.builder:latest \
+            --progress=plain -t maxrev-dev/gdal.netcore.builder.${{ matrix.arch }}:latest \
             -f '${{ github.workspace }}/ci/Dockerfile.unix' \
             ${{ github.workspace }}
 
       - name: Extract artifacts and cache
         run: |
-          docker create --name tmpcontainer maxrev-dev/gdal.netcore.builder:latest
-          docker cp tmpcontainer:/build/nuget '${{ github.workspace }}/nuget'
-          docker cp tmpcontainer:/build/build-unix '${{ github.workspace }}/ci/cache/build-unix'
-          docker cp tmpcontainer:/usr/share/dotnet  '${{ github.workspace }}/ci/cache/dotnet'
-          docker cp tmpcontainer:/root/.cache/vcpkg/archives '${{ github.workspace }}/ci/cache/vcpkg/archives'
-          docker rm -f tmpcontainer
+          docker create --name tmpcontainer-${{ matrix.arch }} maxrev-dev/gdal.netcore.builder.${{ matrix.arch }}:latest
+          docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
+          docker cp tmpcontainer-${{ matrix.arch }}:/build/build-unix '${{ github.workspace }}/ci/cache/build-unix'
+          docker cp tmpcontainer-${{ matrix.arch }}:/usr/share/dotnet  '${{ github.workspace }}/ci/cache/dotnet'
+          docker cp tmpcontainer-${{ matrix.arch }}:/root/.cache/vcpkg/archives '${{ github.workspace }}/ci/cache/vcpkg/archives'
+          docker rm -f tmpcontainer-${{ matrix.arch }}
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
@@ -124,13 +124,13 @@ jobs:
       - name: Build docker image
         run: |
           docker buildx build --load --platform=${{ matrix.os }} \
-            --progress=plain -t maxrev-dev/gdal.netcore.tester:latest \
+            --progress=plain -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest \
             -f '${{ github.workspace }}/ci/Dockerfile.unix.test' \
             ${{ github.workspace }}
 
       - name: Test packages
         run: |
-          docker run --env BUILD_NUMBER_TAIL=${{ github.run_number }} -t maxrev-dev/gdal.netcore.tester:latest
+          docker run --env BUILD_NUMBER_TAIL=${{ github.run_number }} -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest
 
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
