@@ -15,9 +15,9 @@ RUN apt-get update && apt-get install -y \
 RUN pip install cmake --upgrade
 
 # load cache from previous build
-COPY ci/cache/build-unix*/ /build/build-unix/
-COPY ci/cache/dotnet*/ /usr/share/dotnet/
-COPY ci/cache/vcpkg*/ /root/.cache/vcpkg/archives/
+COPY ci/cache*/build-unix*/ /build/build-unix/
+COPY ci/cache*/dotnet*/ /usr/share/dotnet/
+COPY ci/cache*/vcpkg*/ /root/.cache/vcpkg/archives/
 
 ARG DOTNET_VERSION=8.0
 # install dotnet
