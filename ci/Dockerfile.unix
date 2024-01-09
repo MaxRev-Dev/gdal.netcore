@@ -63,7 +63,7 @@ FROM --platform=$TARGETPLATFORM base as gdalbuild
 WORKDIR /build/unix
 COPY --from=build /tmp/gdal-netcore-env /tmp/gdal-netcore-env
 COPY --from=build /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
-COPY --from=build /build/build-unix/
+COPY --from=gdalbuild /build/build-unix/ /build/build-unix/
 COPY shared /build/shared
 COPY unix /build/unix
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
