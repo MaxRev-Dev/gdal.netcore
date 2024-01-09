@@ -20,7 +20,8 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/.toolstarget
-**/build-*
+!**/build-*
+!**/build-*/**/.git
 **/bin
 **/obj
 **/bindings

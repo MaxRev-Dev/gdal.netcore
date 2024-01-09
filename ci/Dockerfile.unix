@@ -14,6 +14,11 @@ RUN apt-get update && apt-get install -y \
 # install cmake latest
 RUN pip install cmake --upgrade
 
+# load cache from previous build
+COPY ci/cache/build-unix*/ /build/build-unix/
+COPY ci/cache/dotnet*/ /usr/share/dotnet/
+COPY ci/cache/vcpkg*/ /root/.cache/vcpkg/archives/
+
 ARG DOTNET_VERSION=8.0
 # install dotnet
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet \
@@ -85,5 +90,8 @@ RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
 
 FROM --platform=$TARGETPLATFORM scratch
+# copy nuget packages from build
 COPY --from=collector /build/nuget /build/nuget
+# copy cache from build
+COPY --from=gdalbuild /build/build-unix /build/build-unix
 ENTRYPOINT ["bash"]

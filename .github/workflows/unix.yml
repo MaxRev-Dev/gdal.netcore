@@ -39,6 +39,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Restore cached packages
+        id: build-packages-cache-restore
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            ${{ github.workspace }}/build-unix
+            ${{ github.workspace }}/ci/cache/dotnet
+            ${{ github.workspace }}/ci/cache/vcpkg/archives
+          key: ${{ runner.os }}-packages-${{ matrix.os }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
@@ -52,10 +62,13 @@ jobs:
             -f '${{ github.workspace }}/ci/Dockerfile.unix' \
             ${{ github.workspace }}
 
-      - name: Extract packages
+      - name: Extract artifacts and cache
         run: |
           docker create --name tmpcontainer maxrev-dev/gdal.netcore.builder:latest
           docker cp tmpcontainer:/build/nuget '${{ github.workspace }}/nuget'
+          docker cp tmpcontainer:/build/build-unix '${{ github.workspace }}/ci/cache/build-unix'
+          docker cp tmpcontainer:/usr/share/dotnet  '${{ github.workspace }}/ci/cache/dotnet'
+          docker cp tmpcontainer:/root/.cache/vcpkg/archives '${{ github.workspace }}/ci/cache/vcpkg/archives'
           docker rm -f tmpcontainer
 
       - name: Store packages as artifact
@@ -63,6 +76,16 @@ jobs:
         with:
           name: unix-packages-${{ matrix.arch }}
           path: nuget/*.nupkg
+
+      - name: Save packages cache
+        id: build-packages-cache-save
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            ${{ github.workspace }}/build-unix
+            ${{ github.workspace }}/ci/cache/dotnet
+            ${{ github.workspace }}/ci/cache/vcpkg/archives
+          key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
   TestAndPushPackages-Linux:
     strategy:
