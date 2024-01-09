@@ -49,6 +49,8 @@ jobs:
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           context: .
           platforms: ${{ matrix.os }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           
       - name: Extract artifacts and cache
         run: |
