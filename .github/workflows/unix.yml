@@ -10,7 +10,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-#  cancel-in-progress: true
+  cancel-in-progress: true
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
@@ -23,7 +23,7 @@ jobs:
         include:
           - os: linux/amd64
             arch: x64
-            actions-runner: self-hosted-win-x64
+            actions-runner: self-hosted-macos-x64
           - os: linux/arm64
             arch: arm64
             actions-runner: self-hosted-macos-arm64
