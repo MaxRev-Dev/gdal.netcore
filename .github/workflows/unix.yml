@@ -48,6 +48,7 @@ jobs:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           context: .
+          file: ci/Dockerfile.unix
           platforms: ${{ matrix.os }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
