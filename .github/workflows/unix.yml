@@ -56,7 +56,7 @@ jobs:
           key: ${{ runner.os }}-buildx-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-buildx-    
-            
+
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
@@ -90,7 +90,7 @@ jobs:
         uses: docker/build-push-action@v5
         if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
         with:
-          push: true
+          load: true
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           context: .
           file: ci/Dockerfile.unix
@@ -105,7 +105,7 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache       
           
-      - name: Extract artifacts and cache
+      - name: Extract artifacts
         run: |
           docker create --name tmpcontainer-${{ matrix.arch }} ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
@@ -116,6 +116,16 @@ jobs:
         with:
           name: unix-packages-${{ matrix.arch }}
           path: nuget/*.nupkg
+          
+      - name: Push image to registry
+        if: ${{ !contains(matrix.actions-runner, 'self-hosted') }}
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ci/Dockerfile.unix
+          platforms: ${{ matrix.os }}
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
 
   TestAndPushPackages-Linux:
     strategy:
