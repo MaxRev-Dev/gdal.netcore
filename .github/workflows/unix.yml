@@ -81,6 +81,8 @@ jobs:
           context: .
           file: ci/Dockerfile.unix
           platforms: ${{ matrix.os }}
+          build-args: |
+            BUILD_NUMBER_TAIL=${{ github.run_number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
@@ -91,24 +93,21 @@ jobs:
         if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
         with:
           load: true
+          push: false
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           context: .
           file: ci/Dockerfile.unix
           platforms: ${{ matrix.os }}
+          build-args: |
+            BUILD_NUMBER_TAIL=${{ github.run_number }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
-      - name: Move cache on local runner
-        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
-        run:
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache       
-          
-      - name: Extract artifacts
-        run: |
-          docker create --name tmpcontainer-${{ matrix.arch }} ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
-          docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
-          docker rm -f tmpcontainer-${{ matrix.arch }}
+      # - name: Extract artifacts
+      #   run: |
+      #     docker create --name tmpcontainer-${{ matrix.arch }} ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+      #     docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
+      #     docker rm -f tmpcontainer-${{ matrix.arch }}
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
@@ -126,7 +125,14 @@ jobs:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=GDAL.NETCORE unix build image
+          cache-from: type=local,src=/tmp/.buildx-cache-new
 
+      - name: Move cache on local runner
+        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
+        run:
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache       
+      
   TestAndPushPackages-Linux:
     strategy:
       matrix:
@@ -165,6 +171,7 @@ jobs:
         run: |
           docker buildx build --load --platform=${{ matrix.os }} \
             --progress=plain -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest \
+            --build-arg BUILD_NUMBER_TAIL=${{ github.run_number }} \
             -f '${{ github.workspace }}/ci/Dockerfile.unix.test' \
             ${{ github.workspace }}
 
