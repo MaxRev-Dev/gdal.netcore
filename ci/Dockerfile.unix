@@ -14,11 +14,6 @@ RUN apt-get update && apt-get install -y \
 # install cmake latest
 RUN pip install cmake --upgrade
 
-# load cache from previous build
-COPY ci/cache*/build-unix*/ /build/build-unix/
-COPY ci/cache*/dotnet*/ /usr/share/dotnet/
-COPY ci/cache*/vcpkg*/ /root/.cache/vcpkg/archives/
-
 ARG DOTNET_VERSION=8.0
 # install dotnet
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet \
@@ -55,9 +50,9 @@ COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
 COPY unix/gdal-makefile /build/unix/
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) install_vcpkg
-RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f gdal-makefile $(cat /tmp/gdal-netcore-arch) init_gdal init_proj
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) install_vcpkg
 
 FROM --platform=$TARGETPLATFORM base as gdalbuild
 WORKDIR /build/unix
