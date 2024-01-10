@@ -2,93 +2,93 @@ FROM --platform=$TARGETPLATFORM debian:11 as base
 LABEL org.opencontainers.image.source=https://github.com/MaxRev-Dev/gdal.netcore
 LABEL org.opencontainers.image.description="GDAL.NETCORE unix build image"
 LABEL org.opencontainers.image.licenses=MIT
-# RUN apt-get update && apt-get install -y \
-#     build-essential \
-#     curl zip unzip tar git wget \
-#     pkg-config \
-#     ninja-build \
-#     autoconf libtool autoconf-archive libudev-dev \
-#     python3 python3-pip \
-#     linux-libc-dev \
-#     libhdf4-dev libnetcdf-dev linux-libc-dev \
-#     swig patchelf
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl zip unzip tar git wget \
+    pkg-config \
+    ninja-build \
+    autoconf libtool autoconf-archive libudev-dev \
+    python3 python3-pip \
+    linux-libc-dev \
+    libhdf4-dev libnetcdf-dev linux-libc-dev \
+    swig patchelf
 
-# # install cmake latest
-# RUN pip install cmake --upgrade
+# install cmake latest
+RUN pip install cmake --upgrade
 
-# ARG DOTNET_VERSION=8.0
-# # install dotnet
-# RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet \
-#     && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+ARG DOTNET_VERSION=8.0
+# install dotnet
+RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet \
+    && ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
-# ARG TARGETPLATFORM
-# ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
 
-# RUN if [ $TARGETPLATFORM = "linux/arm64" ]; \
-#     then \
-#         echo "BUILD_ARCH=arm64" >> /tmp/gdal-netcore-arch; \
-#         echo "VCPKG_FORCE_SYSTEM_BINARIES=1" >> /tmp/gdal-netcore-env; \
-#     fi
+RUN if [ $TARGETPLATFORM = "linux/arm64" ]; \
+    then \
+        echo "BUILD_ARCH=arm64" >> /tmp/gdal-netcore-arch; \
+        echo "VCPKG_FORCE_SYSTEM_BINARIES=1" >> /tmp/gdal-netcore-env; \
+    fi
 
-# RUN if [ $TARGETPLATFORM = "linux/amd64" ]; \
-#     then \
-#         echo "BUILD_ARCH=x64" >> /tmp/gdal-netcore-arch; \
-#     fi
+RUN if [ $TARGETPLATFORM = "linux/amd64" ]; \
+    then \
+        echo "BUILD_ARCH=x64" >> /tmp/gdal-netcore-arch; \
+    fi
 
-# # env DOTNET_SYSTEM_GLOBALIZATION_INVARIANT is a workaround on https://github.com/dotnet/runtime/issues/71275
-# # env DOTNET_EnableWriteXorExecute=0 is a workaround on https://github.com/dotnet/runtime/issues/80733
+# env DOTNET_SYSTEM_GLOBALIZATION_INVARIANT is a workaround on https://github.com/dotnet/runtime/issues/71275
+# env DOTNET_EnableWriteXorExecute=0 is a workaround on https://github.com/dotnet/runtime/issues/80733
 
-# RUN if [ $BUILDPLATFORM = "linux/arm64" ]; \
-#     then \
-#         echo "DOTNET_EnableWriteXorExecute=0" >> /tmp/gdal-netcore-env; \
-#     fi
+RUN if [ $BUILDPLATFORM = "linux/arm64" ]; \
+    then \
+        echo "DOTNET_EnableWriteXorExecute=0" >> /tmp/gdal-netcore-env; \
+    fi
 
-# RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
+RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
 
-# FROM base as build
-# WORKDIR /build/unix
-# COPY shared/GdalCore.opt /build/shared/
-# COPY unix/RID.opt /build/unix/RID.opt
-# COPY unix/vcpkg-makefile /build/unix/
-# COPY unix/gdal-makefile /build/unix/
-# RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-#     make -f gdal-makefile $(cat /tmp/gdal-netcore-arch) init_gdal init_proj
-# RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-#     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) install_vcpkg
+FROM base as build
+WORKDIR /build/unix
+COPY shared/GdalCore.opt /build/shared/
+COPY unix/RID.opt /build/unix/RID.opt
+COPY unix/vcpkg-makefile /build/unix/
+COPY unix/gdal-makefile /build/unix/
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile $(cat /tmp/gdal-netcore-arch) init_gdal init_proj
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) install_vcpkg
 
-# FROM --platform=$TARGETPLATFORM base as gdalbuild
-# WORKDIR /build/unix
-# COPY --from=build /tmp/gdal-netcore-env /tmp/gdal-netcore-env
-# COPY --from=build /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
-# COPY --from=build /build/build-unix/ /build/build-unix/
-# COPY shared /build/shared
-# COPY unix /build/unix
-# RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-#     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
-# RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-#     make -f gdal-makefile proj $(cat /tmp/gdal-netcore-arch)
-# RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-#     make -f gdal-makefile gdal DOTNET_VERSION=$DOTNET_VERSION $(cat /tmp/gdal-netcore-arch) 
+FROM --platform=$TARGETPLATFORM base as gdalbuild
+WORKDIR /build/unix
+COPY --from=build /tmp/gdal-netcore-env /tmp/gdal-netcore-env
+COPY --from=build /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
+COPY --from=build /build/build-unix/ /build/build-unix/
+COPY shared /build/shared
+COPY unix /build/unix
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile proj $(cat /tmp/gdal-netcore-arch)
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile gdal DOTNET_VERSION=$DOTNET_VERSION $(cat /tmp/gdal-netcore-arch) 
 
-# FROM --platform=$TARGETPLATFORM base as collector
-# WORKDIR /build/unix
-# COPY --from=build /tmp/gdal-netcore-env /tmp/gdal-netcore-env
-# COPY --from=build /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
-# COPY --from=gdalbuild /build/build-unix/ /build/build-unix/
-# COPY shared /build/shared
-# COPY unix /build/unix
-# RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-#     make -f collect-deps-makefile $(cat /tmp/gdal-netcore-arch)
+FROM --platform=$TARGETPLATFORM base as collector
+WORKDIR /build/unix
+COPY --from=build /tmp/gdal-netcore-env /tmp/gdal-netcore-env
+COPY --from=build /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
+COPY --from=gdalbuild /build/build-unix/ /build/build-unix/
+COPY shared /build/shared
+COPY unix /build/unix
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f collect-deps-makefile $(cat /tmp/gdal-netcore-arch)
 
-# ARG BUILD_NUMBER_TAIL
-# COPY . /build
-# RUN rm -rf /build/nuget
-# RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-#     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
+ARG BUILD_NUMBER_TAIL
+COPY . /build
+RUN rm -rf /build/nuget
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
 
-# FROM --platform=$TARGETPLATFORM scratch
-# # copy nuget packages from build
-# COPY --from=collector /build/nuget /build/nuget
-# # copy cache from build
-# COPY --from=gdalbuild /build/build-unix /build/build-unix
+FROM --platform=$TARGETPLATFORM scratch
+# copy nuget packages from build
+COPY --from=collector /build/nuget /build/nuget
+# copy cache from build
+COPY --from=gdalbuild /build/build-unix /build/build-unix
 ENTRYPOINT ["bash"]
