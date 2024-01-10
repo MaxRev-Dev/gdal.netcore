@@ -15,7 +15,7 @@ concurrency:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
-  DOCKER_REGISTRY: ghcr.io/MaxRev-Dev
+  DOCKER_REGISTRY: ghcr.io/maxrev-dev
 
 permissions:
   packages: write
