@@ -19,6 +19,7 @@ env:
 
 permissions:
   packages: write
+  contents: read
 
 jobs:
   BuildNugetPackages-Linux:
@@ -39,6 +40,9 @@ jobs:
         working-directory: unix
 
     steps: 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       
@@ -52,30 +56,37 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+
       - name: Build and push on GH runner
         uses: docker/build-push-action@v5
         if: ${{ !contains(matrix.actions-runner, 'self-hosted') }}
         with:
           push: true
-          tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           context: .
           file: ci/Dockerfile.unix
           platforms: ${{ matrix.os }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build and push on local runner
         uses: docker/build-push-action@v5
         if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
         with:
           push: true
-          tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           context: .
           file: ci/Dockerfile.unix
           platforms: ${{ matrix.os }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=GDAL.NETCORE unix build image
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Move cache on local runner
         if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
