@@ -42,8 +42,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       
-      - name: Build and push
+      - name: Build and push on GH runner
         uses: docker/build-push-action@v5
+        if: ${{ !contains(matrix.actions-runner, 'self-hosted') }}
         with:
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
@@ -52,6 +53,24 @@ jobs:
           platforms: ${{ matrix.os }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Build and push on local runner
+        uses: docker/build-push-action@v5
+        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
+        with:
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+          context: .
+          file: ci/Dockerfile.unix
+          platforms: ${{ matrix.os }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+      - name: Move cache on local runner
+        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
+        run:
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache       
           
       - name: Extract artifacts and cache
         run: |
