@@ -100,7 +100,9 @@ jobs:
           platforms: ${{ matrix.os }}
           build-args: |
             BUILD_NUMBER_TAIL=${{ github.run_number }}
-          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-from: |
+            ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+            type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
       # - name: Extract artifacts
