@@ -48,7 +48,15 @@ jobs:
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
+        
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-    
+            
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
         with:
@@ -64,7 +72,7 @@ jobs:
             ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           tags: |
             type=schedule,pattern={{date 'YYYYMMDD-HHmmss' }}
-            
+
       - name: Build and push on GH runner
         uses: docker/build-push-action@v5
         if: ${{ !contains(matrix.actions-runner, 'self-hosted') }}
