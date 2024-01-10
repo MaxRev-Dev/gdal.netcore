@@ -97,7 +97,6 @@ jobs:
           platforms: ${{ matrix.os }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=GDAL.NETCORE unix build image
 
       - name: Move cache on local runner
         if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
@@ -126,6 +125,7 @@ jobs:
           platforms: ${{ matrix.os }}
           push: true
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=GDAL.NETCORE unix build image
 
   TestAndPushPackages-Linux:
     strategy:
