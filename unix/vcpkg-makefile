@@ -109,5 +109,5 @@ install_packages:
 	@$(foreach pack,$(VCPKG_REQUIRE_UNIX_DYNAMIC),$(VCPKG) install $(pack):$(VCPKG_RID)-dynamic  $(VCPKG_PARAMS_INSTALL);)
 
 remove_packages:
-	@$(foreach pack,$(VCPKG_REQUIRE_UNIX), $(VCPKG) remove $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE);)
-	@$(foreach pack,$(VCPKG_REQUIRE_UNIX_DYNAMIC), $(VCPKG) remove $(pack):$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_REMOVE);)
+	@$(foreach pack,$(VCPKG_REQUIRE_UNIX), MAKELEVEL=0 $(VCPKG) remove $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE);)
+	@$(foreach pack,$(VCPKG_REQUIRE_UNIX_DYNAMIC), MAKELEVEL=0 $(VCPKG) remove $(pack):$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_REMOVE);)
