@@ -87,8 +87,12 @@ RUN rm -rf /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
 
+FROM busybox as b
+FROM scratch
 FROM --platform=$TARGETPLATFORM scratch as final
 # copy nuget packages from build
 COPY --from=collector /build/nuget /build/nuget
 # copy cache from build
 COPY --from=gdalbuild /build/build-unix /build/build-unix
+COPY --from=b /bin/ls /bin/ls
+ENTRYPOINT ["/bin/ls"]
