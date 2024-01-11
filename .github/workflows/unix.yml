@@ -53,7 +53,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ matrix.os }}
           restore-keys: |
             ${{ runner.os }}-buildx-    
 
@@ -105,11 +105,11 @@ jobs:
             type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
 
-      # - name: Extract artifacts
-      #   run: |
-      #     docker create --name tmpcontainer-${{ matrix.arch }} ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
-      #     docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
-      #     docker rm -f tmpcontainer-${{ matrix.arch }}
+      - name: Extract artifacts
+        run: |
+          docker create --name tmpcontainer-${{ matrix.arch }} ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+          docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
+          docker rm -f tmpcontainer-${{ matrix.arch }}
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
@@ -125,6 +125,7 @@ jobs:
           file: ci/Dockerfile.unix
           platforms: ${{ matrix.os }}
           push: true
+          target: final
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=GDAL.NETCORE unix build image
           cache-from: type=local,src=/tmp/.buildx-cache-new
