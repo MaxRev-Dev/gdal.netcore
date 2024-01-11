@@ -131,7 +131,7 @@ jobs:
 
       - name: Move cache on local runner
         if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
-        run:
+        run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache       
       
