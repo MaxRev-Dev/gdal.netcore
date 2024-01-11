@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.description="GDAL.NETCORE unix build image"
 LABEL org.opencontainers.image.licenses=MIT
 
 RUN apt-get update && apt-get install -y \
-    build-essential \
+    build-essential gnupg \
     curl zip unzip tar git wget \
     pkg-config \
     ninja-build \
