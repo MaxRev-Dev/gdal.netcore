@@ -51,8 +51,11 @@ jobs:
         
       - name: Cache Docker layers
         uses: actions/cache@v3
+        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
         with:
-          path: /tmp/.buildx-cache
+          path: |
+            '${{ github.workspace }}/ci/cache/build-unix'
+            '${{ github.workspace }}/ci/cache/usr/share/dotnet'
           key: ${{ runner.os }}-buildx-${{ matrix.os }}
           restore-keys: |
             ${{ runner.os }}-buildx-    
@@ -101,15 +104,13 @@ jobs:
           platforms: ${{ matrix.os }}
           build-args: |
             BUILD_NUMBER_TAIL=${{ github.run_number }}
-          cache-from: |
-            ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
-            type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
 
       - name: Extract artifacts
         run: |
           docker create --name tmpcontainer-${{ matrix.arch }} ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
+          docker cp tmpcontainer-${{ matrix.arch }}:/usr/share/dotnet '${{ github.workspace }}/ci/cache/usr/share/dotnet'
+          docker cp tmpcontainer-${{ matrix.arch }}:/build-unix '${{ github.workspace }}/ci/cache/build-unix'
           docker rm -f tmpcontainer-${{ matrix.arch }}
 
       - name: Store packages as artifact
@@ -129,14 +130,7 @@ jobs:
           target: final
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=GDAL.NETCORE unix build image
-          cache-from: type=local,src=/tmp/.buildx-cache-new
 
-      - name: Move cache on local runner
-        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
-        run: |
-          rm -rf /tmp/.buildx-cache
-          mv /tmp/.buildx-cache-new /tmp/.buildx-cache       
-      
   TestAndPushPackages-Linux:
     strategy:
       matrix:

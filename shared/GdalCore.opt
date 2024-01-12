@@ -37,7 +37,7 @@ VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
 VCPKG_REQUIRE_UNIX=curl netcdf-c
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[tool,rtree]" netcdf-c 
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[tool,rtree]"
 
 # osx requires the same libs as linux except sqlite3 should link as static
 VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX) "sqlite3[tool,rtree]" 

@@ -17,6 +17,9 @@ RUN apt-get update && apt-get install -y \
 # install cmake latest
 RUN pip install cmake --upgrade
 
+# load cache from previous build
+COPY ci/cache*/dotnet*/ /usr/share/dotnet/
+
 ARG DOTNET_VERSION=8.0
 # install dotnet
 RUN curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet \
@@ -52,6 +55,11 @@ COPY shared/GdalCore.opt /build/shared/
 COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
 COPY unix/gdal-makefile /build/unix/
+
+# load cache from previous build
+COPY ci/cache*/build-unix*/ /build/build-unix/
+COPY ci/cache*/vcpkg*/ /root/.cache/vcpkg/archives/
+
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f gdal-makefile $(cat /tmp/gdal-netcore-arch) init_gdal init_proj
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
@@ -90,9 +98,11 @@ RUN set -a && . /tmp/gdal-netcore-env && set +a; \
 FROM busybox as b
 FROM scratch
 FROM --platform=$TARGETPLATFORM scratch as final
-# copy nuget packages from build
-COPY --from=collector /build/nuget /build/nuget
+COPY --from=b /bin/ls /bin/ls
+RUN chmod +x /bin/ls
+COPY --from=base /usr/share/dotnet /usr/share/dotnet
 # copy cache from build
 COPY --from=gdalbuild /build/build-unix /build/build-unix
-COPY --from=b /bin/ls /bin/ls
+# copy nuget packages from build
+COPY --from=collector /build/nuget /build/nuget
 ENTRYPOINT ["/bin/ls"]
