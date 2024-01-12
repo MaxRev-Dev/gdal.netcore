@@ -99,7 +99,6 @@ FROM busybox as b
 FROM scratch
 FROM --platform=$TARGETPLATFORM scratch as final
 COPY --from=b /bin/ls /bin/ls
-RUN chmod +x /bin/ls
 COPY --from=base /usr/share/dotnet /usr/share/dotnet
 # copy cache from build
 COPY --from=gdalbuild /build/build-unix /build/build-unix
