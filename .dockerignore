@@ -22,6 +22,7 @@
 **/.toolstarget
 !**/build-*
 !**/build-*/**/.git
+!**/ci/cache/**
 **/bin
 **/obj
 **/bindings
