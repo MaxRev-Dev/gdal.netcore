@@ -102,6 +102,7 @@ COPY --from=b /bin/ls /bin/ls
 COPY --from=base /usr/share/dotnet /usr/share/dotnet
 # copy cache from build
 COPY --from=gdalbuild /build/build-unix /build/build-unix
+COPY --from=gdalbuild /root/.cache/vcpkg/archives /root/.cache/vcpkg/archives
 # copy nuget packages from build
 COPY --from=collector /build/nuget /build/nuget
 ENTRYPOINT ["/bin/ls"]
