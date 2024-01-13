@@ -109,6 +109,8 @@ jobs:
         run: |
           docker create --name tmpcontainer-${{ matrix.arch }} ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
+          mkdir -p '${{ github.workspace }}/ci/cache/usr/share/dotnet'
+          mkdir -p '${{ github.workspace }}/ci/cache/build-unix'
           docker cp tmpcontainer-${{ matrix.arch }}:/usr/share/dotnet '${{ github.workspace }}/ci/cache/usr/share/dotnet'
           docker cp tmpcontainer-${{ matrix.arch }}:/build-unix '${{ github.workspace }}/ci/cache/build-unix'
           docker rm -f tmpcontainer-${{ matrix.arch }}
