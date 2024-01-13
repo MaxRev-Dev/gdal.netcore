@@ -54,8 +54,7 @@ jobs:
         if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
         with:
           path: |
-            '${{ github.workspace }}/ci/cache/build-unix'
-            '${{ github.workspace }}/ci/cache/usr/share/dotnet'
+            '${{ github.workspace }}/ci/cache/'
           key: ${{ runner.os }}-buildx-${{ matrix.os }}
           restore-keys: |
             ${{ runner.os }}-buildx-    
