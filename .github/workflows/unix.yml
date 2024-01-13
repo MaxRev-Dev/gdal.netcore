@@ -55,6 +55,8 @@ jobs:
         with:
           path: |
             '${{ github.workspace }}/ci/cache/'
+            '${{ github.workspace }}/build-unix/'
+
           key: ${{ runner.os }}-buildx-${{ matrix.os }}
           restore-keys: |
             ${{ runner.os }}-buildx-    
@@ -109,9 +111,11 @@ jobs:
           docker create --name tmpcontainer-${{ matrix.arch }} ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
           docker cp tmpcontainer-${{ matrix.arch }}:/build/nuget '${{ github.workspace }}/nuget'
           mkdir -p '${{ github.workspace }}/ci/cache/usr/share/dotnet'
-          mkdir -p '${{ github.workspace }}/ci/cache/build-unix'
+          mkdir -p '${{ github.workspace }}/ci/cache/vcpkg'
+          mkdir -p '${{ github.workspace }}/build-unix'
           docker cp tmpcontainer-${{ matrix.arch }}:/usr/share/dotnet '${{ github.workspace }}/ci/cache/usr/share/dotnet'
-          docker cp tmpcontainer-${{ matrix.arch }}:/build/build-unix '${{ github.workspace }}/ci/cache/build-unix'
+          docker cp tmpcontainer-${{ matrix.arch }}:/root/.cache/vcpkg/archives/ '${{ github.workspace }}/ci/cache/vcpkg'
+          docker cp tmpcontainer-${{ matrix.arch }}:/build/build-unix '${{ github.workspace }}/build-unix'
           docker rm -f tmpcontainer-${{ matrix.arch }}
 
       - name: Store packages as artifact

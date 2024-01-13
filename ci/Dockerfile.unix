@@ -57,7 +57,7 @@ COPY unix/vcpkg-makefile /build/unix/
 COPY unix/gdal-makefile /build/unix/
 
 # load cache from previous build
-COPY ci/cache*/build-unix*/ /build/build-unix/
+COPY build-unix*/ /build/build-unix/
 COPY ci/cache*/vcpkg*/ /root/.cache/vcpkg/archives/
 
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
