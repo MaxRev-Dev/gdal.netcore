@@ -12,7 +12,9 @@ RUN apt-get update && apt-get install -y \
     python3 python3-pip \
     linux-libc-dev \
     libhdf4-dev libnetcdf-dev linux-libc-dev \
-    swig patchelf
+    swig patchelf \
+# required for gdal
+    default-libmysqlclient-dev
 
 # install cmake latest
 RUN pip install cmake --upgrade
@@ -85,14 +87,12 @@ RUN rm -rf /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
 
-FROM busybox as b
-FROM scratch
+FROM alpine as final
 FROM --platform=$TARGETPLATFORM scratch as final
-COPY --from=b /bin/ls /bin/ls
 COPY --from=base /usr/share/dotnet /usr/share/dotnet
 # copy cache from build
 COPY --from=gdalbuild /build/build-unix /build/build-unix
 COPY --from=gdalbuild /root/.cache/vcpkg/archives /root/.cache/vcpkg/archives
 # copy nuget packages from build
 COPY --from=gdalbuild /build/nuget /build/nuget
-ENTRYPOINT ["/bin/ls"]
+ENTRYPOINT ["bash"]

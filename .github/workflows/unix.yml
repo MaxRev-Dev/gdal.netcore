@@ -175,6 +175,7 @@ jobs:
           docker buildx build --load --platform=${{ matrix.os }} \
             --progress=plain -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest \
             --build-arg BUILD_NUMBER_TAIL=${{ github.run_number }} \
+            --build-arg BUILD_ARCH=${{ matrix.arch }} \
             -f '${{ github.workspace }}/ci/Dockerfile.unix.test' \
             ${{ github.workspace }}
 
