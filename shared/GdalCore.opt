@@ -28,11 +28,11 @@ VCPKG_REPO=https://github.com/microsoft/vcpkg.git
 VCPKG_COMMIT_VER=master
 
 # base requirements for both runtimes
-VCPKG_REQUIRE=geos tiff
-VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml "icu[core,tools]" libmysql libpng "libjxl[tools]" curl netcdf-c
+VCPKG_REQUIRE=geos tiff curl
+VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml "icu[core,tools]" libmysql libpng "libjxl[tools]" netcdf-c
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" curl
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]"
 VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
@@ -41,7 +41,7 @@ VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[to
 
 # osx requires the same libs as linux except sqlite3 should link as static
 VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX) "sqlite3[tool,rtree]" 
-VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC)
+VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) netcdf-c
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 

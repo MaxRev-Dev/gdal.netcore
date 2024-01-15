@@ -41,6 +41,10 @@ Targets linux-x64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2
     <Content Remove="build-osx/**" />
     <Content Remove="build-unix/**" />
     <Content Remove="build-win/**" />
+    <Compile Remove="ci/**"/>
+    <Content Remove="ci/**"/>
+    <None Remove="ci/**"/>
+    <EmbeddedResource Remove="ci/**"/>
     <None Include="runtimes/linux-$(BUILD_ARCH)/**">
       <PackagePath>runtimes/linux-$(BUILD_ARCH)/</PackagePath>
       <Pack>true</Pack>

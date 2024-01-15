@@ -53,6 +53,10 @@
     <Compile Include="osx/**/*.cs" />
     <Compile Include="win/**/*.cs" />
     <Compile Include="unix/**/*.cs" />
+    <Compile Remove="ci/**"/>
+    <Content Remove="ci/**"/>
+    <None Remove="ci/**"/>
+    <EmbeddedResource Remove="ci/**"/>
   </ItemGroup>
 
   <ItemGroup>
