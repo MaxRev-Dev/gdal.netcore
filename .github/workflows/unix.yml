@@ -181,7 +181,8 @@ jobs:
 
       - name: Test packages
         run: |
-          docker run --env BUILD_NUMBER_TAIL=${{ github.run_number }} -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest
+          docker run --env BUILD_NUMBER_TAIL=${{ github.run_number }} BUILD_ARCH=${{ matrix.arch }} \
+           -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest
 
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
