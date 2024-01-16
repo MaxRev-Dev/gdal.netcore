@@ -15,6 +15,8 @@ OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
 BUILD_BASE = $(BASE)/bindings
 BINDINGS_SOURCE=$(BUILD_ROOT)/gdal-cmake-temp/swig/csharp
 
+LIBS_TO_REMOVE=libc.so.* libm.so.* libstdc++.so.* libpthread.so.* linux-vdso.so.* libgcc_s.so.* librt.so.* libdl.so.* ld-linux-x86-64.so.* libresolv.so.* libcrypt.so.*
+
 build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 
@@ -56,7 +58,9 @@ copy-deps:
 	ls $(OUTPUT)/ | grep -P 'libgdal.so.(?:\d+)' | \
 			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib:$(HDF_BUILD)/lib xargs -I {} \
 			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)
-	-rm $(OUTPUT)/libpthread.*
+#  4. remove system libs
+#  https://github.com/dotnet/core/blob/main/Documentation/self-contained-linux-apps.md		
+	@$(foreach lib, $(LIBS_TO_REMOVE),  @if [ -a  $(OUTPUT)/$(lib) ]; then echo "Removing sys lib from output -> $(lib)" & rm  $(OUTPUT)/$(lib); fi;${\n})
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)

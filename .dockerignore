@@ -24,6 +24,7 @@
 !**/build-*/**/.git
 !**/ci/cache/**/.git
 !**/ci/cache/**
+!**/ci/cache/vcpkg/**
 **/bin
 **/obj
 **/bindings
