@@ -22,7 +22,7 @@ build: linkall
 
 linkall: initdirs copy-deps copy-projdb collect-bindings
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
-	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN' $(lib); fi;${\n})
+	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN:$$ORIGIN/runtimes/$(RID)/native' $(lib); fi;${\n})
 	@echo "Libraries patched successfully"
 
 clean:
