@@ -271,7 +271,7 @@ function Build-Gdal {
 function Build-GenerateProjectFiles {
     Set-GdalVariables
     Set-Location $PSScriptRoot
-    exec {  & 'C:\Program Files\Git\bin\bash.exe' --login -i -c "cd ../unix; make -f ./generate-projects-makefile" }
+    exec {  & 'C:\Program Files\Git\bin\bash.exe' -i -c "cd ../unix; make -f ./generate-projects-makefile" }
 }
 
 function Build-CsharpBindings {   
