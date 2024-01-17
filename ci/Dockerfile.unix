@@ -1,3 +1,4 @@
+# Builds GDAL.NETCORE on Linux
 FROM --platform=$TARGETPLATFORM debian:11 as base
 LABEL org.opencontainers.image.source=https://github.com/MaxRev-Dev/gdal.netcore
 LABEL org.opencontainers.image.description="GDAL.NETCORE unix build image"
@@ -20,7 +21,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install cmake --upgrade
 
 # load cache from previous build
-COPY ci/cache*/dotnet*/ /usr/share/dotnet/
+COPY .dotnet*/ /usr/share/dotnet/
 
 ARG DOTNET_VERSION=8.0
 # install dotnet
