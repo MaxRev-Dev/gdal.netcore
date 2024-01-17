@@ -10,33 +10,45 @@ export MSBUILDSINGLELOADCONTEXT = 1
 export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
 PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
+RUNTIME_PROJECT=$(RUNTIME_PROJECT_LINUX)
 
 all: prepare pack
 
+export _BUILD_ARCH=$(BUILD_ARCH)
+export _GDAL_VERSION=$(GDAL_VERSION)
+export _PROJ_VERSION=$(PROJ_VERSION)
+export _GEOS_VERSION=$(GEOS_VERSION)
+export _ROOT_RELATIVE_PATH=$(PACKAGE_BUILD_ROOT)/..
+export _PACKAGE_BUILD_NUMBER=$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)
+
+ONSUBST='$${_BUILD_ARCH} $${_GEOS_VERSION} $${_ROOT_RELATIVE_PATH} $${_GDAL_VERSION} $${_PROJ_VERSION} $${_PACKAGE_BUILD_NUMBER}'
+
+# substitute all variables in template project files
+substitute-variables:
+	@mkdir -p $(dir $(GDALCORE_PROJECT_FINAL))
+	@cat $(GDALCORE_PROJECT) | envsubst $${ONSUBST} > $(GDALCORE_PROJECT_FINAL)
+	@cat $(RUNTIME_PROJECT_LINUX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_LINUX_FINAL)
+	@cat $(RUNTIME_PROJECT_OSX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_OSX_FINAL)
+	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
+ 
 # remove source. this was added by GDAL. ignore error
 prepare:
 	-dotnet nuget remove source local
 
-change-build-number-core:
-	$(SED) -i -e "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1$(PACKAGE_BUILD_NUMBER)/" $(ROOTDIR_)/gdalcore.loader.csproj
+pack-core: substitute-variables
+	dotnet pack -c Release -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
 
-change-build-number-runtime:
-	$(SED) -i -e "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1$(PACKAGE_BUILD_NUMBER)/" $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
-
-pack-core: change-build-number-core
-	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
-
-pack-runtime: change-build-number-runtime
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
+pack-runtime: substitute-variables
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_FINAL)
 
 pack: prepare pack-core pack-runtime
 	@exit 0
 
-pack-core-dev: change-build-number-core
-	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+pack-core-dev: substitute-variables
+	dotnet pack -c Debug -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
 
-pack-runtime-dev: change-build-number-runtime
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
+pack-runtime-dev: substitute-variables
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(RUNTIME_PROJECT_FINAL)
 
 pack-dev: pack-core-dev pack-runtime-dev
 	@exit 0

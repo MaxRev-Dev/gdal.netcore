@@ -1,41 +1,6 @@
 include RID.opt
 include ../shared/GdalCore.opt
 
-## Creating packages for testing and publishing
-# https://github.com/dotnet/core/issues/4404
-export MSBUILDSINGLELOADCONTEXT = 1
-
-# make's .EXPORT_ALL_VARIABLES does not work here
-# using export to add dynamic libraries location
-export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
-
-PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
-
-# remove source. this was added by GDAL. ignore error
-prepare:
-	-dotnet nuget remove source local
-
-change-build-number-core:
-	gsed -i "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1$(PACKAGE_BUILD_NUMBER)/" $(ROOTDIR_)/gdalcore.loader.csproj
-
-change-build-number-runtime:
-	gsed -i "s/\(<Version>\([0-9]\+\.\)\{3\}\)\([0-9]\+\)/\1$(PACKAGE_BUILD_NUMBER)/" $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
-
-pack-core: change-build-number-core
-	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
-
-pack-runtime: change-build-number-runtime
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
-
-pack: prepare pack-core pack-runtime
-	@exit 0
-
-pack-core-dev: change-build-number-core
-	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
-
-pack-runtime-dev: change-build-number-runtime
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/$(RUNTIME_PROJECT_NAME)
-
-pack-dev: pack-core-dev pack-runtime-dev
-	@exit 0
+%:
+	@$(MAKE) -f ../unix/publish-makefile $@ RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_OSX_FINAL)
 

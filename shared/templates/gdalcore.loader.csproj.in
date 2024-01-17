@@ -16,63 +16,42 @@
     <RepositoryType>git</RepositoryType>
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.7.0.200</Version>
+    <Version>${_PACKAGE_BUILD_NUMBER}</Version>
     <Description>
-      GDAL (3.7.0) bindings for dotnet core (osx-arm64, osx-x64, linux-x64 and win-x64).
+      GDAL (${_GDAL_VERSION}) bindings for dotnet core (osx-arm64, osx-x64, linux-x64 and win-x64).
       Bridge between gdal and netcore.
       Use dependency package for target runtime to get drivers.
       Works in docker containers without pkg installations!!
       Just call - GdalBase.ConfigureAll()
     </Description>
     <PackageReleaseNotes>
-      - GDAL Version 3.7.0
+      - GDAL Version 3${_GDAL_VERSION}
       - Built with VCPKG
     </PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="/" />
-    <None Remove="build-win/**" />
-    <None Remove="build-unix/**" />
-    <None Remove="build-osx/**" />
-    <EmbeddedResource Remove="build-osx/**" />
-    <EmbeddedResource Remove="build-win/**" />
-    <EmbeddedResource Remove="build-unix/**" />
-    <Content Remove="build-osx/**" />
-    <Content Remove="build-unix/**" />
-    <Content Remove="build-win/**" />
-    <None Remove="./*.cs" />
-    <None Remove="build/**" />
-    <EmbeddedResource Remove="build/**" />
-    <Content Remove="build/**" />
-    <None Remove="tests/**" />
-    <EmbeddedResource Remove="tests/**" />
-    <Content Remove="tests/**" />
-    <Compile Remove="./**/*.cs" />
-    <Compile Include="compile/**/*.cs" />
-    <Compile Include="osx/**/*.cs" />
-    <Compile Include="win/**/*.cs" />
-    <Compile Include="unix/**/*.cs" />
-    <Compile Remove="ci/**"/>
-    <Content Remove="ci/**"/>
-    <None Remove="ci/**"/>
-    <EmbeddedResource Remove="ci/**"/>
+    <None Include="${_ROOT_RELATIVE_PATH}/README.md" Pack="true" PackagePath="/" />
+    <Compile Include="${_ROOT_RELATIVE_PATH}/compile/**/*.cs"></Compile>
+    <Compile Include="${_ROOT_RELATIVE_PATH}/osx/**/*.cs" />
+    <Compile Include="${_ROOT_RELATIVE_PATH}/win/**/*.cs" />
+    <Compile Include="${_ROOT_RELATIVE_PATH}/unix/**/*.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="build-win/gdal-build/share/gdal/**">
+    <None Include="${_ROOT_RELATIVE_PATH}/build-win/gdal-build/share/gdal/**">
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="build-osx/gdal-build/share/gdal/**">
+    <None Include="${_ROOT_RELATIVE_PATH}/build-osx/gdal-build/share/gdal/**">
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="build-unix/gdal-build/share/gdal/**">
+    <None Include="${_ROOT_RELATIVE_PATH}/build-unix/gdal-build/share/gdal/**">
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>

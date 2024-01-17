@@ -17,7 +17,10 @@ $version = "$env:GDAL_VERSION.$buildNumber"
 Write-BuildStep "Publishing version $version"
 $packages = @(
     "MaxRev.Gdal.Core.$version.nupkg"
-    "MaxRev.Gdal.LinuxRuntime.Minimal.$version.nupkg"
+    "MaxRev.Gdal.LinuxRuntime.Minimal.x64.$version.nupkg"
+    "MaxRev.Gdal.LinuxRuntime.Minimal.arm64.$version.nupkg"
+    "MaxRev.Gdal.MacosRuntime.Minimal.x64.$version.nupkg"
+    "MaxRev.Gdal.MacosRuntime.Minimal.arm64.$version.nupkg"
     "MaxRev.Gdal.WindowsRuntime.Minimal.$version.nupkg"
 )
 foreach ($package in $packages) {

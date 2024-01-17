@@ -27,6 +27,7 @@ ci/cache/
 utf8-data/**
 !tests/**/*.cs
 !compile/*.*
+package-build/**
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,linux,visualstudio,visualstudiocode,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,linux,visualstudio,visualstudiocode,windows

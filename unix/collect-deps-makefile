@@ -11,7 +11,7 @@ endef
 
 all: build
 
-OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
+OUTPUT = $(PACKAGE_BUILD_ROOT)/runtimes/$(RID)/native
 BUILD_BASE = $(BASE)/bindings
 BINDINGS_SOURCE=$(BUILD_ROOT)/gdal-cmake-temp/swig/csharp
 

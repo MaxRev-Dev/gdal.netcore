@@ -1,31 +1,31 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Platform>$(BUILD_ARCH)</Platform>
+    <Platform>${_BUILD_ARCH}</Platform>
     <DebugType>portable</DebugType>
     <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
     <Copyright>MaxRev © 2023</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH)</PackageId>
+    <PackageId>MaxRev.Gdal.MacosRuntime.Minimal.${_BUILD_ARCH}</PackageId>
     <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
-    <Version>3.7.0.100</Version>
-    <Description>GDAL (3.7.0) minimal libraries package.
-Drivers included PROJ (9.2.0), GEOS (3.11.1), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5
-Targets osx-arm64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1,3.1], net6.0, net7.0, net8.0
+    <Version>${_PACKAGE_BUILD_NUMBER}</Version>
+    <Description>GDAL (${_GDAL_VERSION}) minimal libraries package.
+Drivers included PROJ (${_PROJ_VERSION}), GEOS (${_GEOS_VERSION}), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5
+Targets osx-${_BUILD_ARCH} runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2.1,3.1], net6.0, net7.0, net8.0
 </Description>
-    <AssemblyName>MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH)</AssemblyName>
+    <AssemblyName>MaxRev.Gdal.MacosRuntime.Minimal.${_BUILD_ARCH}</AssemblyName>
     <PackageReleaseNotes>
-- GDAL 3.7.0
-- Initial build for MacOS $(BUILD_ARCH)</PackageReleaseNotes>
+- GDAL ${_GDAL_VERSION}
+- Initial build for MacOS ${_BUILD_ARCH}</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="/"/>
+    <None Include="${_ROOT_RELATIVE_PATH}/README.md" Pack="true" PackagePath="/"/>
     <Compile Remove="**/*.cs"></Compile>
     <Compile Remove="tests/**" />
     <None Remove="tests/**" />
@@ -43,12 +43,12 @@ Targets osx-arm64 runtime. Target Frameworks: netstandard[2.1|2.0], netcoreapp[2
     <Content Remove="ci/**"/>
     <None Remove="ci/**"/>
     <EmbeddedResource Remove="ci/**"/>
-    <None Include="runtimes/osx-$(BUILD_ARCH)/**">
-      <PackagePath>runtimes/osx-$(BUILD_ARCH)/</PackagePath>
+    <None Include="runtimes/osx-${_BUILD_ARCH}/**">
+      <PackagePath>runtimes/osx-${_BUILD_ARCH}/</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Include="maxrev.gdal.core.libshared/osx-$(BUILD_ARCH)/**">
-      <PackagePath>runtimes/osx-$(BUILD_ARCH)/native/</PackagePath>
+    <None Include="maxrev.gdal.core.libshared/osx-${_BUILD_ARCH}/**">
+      <PackagePath>runtimes/osx-${_BUILD_ARCH}/native/</PackagePath>
       <Pack>true</Pack>
     </None>
   </ItemGroup>

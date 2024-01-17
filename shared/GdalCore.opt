@@ -13,7 +13,7 @@ BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 GDAL_VERSION=3.7.0
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
-GDAL_COMMIT_VER=v$(GDAL_VERSION)RC1
+GDAL_COMMIT_VER=v$(GDAL_VERSION)
 
 # Mar 1, 2023
 PROJ_VERSION=9.2.0
@@ -25,7 +25,7 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=master
+VCPKG_COMMIT_VER=2024.01.12
 
 # base requirements for both runtimes
 VCPKG_REQUIRE=geos tiff curl
@@ -62,8 +62,9 @@ VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
 
 PRE=[gdal.netcore]
 
+PACKAGE_BUILD_ROOT=$(ROOTDIR_)/package-build
 __libshared=maxrev.gdal.core.libshared
-LIBSHARED=$(ROOTDIR_)/$(__libshared)/$(RID)/$(__libshared)
+LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(__libshared)/$(RID)/$(__libshared)
 
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
@@ -92,6 +93,18 @@ NUGET_=$(ROOTDIR_)/nuget
 ### Shared .NET Core Tests
 TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.XUnit
 TEST_DIR_APP=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests
+
+# Templates for project files
+GDALCORE_PROJECT=$(ROOTDIR_)/shared/templates/gdalcore.loader.csproj.in
+RUNTIME_PROJECT_LINUX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.in
+RUNTIME_PROJECT_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.csproj.in
+RUNTIME_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.windowsruntime.csproj.in
+
+# Generated project files
+GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
+RUNTIME_PROJECT_LINUX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.final.csproj
+RUNTIME_PROJECT_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.final.csproj
+RUNTIME_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.windowsruntime.final.csproj
 
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx

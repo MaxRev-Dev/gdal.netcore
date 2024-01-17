@@ -268,19 +268,21 @@ function Build-Gdal {
     Write-BuildStep "GDAL was built successfully"
 }
 
-function Update-GdalVersion {
-    param (
-        [string] $packageVersion
-    )
+function envsubst {
+  param([Parameter(ValueFromPipeline)][string]$InputObject)
 
-    Write-BuildStep "Updating GDAL version..."
+  Get-ChildItem Env: | Set-Variable
+  $ExecutionContext.InvokeCommand.ExpandString($InputObject)
+}
 
-    Get-ChildItem "$PSScriptRoot\..\gdalcore.*.csproj" | ForEach {
-        (Get-Content $_ | ForEach  { $_ -replace "\<Version\>.*?\<\/Version\>",  "<Version>$packageVersion</Version>" }) |
-        Set-Content $_
+function Build-GenerateProjectFiles {
+    Get-ChildItem Env: | Set-Variable
+    if (!(Get-Command envsubst -ErrorAction SilentlyContinue)) {
+        curl -o $env:DOWNLOADS_DIR/ -JLO https://github.com/a8m/envsubst/releases/download/v1.2.0/envsubst.exe
+        $env:PATH += ";$env:DOWNLOADS_DIR"
     }
-    
-    Write-BuildStep "GDAL version was set to $packageVersion"
+
+    make -f ../unix/publish-makefile substitute-variables
 }
 
 function Build-CsharpBindings {   
@@ -294,7 +296,7 @@ function Build-CsharpBindings {
     
     exec { & nmake -f collect-deps-makefile.vc }
     
-    Update-GdalVersion -packageVersion $packageVersion
+    Build-GenerateProjectFiles
 
     if ($isDebug) {
         exec { & nmake -f publish-makefile.vc pack-dev DEBUG=1 PACKAGE_BUILD_NUMBER=$packageVersion }
