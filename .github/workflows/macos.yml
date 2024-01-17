@@ -24,8 +24,8 @@ jobs:
         include:
           - os: self-hosted-macos-arm64
             arch: arm64
-          - os: self-hosted-macos-x64
-            arch: x64
+          # - os: self-hosted-macos-x64
+          #   arch: x64
 
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
