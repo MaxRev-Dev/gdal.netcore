@@ -25,7 +25,7 @@
       Just call - GdalBase.ConfigureAll()
     </Description>
     <PackageReleaseNotes>
-      - GDAL Version 3${_GDAL_VERSION}
+      - GDAL Version ${_GDAL_VERSION}
       - Built with VCPKG
     </PackageReleaseNotes>
   </PropertyGroup>

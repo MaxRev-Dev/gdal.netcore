@@ -27,22 +27,6 @@ Targets win-${BUILD_ARCH} runtime. Target Frameworks: netstandard[2.1|2.0], netc
 
    <ItemGroup>
     <None Include="${_ROOT_RELATIVE_PATH}/README.md" Pack="true" PackagePath="/"/>
-    <Compile Remove="**/*.cs"></Compile>
-    <Compile Remove="tests/**"></Compile>
-    <EmbeddedResource Remove="tests/**" />
-    <None Remove="tests/**" />
-    <None Remove="build-win/**" />
-    <None Remove="build-unix/**" />
-    <EmbeddedResource Remove="build-osx/**" />
-    <EmbeddedResource Remove="build-win/**" />
-    <EmbeddedResource Remove="build-unix/**" />
-    <Content Remove="build-osx/**" />
-    <Content Remove="build-unix/**" />
-    <Content Remove="build-win/**" />
-    <Compile Remove="ci/**"/>
-    <Content Remove="ci/**"/>
-    <None Remove="ci/**"/>
-    <EmbeddedResource Remove="ci/**"/>
     <None Include="runtimes/win-${_BUILD_ARCH}/**">
       <PackagePath>runtimes/win-${_BUILD_ARCH}/</PackagePath>
       <Pack>true</Pack>

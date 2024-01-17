@@ -3,7 +3,7 @@
 ##### ------- SHARED CONFIGURATION ------- #####
 
 ##### repo root
-ROOTDIR_=$(abspath $(BASE)/..)
+ROOTDIR_=$(BASE)/..
 BUILD_NUMBER_TAIL=10
 
 ### build (drivers) root

@@ -268,21 +268,10 @@ function Build-Gdal {
     Write-BuildStep "GDAL was built successfully"
 }
 
-function envsubst {
-  param([Parameter(ValueFromPipeline)][string]$InputObject)
-
-  Get-ChildItem Env: | Set-Variable
-  $ExecutionContext.InvokeCommand.ExpandString($InputObject)
-}
-
 function Build-GenerateProjectFiles {
-    Get-ChildItem Env: | Set-Variable
-    if (!(Get-Command envsubst -ErrorAction SilentlyContinue)) {
-        curl -o $env:DOWNLOADS_DIR/ -JLO https://github.com/a8m/envsubst/releases/download/v1.2.0/envsubst.exe
-        $env:PATH += ";$env:DOWNLOADS_DIR"
-    }
-
-    make -f ../unix/publish-makefile substitute-variables
+    Set-GdalVariables
+    Set-Location $PSScriptRoot
+    exec {  & 'C:\Program Files\Git\bin\bash.exe' --login -i -c "cd ../unix; make -f ./generate-projects-makefile" }
 }
 
 function Build-CsharpBindings {   
@@ -290,6 +279,7 @@ function Build-CsharpBindings {
         [bool] $isDebug = $false,
         [string] $packageVersion
     )
+    Set-GdalVariables
     Write-BuildStep "Building GDAL C# bindings"
     
     Set-Location $PSScriptRoot

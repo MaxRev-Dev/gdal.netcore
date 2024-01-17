@@ -1,0 +1,25 @@
+include RID.opt
+include ../shared/GdalCore.opt
+
+PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
+RUNTIME_PROJECT=$(RUNTIME_PROJECT_LINUX)
+
+all: generate-projects
+
+export _BUILD_ARCH=$(BUILD_ARCH)
+export _GDAL_VERSION=$(GDAL_VERSION)
+export _PROJ_VERSION=$(PROJ_VERSION)
+export _GEOS_VERSION=$(GEOS_VERSION)
+export _ROOT_RELATIVE_PATH=$(PACKAGE_BUILD_ROOT)/..
+export _PACKAGE_BUILD_NUMBER=$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)
+
+ONSUBST='$${_BUILD_ARCH} $${_GEOS_VERSION} $${_ROOT_RELATIVE_PATH} $${_GDAL_VERSION} $${_PROJ_VERSION} $${_PACKAGE_BUILD_NUMBER}'
+
+# substitute all variables in template project files
+generate-projects:
+	@mkdir -p $(dir $(GDALCORE_PROJECT_FINAL))
+	@cat $(GDALCORE_PROJECT) | envsubst $${ONSUBST} > $(GDALCORE_PROJECT_FINAL)
+	@cat $(RUNTIME_PROJECT_LINUX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_LINUX_FINAL)
+	@cat $(RUNTIME_PROJECT_OSX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_OSX_FINAL)
+	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
+ 
