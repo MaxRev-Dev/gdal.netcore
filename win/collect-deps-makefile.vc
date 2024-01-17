@@ -5,7 +5,7 @@
 !INCLUDE RID.opt
 !INCLUDE ../shared/GdalCore.opt
 
-OUTPUT=$(abspath $(ROOTDIR_)/runtimes/win-x64/native)
+OUTPUT=$(abspath $(PACKAGE_BUILD_ROOT)/runtimes/win-x64/native)
 OUTPUT=$(abspath $(OUTPUT))
 BUILD_ROOT=$(abspath $(BUILD_ROOT))
 BINDINGS_ROOT=$(abspath $(GDAL_CMAKE_TMP)/swig/csharp)
