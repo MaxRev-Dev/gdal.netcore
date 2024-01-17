@@ -28,9 +28,7 @@ jobs:
       run:
         working-directory: win
     steps:
-      - uses: actions/checkout@v3.0.0
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
       - name: Restore cached packages 
         uses: actions/cache@v3
@@ -73,9 +71,7 @@ jobs:
     env:
       GDAL_VERSION: ${{ needs.BuildNugetPackages-Windows.outputs.gdal-version }}
     steps:
-      - uses: actions/checkout@v3.0.0
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v4
 
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -99,12 +95,4 @@ jobs:
 
       - name: Test packages
         run: ./test.ps1 -buildNumberTail ${{ github.run_number }}
-        shell: pwsh
-
-      - name: Push packages
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        env:
-          API_KEY_GITHUB: ${{ secrets.API_KEY_GITHUB }}
-          API_KEY_NUGET: ${{ secrets.API_KEY_NUGET }}
-        run: ./push-packages.ps1 -buildNumberTail ${{ github.run_number }}
         shell: pwsh
