@@ -34,9 +34,8 @@ jobs:
         working-directory: osx
 
     steps:
-      - uses: actions/checkout@v3.0.0
-        with:
-          fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Restore cached packages
         id: build-packages-cache-restore
@@ -123,10 +122,9 @@ jobs:
         working-directory: osx
 
     steps:
-      - uses: actions/checkout@v3.0.0
-        with:
-          fetch-depth: 0
-
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:

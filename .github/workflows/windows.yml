@@ -32,9 +32,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restore cached packages
-        id: build-packages-cache-restore
-        uses: actions/cache/restore@v3.2.0
+      - name: Restore cached packages 
+        uses: actions/cache@v3
         with:
           path: |
             ${{ github.workspace }}/build-win
@@ -58,14 +57,6 @@ jobs:
           name: win-packages
           path: nuget/*.nupkg
 
-      - name: Save packages cache
-        id: build-packages-cache-save
-        uses: actions/cache/save@v3.2.0
-        with:
-          path: |
-            ${{ github.workspace }}/build-win
-            ${{ github.workspace }}/.dotnet
-          key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
     outputs:
       gdal-version: ${{ steps.compile-source.outputs.GDAL_VERSION }}
 
