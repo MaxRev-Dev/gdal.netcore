@@ -24,6 +24,15 @@ try {
     # $ConfirmPreference = 'Low'
     # $VerbosePreference = Continue
     
+    # check if 'GNU make' is available
+    if (!(Get-Command make -ErrorAction SilentlyContinue)) {
+        exec { cinst -y --no-progress --force make } 
+        Write-BuildError "Make is not available. It's required for shared config installation. Please install it and try again."
+        Write-BuildError "You can install it with > winget install -e --id GnuWin32.Make"
+        $host.SetShouldExit(-1)
+        return
+    }
+
     Install-PwshModuleRequirements
 
     $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
