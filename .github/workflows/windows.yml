@@ -28,7 +28,9 @@ jobs:
       run:
         working-directory: win
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3.0.0
+        with:
+          fetch-depth: 0
 
       - name: Restore cached packages 
         uses: actions/cache@v3
@@ -71,7 +73,9 @@ jobs:
     env:
       GDAL_VERSION: ${{ needs.BuildNugetPackages-Windows.outputs.gdal-version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3.0.0
+        with:
+          fetch-depth: 0
 
       - name: Download artifact
         uses: actions/download-artifact@v3
