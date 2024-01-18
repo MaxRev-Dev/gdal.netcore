@@ -296,6 +296,7 @@ function Build-CsharpBindings {
     
     Build-GenerateProjectFiles -packageVersion $packageVersion 
 
+    Set-Location $PSScriptRoot
     if ($isDebug) {
         exec { & nmake -f publish-makefile.vc pack-dev DEBUG=1 PACKAGE_BUILD_NUMBER=$packageVersion }
     }
