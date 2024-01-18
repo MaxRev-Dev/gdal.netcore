@@ -23,6 +23,14 @@ build: linkall
 linkall: initdirs copy-deps copy-projdb collect-bindings
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
 	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN:$$ORIGIN/runtimes/$(RID)/native' $(lib); fi;${\n})
+
+#	patch on curl library tries to use system libssl.so.3 and libcrypto.so.3 (3.0.2 instead of 3.2.0)
+#	https://github.com/microsoft/vcpkg/discussions/19127#discussioncomment-8139263
+	patchelf --replace-needed libssl.so.3 libssl.so.3.2.0 $(OUTPUT)/libcurl.so.4
+	patchelf --replace-needed libcrypto.so.3 libcrypto.so.3.2.0 $(OUTPUT)/libssl.so.3
+	mv $(OUTPUT)/libcrypto.so.3 $(OUTPUT)/libcrypto.so.3.2.0
+	mv $(OUTPUT)/libssl.so.3 $(OUTPUT)/libssl.so.3.2.0
+
 	@echo "Libraries patched successfully"
 
 clean:
@@ -60,14 +68,6 @@ copy-deps:
 			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)
 #   4. remove system libs
 #   https://github.com/dotnet/core/blob/main/Documentation/self-contained-linux-apps.md
-
-#   patch on curl library tries to use system libssl.so.3 and libcrypto.so.3 (3.0.2 instead of 3.2.0)
-#	https://github.com/microsoft/vcpkg/discussions/19127#discussioncomment-8139263
-	patchelf --replace-needed libssl.so.3 libssl.so.3.2.0 $(OUTPUT)/libcurl.so.4
-	patchelf --replace-needed libcrypto.so.3 libcrypto.so.3.2.0 $(OUTPUT)/libssl.so.3
-	mv $(OUTPUT)/libcrypto.so.3 $(OUTPUT)/libcrypto.so.3.2.0
-	mv $(OUTPUT)/libssl.so.3 $(OUTPUT)/libssl.so.3.2.0
-
 	@$(foreach lib, $(LIBS_TO_REMOVE),  @if [ -a  $(OUTPUT)/$(lib) ]; then echo "Removing sys lib from output -> $(lib)" & rm  $(OUTPUT)/$(lib); fi;${\n})
 
 copy-projdb:
