@@ -58,16 +58,11 @@ collect-bindings:
 	mkdir -p $(BUILD_BASE)/ogr/ && cp -fRL $(BINDINGS_SOURCE)/ogr/*.cs $(BUILD_BASE)/ogr/
 
 copy-deps:
-#	copy gdal library
-	cp -rfL $(GDAL_BUILD)/lib/libgdal.??.dylib $(OUTPUT)/
-#	copy dynamic wrappers
-	cp -rfL $(BUILD_ROOT)/gdal-cmake-temp/swig/csharp/*.dylib $(OUTPUT)/
 #	including all deps installed in this repo
 #	and some external dependencies
 #	1. copy gdal.dylib.XX
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
 #	3. copy to output
-
 	dylibbundler -b  \
 		$(addprefix  -x , $(addprefix $(OUTPUT)/,$(notdir $(WRAP_TARGETS)))) \
 		-s ${VCPKG_INSTALLED_DYNAMIC}/lib \
