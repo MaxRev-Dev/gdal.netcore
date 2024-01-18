@@ -222,3 +222,13 @@ function Get-ForceResolvePath {
 
     return $FileName
 }
+
+function Get-PathRelative {
+    param (
+        [bool] $isDebug = $false,
+        [string] $inputPath,
+        [string] $relativePath
+    )
+    $path = $inputPath -replace [regex]::escape($env:BUILD_ROOT), $relativePath ;
+    return $path -replace '\\', '/'
+}

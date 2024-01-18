@@ -3,6 +3,7 @@ include ../shared/GdalCore.opt
 
 PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
 RUNTIME_PROJECT=$(RUNTIME_PROJECT_LINUX)
+IN_FILE=
 
 all: generate-projects
 
@@ -22,4 +23,7 @@ generate-projects:
 	@cat $(RUNTIME_PROJECT_LINUX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_LINUX_FINAL)
 	@cat $(RUNTIME_PROJECT_OSX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_OSX_FINAL)
 	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
+
+get-version:
+	@grep -o "[Vv]ersion:\s.*" $(IN_FILE) | cut -d: -f2 | xargs
  

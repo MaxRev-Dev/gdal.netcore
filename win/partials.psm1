@@ -15,12 +15,15 @@ function Set-GdalVariables {
     $env:CMAKE_ARCHITECTURE = "x64"
     $env:CMAKE_PARALLEL_JOBS = 4
 
+    $env:GitBash = "C:\Program Files\Git\bin\bash.exe"
     $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
     $env:PROJ_INSTALL_DIR = (Get-ForceResolvePath "$env:BUILD_ROOT\proj-build") 
     $env:DOWNLOADS_DIR = (Get-ForceResolvePath "$env:BUILD_ROOT\downloads") 
     $env:SDK_PREFIX = "$env:BUILD_ROOT\sdk\$env:SDK"
     $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
+    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"
+
 }
 
 function Get-7ZipInstallation {   
@@ -157,7 +160,7 @@ function Get-ProjDatum {
     }
 }
 
-function Get-GdalVersion{
+function Get-GdalVersion {
     return (Get-Content "$env:GDAL_SOURCE\VERSION")
 }
 
@@ -195,8 +198,8 @@ function Build-Gdal {
     $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=$env:SDK_LIB\freetype.lib;$env:SDK_LIB\harfbuzz.lib"
 
     $webpRoot = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
-    $env:WEBP_ROOT="-DWEBP_INCLUDE_DIR=$webpRoot\include"
-    $env:WEBP_LIB="-DWEBP_LIBRARY=$webpRoot\lib\libwebp.lib"
+    $env:WEBP_ROOT = "-DWEBP_INCLUDE_DIR=$webpRoot\include"
+    $env:WEBP_LIB = "-DWEBP_LIBRARY=$webpRoot\lib\libwebp.lib"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -273,8 +276,10 @@ function Build-GenerateProjectFiles {
         [string] $packageVersion
     )
     Set-GdalVariables
-    Set-Location $PSScriptRoot
-    exec {  & 'C:\Program Files\Git\bin\bash.exe' -i -c "cd ../unix; make -f ./generate-projects-makefile BUILD_NUMBER_TAIL=$($packageVersion) BUILD_ARCH=$($env:CMAKE_ARCHITECTURE)" }
+    Set-Location "$PSScriptRoot/../unix" 
+    $vcpkgInstalled = Get-PathRelative -inputPath:$env:VCPKG_INSTALLED_PKGCONFIG -relativePath:"../build-win"
+    $geosVersion = (& $env:GitBash -c "make -f generate-projects-makefile get-version IN_FILE=$("$vcpkgInstalled/geos.pc")")
+    exec { & $env:GitBash -c "make -f generate-projects-makefile BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE" }
 }
 
 function Build-CsharpBindings {   
