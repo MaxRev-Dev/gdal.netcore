@@ -68,6 +68,7 @@ jobs:
 
       - name: Fetch VCPKG packages
         run: |
+          mkdir -p ${{ github.workspace }}/vcpkg-archives/
           make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }} build_cleanup
           make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
 
