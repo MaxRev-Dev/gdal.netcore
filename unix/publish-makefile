@@ -10,7 +10,7 @@ export MSBUILDSINGLELOADCONTEXT = 1
 export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
 PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
-RUNTIME_PROJECT=$(RUNTIME_PROJECT_LINUX)
+RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_LINUX_FINAL)
 GEOS_VERSION=$(shell $(MAKE) -f generate-projects-makefile get-version IN_FILE=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/geos.pc)
 
 all: prepare pack
@@ -26,7 +26,7 @@ pack-core: generate-projects
 	dotnet pack -c Release -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
 
 pack-runtime: generate-projects
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT)
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_FINAL)
 
 pack: prepare pack-core pack-runtime
 	@exit 0
@@ -35,7 +35,7 @@ pack-core-dev: generate-projects
 	dotnet pack -c Debug -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
 
 pack-runtime-dev: generate-projects
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(RUNTIME_PROJECT)
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(RUNTIME_PROJECT_FINAL)
 
 pack-dev: pack-core-dev pack-runtime-dev
 	@exit 0
