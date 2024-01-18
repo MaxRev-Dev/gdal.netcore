@@ -17,7 +17,7 @@ endef
 
 all: build
 
-OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
+OUTPUT = $(PACKAGE_BUILD_ROOT)/runtimes/$(RID)/native
 BUILD_BASE = $(BASE)/bindings
 WRAP_TARGETS = $(wildcard $(BINDINGS_SOURCE)/lib*.dylib) libgdal.??.dylib
 

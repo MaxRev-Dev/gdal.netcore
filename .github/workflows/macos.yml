@@ -15,6 +15,7 @@ concurrency:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   DOTNET_VERSION: '8.0.x'
+  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/.cache/vcpkg/archives
 
 jobs:
   BuildNugetPackages-MacOS:
@@ -44,7 +45,7 @@ jobs:
           path: |
             ${{ github.workspace }}/build-osx
             ${{ github.workspace }}/.dotnet
-            /root/.cache/vcpkg/archives
+            ${{ github.workspace }}/.cache/vcpkg/archives
           key: ${{ runner.os }}-packages-${{ matrix.os }}
 
       - name: Set up Homebrew
@@ -102,7 +103,7 @@ jobs:
           path: |
             ${{ github.workspace }}/build-osx
             ${{ github.workspace }}/.dotnet
-            /root/.cache/vcpkg/archives
+            ${{ github.workspace }}/.cache/vcpkg/archives
           key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
   TestAndPushPackages-MacOS:
@@ -112,8 +113,8 @@ jobs:
         include:
           - os: self-hosted-macos-arm64
             arch: arm64
-          - os: self-hosted-macos-x64
-            arch: x64
+          # - os: self-hosted-macos-x64
+          #   arch: x64
     needs: BuildNugetPackages-MacOS
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"

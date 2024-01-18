@@ -43,7 +43,7 @@ pull:
 	fi;
 	@cd $(VCPKG_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force
 	@cd $(VCPKG_ROOT) && git reset --hard
-	@cd $(VCPKG_ROOT) && git pull --force
+	@cd $(VCPKG_ROOT) && git pull --force origin $(VCPKG_COMMIT_VER) || echo "Failed to pull changes"
 
 bootstrap: checkout_ver
 	cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh || exit 1;
@@ -106,7 +106,7 @@ patch_vcpkg_triplets:
 
 install_packages:
 	@$(foreach pack,$(VCPKG_REQUIRE_OSX),MAKELEVEL=0 $(VCPKG) install $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL);)
-	@$(foreach pack,$(VCPKG_REQUIRE_OSX_DYNAMIC),VCPKG_INSTALL_NAME_DIR=@rpath MAKELEVEL=0 $(VCPKG) install $(pack):$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_INSTALL);)
+	@$(foreach pack,$(VCPKG_REQUIRE_OSX_DYNAMIC), MAKELEVEL=0 $(VCPKG) install $(pack):$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_INSTALL);)
 
 remove_packages:
 	@$(foreach pack,$(VCPKG_REQUIRE_OSX), $(VCPKG) remove $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE);)
