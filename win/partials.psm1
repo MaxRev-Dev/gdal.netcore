@@ -269,9 +269,12 @@ function Build-Gdal {
 }
 
 function Build-GenerateProjectFiles {
+    param (
+        [string] $packageVersion
+    )
     Set-GdalVariables
     Set-Location $PSScriptRoot
-    exec {  & 'C:\Program Files\Git\bin\bash.exe' -i -c "cd ../unix; make -f ./generate-projects-makefile" }
+    exec {  & 'C:\Program Files\Git\bin\bash.exe' -i -c "cd ../unix; make -f ./generate-projects-makefile BUILD_NUMBER_TAIL=$($packageVersion) BUILD_ARCH=$($env:CMAKE_ARCHITECTURE)" }
 }
 
 function Build-CsharpBindings {   
@@ -286,7 +289,7 @@ function Build-CsharpBindings {
     
     exec { & nmake -f collect-deps-makefile.vc }
     
-    Build-GenerateProjectFiles
+    Build-GenerateProjectFiles -packageVersion $packageVersion 
 
     if ($isDebug) {
         exec { & nmake -f publish-makefile.vc pack-dev DEBUG=1 PACKAGE_BUILD_NUMBER=$packageVersion }
