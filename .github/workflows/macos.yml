@@ -55,6 +55,7 @@ jobs:
       - name: Install CMake
         run: |
           python3 -m pip install cmake
+          
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3

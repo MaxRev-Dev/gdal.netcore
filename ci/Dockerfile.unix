@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
 
 # install cmake latest
 RUN pip install cmake --upgrade
+RUN git config --global http.postBuffer 52428800
 
 # load cache from previous build
 COPY .dotnet*/ /usr/share/dotnet/
