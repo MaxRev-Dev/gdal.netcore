@@ -74,7 +74,7 @@ copy-deps:
 		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
 		-i "/opt/homebrew/opt/jpeg-xl/lib" \
-		-cd -d $(OUTPUT)/ -p "@loader_path/"
+		-cd -of -d $(OUTPUT)/ -p "@loader_path/"
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)
