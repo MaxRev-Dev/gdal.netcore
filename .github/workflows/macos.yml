@@ -13,9 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
+  DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet/
   DOTNET_VERSION: '8.0.x'
-  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/.cache/vcpkg/archives
+  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
 
 jobs:
   BuildNugetPackages-MacOS:
@@ -43,9 +43,9 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: |
-            ${{ github.workspace }}/build-osx
-            ${{ github.workspace }}/.dotnet
-            ${{ github.workspace }}/.cache/vcpkg/archives
+            ${{ github.workspace }}/build-osx/
+            ${{ github.workspace }}/.dotnet/
+            ${{ github.workspace }}/vcpkg-archives/
           key: ${{ runner.os }}-packages-${{ matrix.os }}
 
       - name: Set up Homebrew
@@ -101,9 +101,9 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: |
-            ${{ github.workspace }}/build-osx
-            ${{ github.workspace }}/.dotnet
-            ${{ github.workspace }}/.cache/vcpkg/archives
+            ${{ github.workspace }}/build-osx/
+            ${{ github.workspace }}/.dotnet/
+            ${{ github.workspace }}/vcpkg-archives/
           key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
   TestAndPushPackages-MacOS:
