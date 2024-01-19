@@ -22,8 +22,8 @@ RUN pip install cmake --upgrade
 RUN git config --global http.postBuffer 52428800
 
 # load cache from previous build
-COPY .dotnet*/ /usr/share/dotnet/ && \
-    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
+COPY .dotnet*/ /usr/share/dotnet/ 
+RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet || echo "no dotnet cache found"
 
 ARG DOTNET_VERSION=8.0
 # install dotnet

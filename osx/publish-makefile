@@ -2,5 +2,5 @@ include RID.opt
 include ../shared/GdalCore.opt
 
 %:
-	@$(MAKE) -f ../unix/publish-makefile $@ RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_OSX_FINAL)
+	@cd ../unix && $(MAKE) -f publish-makefile $@ RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_OSX_FINAL)
 
