@@ -2,7 +2,8 @@
 # Usage: ./extract-container-artifacts.sh 
 
 outputDir="$(dirname "$0")/.."
-containerName=$(docker create ghcr.io/maxrev-dev/gdal.netcore.builder.arm64:latest)
+arch=$1
+containerName=$(docker create ghcr.io/maxrev-dev/gdal.netcore.builder.$arch:latest)
 echo "Extracting artifacts from container $containerName to $outputDir" 
 # extract nuget packages
 docker cp $containerName:/build/nuget "$outputDir/"

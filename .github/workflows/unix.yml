@@ -28,7 +28,7 @@ jobs:
         include:
           - os: linux/amd64
             arch: x64
-            actions-runner: self-hosted-macos-x64
+            actions-runner: ubuntu-latest #self-hosted-macos-x64
           - os: linux/arm64
             arch: arm64
             actions-runner: self-hosted-macos-arm64
@@ -51,7 +51,6 @@ jobs:
         
       - name: Cache restore
         uses: actions/cache@v3
-        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
         with:
           path: |
             ${{ github.workspace }}/.dotnet
@@ -87,8 +86,6 @@ jobs:
           platforms: ${{ matrix.os }}
           build-args: |
             BUILD_NUMBER_TAIL=${{ github.run_number }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -108,33 +105,21 @@ jobs:
       - name: Extract artifacts
         run: |
           chmod +x '${{ github.workspace }}/ci/extract-container-artifacts.sh'
-          '${{ github.workspace }}/ci/extract-container-artifacts.sh'
+          '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }}
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
         with:
           name: unix-packages-${{ matrix.arch }}
           path: nuget/*.nupkg
-          
-      - name: Push image to registry
-        if: ${{ !contains(matrix.actions-runner, 'self-hosted') }}
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ci/Dockerfile.unix
-          platforms: ${{ matrix.os }}
-          push: true
-          target: final
-          tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=GDAL.NETCORE unix build image
-
+      
   TestAndPushPackages-Linux:
     strategy:
       matrix:
         include:
           - os: linux/amd64
             arch: x64
-            actions-runner: self-hosted-macos-x64
+            actions-runner: ubuntu-latest
           - os: linux/arm64
             arch: arm64
             actions-runner: self-hosted-macos-arm64
