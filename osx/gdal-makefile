@@ -56,11 +56,7 @@ endif
 
 init_%:
 	$(MAKE) -f gdal-makefile clone_$(REP)
-	@if [ "$$CI" == "true" ]; then \
-		echo "Skipping reset"; \
-	else \
-		$(MAKE) -f gdal-makefile reset_$(REP); \
-	fi;
+	$(MAKE) -f gdal-makefile reset_$(REP); 
 	$(MAKE) -f gdal-makefile remove_cache_$(REP)
 	@echo "$(TO) Sources restore complete"
 

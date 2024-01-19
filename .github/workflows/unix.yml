@@ -72,9 +72,11 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+            ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}
           tags: |
-            type=schedule,pattern={{date 'YYYYMMDD-HHmmss' }}
+            type=sha
+            type=ref,event=branch
+            type=ref,event=pr
 
       - name: Build and push on GH runner
         uses: docker/build-push-action@v5
