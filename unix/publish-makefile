@@ -11,12 +11,12 @@ export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
 PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
 RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_LINUX_FINAL)
-GEOS_VERSION=$(shell $(MAKE) -f generate-projects-makefile get-version IN_FILE=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/geos.pc)
+GEOS_VERSION=$(shell $(MAKE) -f ../unix/generate-projects-makefile get-version IN_FILE=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/geos.pc)
 
 all: prepare pack
 
 generate-projects:
-	$(MAKE) -f generate-projects-makefile GEOS_VERSION=$(GEOS_VERSION)
+	$(MAKE) -f ../unix/generate-projects-makefile GEOS_VERSION=$(GEOS_VERSION)
 
 # remove source. this was added by GDAL. ignore error
 prepare:

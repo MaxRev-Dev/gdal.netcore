@@ -1,6 +1,12 @@
 include RID.opt
 include ../shared/GdalCore.opt
 
+all: all
+
 %:
-	@cd ../unix && $(MAKE) -f publish-makefile $@ RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_OSX_FINAL)
+	$(MAKE) -f ../unix/publish-makefile $@ \
+		BUILD_ARCH=$(BUILD_ARCH) \
+		RID=$(RID) \
+		VCPKG_RID=$(VCPKG_RID) \
+		RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_OSX_FINAL)
 
