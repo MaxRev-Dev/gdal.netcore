@@ -68,6 +68,7 @@ copy-deps:
 	dylibbundler -b  \
 		$(addprefix  -x , $(addprefix $(BINDINGS_SOURCE)/,$(notdir $(WRAP_TARGETS)))) \
 		-s ${VCPKG_INSTALLED_DYNAMIC}/lib \
+		-s $(GDAL_BUILD)/lib \
 		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
 		-cd -of -d $(OUTPUT)/ -p "@loader_path/"
