@@ -65,6 +65,9 @@ copy-deps:
 #	3. copy to output
 	cp -rfL $(GDAL_BUILD)/lib/*.dylib $(OUTPUT)/
 
+#	remove symlinks so we'll have only real files
+	find $(GDAL_BUILD)/lib/ -maxdepth 1 -type l -delete
+
 	dylibbundler -b  \
 		$(addprefix  -x , $(addprefix $(BINDINGS_SOURCE)/,$(notdir $(WRAP_TARGETS)))) \
 		-s ${VCPKG_INSTALLED_DYNAMIC}/lib \
