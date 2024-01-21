@@ -63,18 +63,15 @@ copy-deps:
 #	1. copy gdal.dylib.XX
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
 #	3. copy to output
-	cp -rfL $(GDAL_BUILD)/lib/*.dylib $(OUTPUT)/
-
-#	remove symlinks so we'll have only real files
-	find $(GDAL_BUILD)/lib/ -maxdepth 1 -type l -delete
+	cp -rfL $(BINDINGS_SOURCE)/*.dylib $(OUTPUT)/
 
 	dylibbundler -b  \
-		$(addprefix  -x , $(addprefix $(BINDINGS_SOURCE)/,$(notdir $(WRAP_TARGETS)))) \
+		$(addprefix  -x , $(addprefix $(OUTPUT)/,$(notdir $(WRAP_TARGETS)))) \
 		-s ${VCPKG_INSTALLED_DYNAMIC}/lib \
 		-s $(GDAL_BUILD)/lib \
 		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
-		-cd -of -d $(OUTPUT)/ -p "@loader_path/"
+		-cd -d $(OUTPUT)/ -p "@loader_path/"
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)
