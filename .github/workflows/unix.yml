@@ -13,9 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
-  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
   DOCKER_REGISTRY: ghcr.io/maxrev-dev
+  DOTNET_VERSION: '8.0.x'
 
 permissions:
   packages: write
@@ -28,7 +27,7 @@ jobs:
         include:
           - os: linux/amd64
             arch: x64
-            actions-runner: ubuntu-latest #self-hosted-macos-x64
+            actions-runner: self-hosted-macos-x64
           - os: linux/arm64
             arch: arm64
             actions-runner: self-hosted-macos-arm64
@@ -104,6 +103,9 @@ jobs:
           platforms: ${{ matrix.os }}
           build-args: |
             BUILD_NUMBER_TAIL=${{ github.run_number }}
+            DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
+            VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
+            DOTNET_VERSION=${{ env.DOTNET_VERSION }}}
 
       - name: Extract artifacts
         run: |
@@ -123,6 +125,9 @@ jobs:
           - os: linux/amd64
             arch: x64
             actions-runner: ubuntu-latest
+          - os: linux/amd64
+            arch: x64
+            actions-runner: self-hosted-macos-x64
           - os: linux/arm64
             arch: arm64
             actions-runner: self-hosted-macos-arm64
