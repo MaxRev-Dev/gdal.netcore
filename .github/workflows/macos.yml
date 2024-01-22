@@ -40,7 +40,7 @@ jobs:
 
       - name: Restore cached packages
         id: build-packages-cache-restore
-        uses: actions/cache/restore@v3
+        uses: maxnowack/local-cache@v1
         with:
           path: |
             ${{ github.workspace }}/build-osx/
@@ -97,16 +97,6 @@ jobs:
         with:
           name: osx-packages-${{ matrix.arch }}
           path: nuget/*.nupkg
-
-      - name: Save packages cache
-        id: build-packages-cache-save
-        uses: actions/cache/save@v3
-        with:
-          path: |
-            ${{ github.workspace }}/build-osx/
-            ${{ github.workspace }}/.dotnet/
-            ${{ github.workspace }}/vcpkg-archives/
-          key: ${{ steps.build-packages-cache-restore.outputs.cache-primary-key }}
 
   TestAndPushPackages-MacOS:
     strategy:
