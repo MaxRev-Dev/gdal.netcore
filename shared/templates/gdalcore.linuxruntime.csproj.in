@@ -4,7 +4,7 @@
     <Platform>${_BUILD_ARCH}</Platform>
     <DebugType>portable</DebugType>
     <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
-    <Copyright>MaxRev © 2023</Copyright>
+    <Copyright>MaxRev © 2024</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>MaxRev.Gdal.LinuxRuntime.Minimal.${_BUILD_ARCH}</PackageId>
