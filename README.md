@@ -18,7 +18,7 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
 [MaxRev.Gdal.MacosRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.arm64/)
 
 ## Table Of Contents
-  * [**Packages**](#packages)
+  * [Packages (NuGet)](#packages-nuget)
   * [Table Of Contents](#table-of-contents)
   * [**About this library**](#about-this-library)
     + [What is this library](#what-is-this-library)
@@ -39,8 +39,9 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
       - [Q: GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
       - [Q: Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
       - [Q: In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
-      - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)      
-      - [Q: Packages does not work on MacOS Monterey or Big Sur](#q-packages-does-not-work-on-macos-monterey-or-big-sur)
+      - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception) 
+      - [Q: Packages does not work on MacOS Catalina or lower](#q-packages-does-not-work-on-macos-catalina-or-lower)
+      - [Q: The first run on MacOS is slow and takes more than 3 seconds](#q-the-first-run-on-macos-is-slow-and-takes-more-than-3-seconds)
   * [About and Contacts](#about-and-contacts)
   * [Acknowledgements](#acknowledgements)
 
@@ -66,7 +67,7 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
  ```powershell
  Install-Package MaxRev.Gdal.Core
  ```
-2. Install [libraries](#packages) for your runtime. You can install one of them or all with no conflicts. 
+2. Install [libraries](#packages-nuget) for your runtime. You can install one of them or all with no conflicts. 
 ```powershell
 Install-Package MaxRev.Gdal.WindowsRuntime.Minimal
 Install-Package MaxRev.Gdal.LinuxRuntime.Minimal.arm64
@@ -159,10 +160,14 @@ A: Apparently, it's not a fault of the build engine. I did not face this issue a
 
 A: That's a problem with swig bindings. Please, use **SpatialReference** type from **OSR** namespace. More info [here](https://github.com/MaxRev-Dev/gdal.netcore/issues/2#issuecomment-539716268) and [here](https://github.com/MaxRev-Dev/gdal.netcore/issues/11#issuecomment-651465581).
 
-#### Q: Packages does not work on MacOS Monterey or Big Sur
+#### Q: Packages does not work on MacOS Catalina or lower
 
-A: The current version of packages was compiled on MacOS Ventura and 13.3 SDK respectively. In future, this can be changed to build upon a lower SDK version starting version 11 but not below. 
+A: The current version of packages was compiled on MacOS Ventura and 11.3 SDK respectively. Consider updating your system to at least MacOS 13. The systems that reached [EOL](https://endoflife.date/macos) (end-of-life) won't be supported.
 
+#### Q: The first run on MacOS is slow and takes more than 3 seconds
+
+A: It's a known issue related to the linking of the shared libraries. If you find any solution/workaround, please let me know.
+Currently, linker tries to find all shared libraries in the `@loader_path/`. It should point to the executable directory.
 
 ## About and Contacts
 
