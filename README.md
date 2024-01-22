@@ -1,13 +1,20 @@
-# gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) ![Packages CI](https://github.com/MaxRev-Dev/gdal.netcore/workflows/CI/badge.svg?branch=master)
+# gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) 
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.7.0 library for [.NET](https://dotnet.microsoft.com/download). 
+[![Linux Build](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/unix.yml/badge.svg)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/unix.yml)
+[![MacOS Build](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/macos.yml/badge.svg)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/macos.yml)
+[![Windows Build](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/windows.yml/badge.svg)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/windows.yml)
+
+A simple (as is) build engine of [GDAL](https://gdal.org/) 3.7.3 library for [.NET](https://dotnet.microsoft.com/download). 
+
+Provides a minimal setup without requirements to install heavy [GDAL binaries](https://gdal.org/download.html#binaries) into your system.
 
 ## Packages (NuGet)
 
-[MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br/>
-[MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/) <br/>
-[MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)<br/>
-[MaxRev.Gdal.MacosRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.x64/)<br/>
+[MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br>
+[MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)<br>
+[MaxRev.Gdal.LinuxRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.x64/) <br>
+[MaxRev.Gdal.LinuxRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.arm64/) <br>
+[MaxRev.Gdal.MacosRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.x64/)<br>
 [MaxRev.Gdal.MacosRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.arm64/)
 
 ## Table Of Contents
@@ -62,7 +69,8 @@ A simple (as is) build engine of [GDAL](https://gdal.org/) 3.7.0 library for [.N
 2. Install [libraries](#packages) for your runtime. You can install one of them or all with no conflicts. 
 ```powershell
 Install-Package MaxRev.Gdal.WindowsRuntime.Minimal
-Install-Package MaxRev.Gdal.LinuxRuntime.Minimal
+Install-Package MaxRev.Gdal.LinuxRuntime.Minimal.arm64
+Install-Package MaxRev.Gdal.LinuxRuntime.Minimal.x64
 Install-Package MaxRev.Gdal.MacosRuntime.Minimal.arm64
 Install-Package MaxRev.Gdal.MacosRuntime.Minimal.x64
 ```
@@ -101,16 +109,16 @@ Detailed guide is here - [osx](osx/).
 
 ## About build configuration
 
-The current version targets **GDAL 3.7.0** with **minimal drivers**. What stands for 'minimal' - drivers that require no additional dependencies (mainly boost). For example, `MySQL` driver is not included, because it requires 15+ boost deps. Same goes for `Poppler` driver. They can be packaged upon request.
+The package configuration is marked as **minimal**. That means you don't have to install [GDAL binaries](https://gdal.org/download.html#binaries). Also, some uncommon drivers are not available (were not built).
 
-Drivers included PROJ(9.2.0), GEOS(3.11.1), and more than 200 other drivers.
+Drivers included PROJ, GEOS, and more than 200 other drivers.
 To view full list of drivers, To view the complete list of drivers, you can view the full list with GDAL's API or see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
 
 **NOTE**: Runtime drivers availability may differ. Ask me about a specific driver for runtime. Please issue if I need to mention any packages.
 
 ## Building runtime libraries
 
-Current version is targeting **GDAL 3.7.0** version. Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**. Still, the resulting core bindings are the same on each runtime package (OS).
+Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**. Still, the resulting core bindings are the same on each runtime package (OS).
 
 To make everything work smoothly, each configuration targets the same drivers and their versions, respectively.
 

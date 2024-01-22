@@ -9,14 +9,14 @@ BUILD_NUMBER_TAIL=10
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
-# May 2, 2023
-GDAL_VERSION=3.7.0
+# Nov 3, 2023
+GDAL_VERSION=3.7.3
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
 GDAL_COMMIT_VER=v$(GDAL_VERSION)
 
-# Mar 1, 2023
-PROJ_VERSION=9.2.0
+# Dec 1, 2023
+PROJ_VERSION=9.3.1
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
 PROJ_COMMIT_VER=$(PROJ_VERSION)
@@ -29,7 +29,7 @@ VCPKG_COMMIT_VER=2024.01.12
 
 # base requirements for both runtimes
 VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" curl
-VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml "icu[core,tools]" libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]"
+VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]"
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj
 VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]"
@@ -74,7 +74,7 @@ BASE_SWIG_=$(GDAL_ROOT)/swig
 BASE_CSHARP_=$(BASE_SWIG_)/csharp
 SWIG_INCLUDE_=$(BASE_SWIG_)/include
 
-##### HDF build location
+##### HDF build location (only for osx)
 HDF_BUILD=$(BUILD_ROOT)/hdf-build
 HDF_CMAKE_TMP=$(BUILD_ROOT)/hdf-cmake-temp
 HDF_VERSION=4.2.16-2
@@ -99,12 +99,14 @@ GDALCORE_PROJECT=$(ROOTDIR_)/shared/templates/gdalcore.loader.csproj.in
 RUNTIME_PROJECT_LINUX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.in
 RUNTIME_PROJECT_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.csproj.in
 RUNTIME_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.windowsruntime.csproj.in
+RUNTIME_PROJECT_BUNDLE=$(ROOTDIR_)/shared/templates/gdalcore.bundle.csproj.in
 
 # Generated project files
 GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
 RUNTIME_PROJECT_LINUX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.final.csproj
 RUNTIME_PROJECT_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.final.csproj
 RUNTIME_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.windowsruntime.final.csproj
+RUNTIME_PROJECT_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.bundle.final.csproj
 
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx

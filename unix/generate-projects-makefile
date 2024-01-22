@@ -23,6 +23,7 @@ generate-projects:
 	@cat $(RUNTIME_PROJECT_LINUX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_LINUX_FINAL)
 	@cat $(RUNTIME_PROJECT_OSX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_OSX_FINAL)
 	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
+	@cat $(RUNTIME_PROJECT_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_FINAL)
 
 get-version:
 	@grep -o "[Vv]ersion:\s.*" $(IN_FILE) | cut -d: -f2 | xargs
