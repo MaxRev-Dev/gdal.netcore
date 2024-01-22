@@ -34,7 +34,7 @@ jobs:
 
       - name: Restore cached packages 
         id: build-packages-cache-restore
-        uses: maxnowack/local-cache@v1
+        uses: maxnowack/local-cache@main
         with:
           path: |
             ${{ github.workspace }}/build-win

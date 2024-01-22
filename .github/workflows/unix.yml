@@ -50,7 +50,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
         
       - name: Cache restore
-        uses: maxnowack/local-cache@v1
+        uses: maxnowack/local-cache@main
         with:
           path: |
             ${{ github.workspace }}/.dotnet
