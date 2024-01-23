@@ -97,7 +97,7 @@ FROM --platform=$TARGETPLATFORM alpine as final
 COPY --from=base /usr/share/dotnet /usr/share/dotnet
 # copy cache from build
 COPY --from=gdalbuild /build/build-unix /build/build-unix
-COPY --from=gdalbuild /root/.cache/vcpkg/archives /root/.cache/vcpkg/archives
+COPY --from=gdalbuild /build/ci/cache/vcpkg-archives/ /build/ci/cache/vcpkg-archives/
 # copy nuget packages from build
 COPY --from=gdalbuild /build/nuget /build/nuget
 ENTRYPOINT ["bash"]
