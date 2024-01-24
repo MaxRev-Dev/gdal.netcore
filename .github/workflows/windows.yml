@@ -50,7 +50,7 @@ jobs:
       - name: Compile GDAL and create packages
         id: compile-source
         run: |
-          ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease [System.Convert]::ToBoolean(${{ env.IS_PRE_RELEASE }})
+          ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ env.IS_PRE_RELEASE }}
           echo "GDAL_VERSION=$env:GDAL_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           
       - name: Store metadata as artifact
@@ -108,7 +108,7 @@ jobs:
         shell: pwsh
 
       - name: Test packages
-        run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease [System.Convert]::ToBoolean(${{ env.IS_PRE_RELEASE }})
+        run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ env.IS_PRE_RELEASE }}
         shell: pwsh
 
   PushPackages-Windows:
