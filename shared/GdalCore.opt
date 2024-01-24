@@ -100,6 +100,8 @@ RUNTIME_PROJECT_LINUX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.
 RUNTIME_PROJECT_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.csproj.in
 RUNTIME_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.windowsruntime.csproj.in
 RUNTIME_PROJECT_BUNDLE=$(ROOTDIR_)/shared/templates/gdalcore.bundle.csproj.in
+RUNTIME_PROJECT_BUNDLE_UNIX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.bundle.csproj.in
+RUNTIME_PROJECT_BUNDLE_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.bundle.csproj.in
 
 # Generated project files
 GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
@@ -107,6 +109,8 @@ RUNTIME_PROJECT_LINUX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.final.cs
 RUNTIME_PROJECT_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.final.csproj
 RUNTIME_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.windowsruntime.final.csproj
 RUNTIME_PROJECT_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.bundle.final.csproj
+RUNTIME_PROJECT_BUNDLE_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.bundle.final.csproj
+RUNTIME_PROJECT_BUNDLE_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.bundle.final.csproj
 
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx

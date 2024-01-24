@@ -23,7 +23,7 @@ docker cp $containerName:/usr/share/dotnet  "$outputDir/ci/cache/"
 
 # extract vcpkg cache
 mkdir -p "$outputDir/ci/cache/vcpkg/archives"
-docker cp $containerName:/root/.cache/vcpkg/archives "$outputDir/ci/cache/vcpkg/"
+docker cp $containerName:/build/ci/cache/vcpkg-archives "$outputDir/ci/cache/vcpkg/"
 
 # extract metadata
 

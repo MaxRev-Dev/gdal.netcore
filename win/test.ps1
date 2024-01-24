@@ -22,7 +22,7 @@ try {
     }
     $preReleaseArg = ""
     if ($preRelease){
-        $preReleaseArg = "PRE_RELEASE=1"
+        $preReleaseArg = "PRERELEASE=1"
     }
     if ($null -eq $env:GDAL_VERSION) {
         $env:GDAL_VERSION = Get-GdalVersion

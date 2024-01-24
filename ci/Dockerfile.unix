@@ -87,16 +87,18 @@ COPY unix /build/unix
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f collect-deps-makefile $(cat /tmp/gdal-netcore-arch)
 
+ARG PRERELEASE
 ARG BUILD_NUMBER_TAIL
 COPY . /build
 RUN rm -rf /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL
+    make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL PRERELEASE=$PRERELEASE
 
 FROM --platform=$TARGETPLATFORM alpine as final
 COPY --from=base /usr/share/dotnet /usr/share/dotnet
 # copy cache from build
 COPY --from=gdalbuild /build/build-unix /build/build-unix
+COPY --from=gdalbuild /build/shared /build/shared
 COPY --from=gdalbuild /build/ci/cache/vcpkg-archives/ /build/ci/cache/vcpkg-archives/
 # copy nuget packages from build
 COPY --from=gdalbuild /build/nuget /build/nuget

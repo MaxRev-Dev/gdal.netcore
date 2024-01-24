@@ -7,7 +7,7 @@ param (
     [bool] $fetchGdal = $true, # fetch gdal from git, otherwise use local copy
     [bool] $bootstrapVcpkg = $true, # bootstrap vcpkg, otherwise use local copy
     [bool] $installVcpkgPackages = $true, # install vcpkg packages, otherwise use local copy
-    [bool] $isDebug = $false, # build debug version of csharp bindings
+    [bool] $preRelease = $false, # build preRelease version of csharp bindings
     [int] $buildNumberTail = 10 # build number for csharp bindings
 )
 
@@ -63,7 +63,7 @@ try {
     Build-Gdal -cleanGdalBuild $cleanGdalBuild -cleanGdalIntermediate $cleanGdalIntermediate -fetchGdal $fetchGdal
 
     $env:GDAL_VERSION = Get-GdalVersion
-    Build-CsharpBindings -isDebug $isDebug -packageVersion $buildNumberTail
+    Build-CsharpBindings -isDebug $preRelease -packageVersion $buildNumberTail
 }
 catch
 {

@@ -1,21 +1,43 @@
-# gdal.netcore [![Mentioned in Awesome Geospatial](https://awesome.re/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) 
+# gdal.netcore [![Mentioned in Awesome Geospatial](https://raw.githubusercontent.com/sindresorhus/awesome/main/media/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) 
 
-[![Linux Build](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/unix.yml/badge.svg)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/unix.yml)
-[![MacOS Build](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/macos.yml/badge.svg)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/macos.yml)
-[![Windows Build](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/windows.yml/badge.svg)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/windows.yml)
+[![Linux Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/unix.yml?label=Linux%20Build)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/unix.yml)
+[![MacOS Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/macos.yml?label=MacOS%20Build)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/macos.yml)
+[![Windows Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/windows.yml?label=Windows%20Build)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/windows.yml)
 
-A simple (as is) build engine of [GDAL](https://gdal.org/) 3.7.3 library for [.NET](https://dotnet.microsoft.com/download). 
+A simple (as is) build engine of [GDAL](https://gdal.org/) library for [.NET](https://dotnet.microsoft.com/download). 
 
 Provides a minimal setup without requirements to install heavy [GDAL binaries](https://gdal.org/download.html#binaries) into your system.
 
 ## Packages (NuGet)
 
-[MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) <br>
-[MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/)<br>
-[MaxRev.Gdal.LinuxRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.x64/) <br>
-[MaxRev.Gdal.LinuxRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.arm64/) <br>
-[MaxRev.Gdal.MacosRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.x64/)<br>
-[MaxRev.Gdal.MacosRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.arm64/)
+[MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.Core) 
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.Core) <br>
+
+[MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/) 
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.WindowsRuntime.Minimal)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.WindowsRuntime.Minimal) <br>
+
+[MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal) <br>
+-  [MaxRev.Gdal.LinuxRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.x64/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal.x64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal.x64) <br>
+- [MaxRev.Gdal.LinuxRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.arm64/) 
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal.arm64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal.arm64) <br>
+
+
+[MaxRev.Gdal.MacosRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.MacosRuntime.Minimal)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.MacosRuntime.Minimal) <br>
+- [MaxRev.Gdal.MacosRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.x64/) 
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.MacosRuntime.Minimal.x64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.MacosRuntime.Minimal.x64) <br> 
+- [MaxRev.Gdal.MacosRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.arm64/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.MacosRuntime.Minimal.arm64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.MacosRuntime.Minimal.arm64)
 
 ## Table Of Contents
   * [Packages (NuGet)](#packages-nuget)

@@ -2,12 +2,6 @@ include RID.opt
 include ../shared/GdalCore.opt
 include ../shared/bundle/base.opt
 
-ifeq ($(PRERELEASE),)
-PRERELEASE_ARG=
-else
-PRERELEASE_ARG=--prerelease
-endif
-
 ifeq ($(APP_RUN),)
 TEST_TARGET=$(TEST_DIR)
 CMD_TYPE=dotnet test

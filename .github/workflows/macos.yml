@@ -93,18 +93,20 @@ jobs:
           make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Store metadata as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: metadata-osx-${{ matrix.arch }}
           path: shared/bundle/targets/
+          overwrite: true
 
       - name: Store packages as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages-osx-${{ matrix.arch }}
           path: nuget/*.nupkg
+          overwrite: true
 
-  TestAndPushPackages-MacOS:
+  TestPackages-MacOS:
     strategy:
       matrix:
         os: [self-hosted-macos-arm64,self-hosted-macos-x64,macos-latest]
@@ -115,6 +117,7 @@ jobs:
             arch: x64
           - os: macos-latest
             arch: x64
+
     needs: BuildNugetPackages-MacOS
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
@@ -148,3 +151,37 @@ jobs:
       - name: Test packages
         run: |
           make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+
+  PushPackages-Macos:
+    needs: TestPackages-MacOS
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    defaults:
+      run:
+        working-directory: unix
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download artifact - packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: packages-osx*
+          merge-multiple: true
+          path: nuget/
+      
+      - name: Download artifact - metadata
+        uses: actions/download-artifact@v4
+        with:
+          pattern: metadata-osx*
+          merge-multiple: true
+          path: shared/bundle/targets/
+      
+      - name: Pack bundle project
+        run: |
+          make -f publish-makefile pack-bundle CAT_NAME=osx BUILD_NUMBER_TAIL=${{ github.run_number }} PRERELEASE=${{ env.IS_PRE_RELEASE }}
+
+      - name: Push packages
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          make -f push-packages-makefile BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}

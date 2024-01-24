@@ -29,6 +29,9 @@ pack-core: generate-projects
 pack-runtime: generate-projects
 	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_FINAL)
 
+pack-bundle: generate-projects
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
+
 pack: prepare pack-core pack-runtime
 	@exit 0
 
@@ -37,6 +40,9 @@ pack-core-dev: generate-projects
 
 pack-runtime-dev: generate-projects
 	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(RUNTIME_PROJECT_FINAL)
+
+pack-bundle-dev: generate-projects
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
 pack-dev: pack-core-dev pack-runtime-dev
 	@exit 0

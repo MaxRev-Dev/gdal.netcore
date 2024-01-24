@@ -25,8 +25,9 @@
       Just call - GdalBase.ConfigureAll()
     </Description>
     <PackageReleaseNotes>
-      - GDAL Version ${_GDAL_VERSION}
-      - Built with VCPKG
+      - GDAL ${_GDAL_VERSION}
+      - PROJ ${_PROJ_VERSION}
+      - GEOS ${_GEOS_VERSION}
     </PackageReleaseNotes>
   </PropertyGroup>
 

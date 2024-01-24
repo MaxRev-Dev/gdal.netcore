@@ -1,7 +1,11 @@
 include RID.opt
 include ../shared/GdalCore.opt
 
-TARGETS=$(wildcard $(NUGET_)/MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH).*.nupkg $(NUGET_)/MaxRev.Gdal.Core.*.nupkg)
+TARGETS=$(wildcard $(NUGET_)/MaxRev.Gdal.*Runtime.Minimal*.nupkg)
+
+ifneq ($(INCLUDE_CORE),)
+TARGETS+=$(wildcard $(NUGET_)/MaxRev.Gdal.Core.*.nupkg)
+endif
 
 all: $(TARGETS)
 .PHONY: force
