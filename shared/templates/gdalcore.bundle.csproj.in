@@ -25,12 +25,12 @@ Targets linux-${_BUILD_ARCH} runtime. Target Frameworks: netstandard[2.1|2.0], n
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MaxRev.Gdal.Core" Version="${_GDAL_VERSION}.*" />
-    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.arm64" Version="${_GDAL_VERSION}.*" />
-    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.x64" Version="${_GDAL_VERSION}.*" />
-    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.arm64" Version="${_GDAL_VERSION}.*" />
-    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.x64" Version="${_GDAL_VERSION}.*" />
-    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal.x64" Version="${_GDAL_VERSION}.*" />
+    <PackageReference Include="MaxRev.Gdal.Core" Version="${_PACKAGE_BUILD_NUMBER_UNIX}" />
+    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.arm64" Version="${_PACKAGE_BUILD_NUMBER_UNIX}" />
+    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER_UNIX}" />
+    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.arm64" Version="${_PACKAGE_BUILD_NUMBER_OSX}" />
+    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER_OSX}" />
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER_WIN}" />
   </ItemGroup>
 
   <ItemGroup>

@@ -51,11 +51,17 @@ jobs:
         run: |
           ./install.ps1 -buildNumberTail ${{ github.run_number }}
           echo "GDAL_VERSION=$env:GDAL_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          
+      - name: Store metadata as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: metadata-win-x64
+          path: shared/bundle/targets/
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: win-packages
+          name: packages-win-x64
           path: nuget/*.nupkg
           
     outputs:
@@ -81,7 +87,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: win-packages
+          name: packages-win-x64
           path: nuget/
 
       - name: Setup .NET Core SDK

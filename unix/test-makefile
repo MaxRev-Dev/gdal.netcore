@@ -1,5 +1,6 @@
 include RID.opt
 include ../shared/GdalCore.opt
+include ../shared/bundle/base.opt
 
 ifeq ($(PRERELEASE),)
 PRERELEASE_ARG=
@@ -16,7 +17,6 @@ CMD_TYPE=dotnet run
 endif
 
 MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal
-PACKAGE_BUILD_NUMBER=$(shell echo $$(($(BUILD_NUMBER_TAIL) + 100)))
 
 all: test
 

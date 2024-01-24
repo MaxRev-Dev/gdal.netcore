@@ -1,6 +1,6 @@
 param (
     [bool] $preRelease = $true ,
-    [int] $buildNumberTail = 10 
+    [int] $buildNumberTail = 0 
 )
 # reset previous imports
 Remove-Module *

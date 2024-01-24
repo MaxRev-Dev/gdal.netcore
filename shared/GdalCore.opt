@@ -4,7 +4,7 @@
 
 ##### repo root
 ROOTDIR_=$(BASE)/..
-BUILD_NUMBER_TAIL=10
+BUILD_NUMBER_TAIL=100
 
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)

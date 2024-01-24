@@ -1,0 +1,31 @@
+include RID.opt
+include ../shared/GdalCore.opt
+include ../shared/bundle/base.opt
+-include ../shared/bundle/targets/osx.opt
+-include ../shared/bundle/targets/unix.opt
+-include ../shared/bundle/targets/win.opt
+
+all: generate-projects
+
+export _GDAL_VERSION=$(GDAL_VERSION)
+export _PROJ_VERSION=$(PROJ_VERSION)
+export _GEOS_VERSION=$(GEOS_VERSION)
+export _ROOT_RELATIVE_PATH=$(PACKAGE_BUILD_ROOT)/..
+export _PACKAGE_BUILD_NUMBER=$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)
+export _PACKAGE_BUILD_NUMBER_OSX=$(PACKAGE_BUILD_NUMBER_OSX_FINAL)
+export _PACKAGE_BUILD_NUMBER_UNIX=$(PACKAGE_BUILD_NUMBER_UNIX_FINAL)
+export _PACKAGE_BUILD_NUMBER_WIN=$(PACKAGE_BUILD_NUMBER_WIN_FINAL)
+
+# substitute all variables in template project files
+generate-projects:
+	@echo "Generating project files..."
+	@echo "  GDAL_VERSION: $(GDAL_VERSION)"
+	@echo "  PROJ_VERSION: $(PROJ_VERSION)"
+	@echo "  GEOS_VERSION: $(GEOS_VERSION)"
+	@echo "  BUILD_NUMBER_TAIL_OSX: $(BUILD_NUMBER_TAIL_OSX)"
+	@echo "  BUILD_NUMBER_TAIL_UNIX: $(BUILD_NUMBER_TAIL_UNIX)"
+	@echo "  BUILD_NUMBER_TAIL_WIN: $(BUILD_NUMBER_TAIL_WIN)"
+	@echo "  PACKAGE_BUILD_NUMBER_OSX: $(PACKAGE_BUILD_NUMBER_OSX_FINAL)"
+	@echo "  PACKAGE_BUILD_NUMBER_UNIX: $(PACKAGE_BUILD_NUMBER_UNIX_FINAL)"
+	@echo "  PACKAGE_BUILD_NUMBER_WIN: $(PACKAGE_BUILD_NUMBER_WIN_FINAL)"
+	@cat $(RUNTIME_PROJECT_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_FINAL)

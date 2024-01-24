@@ -92,10 +92,16 @@ jobs:
         run: |
           make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
+      - name: Store metadata as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: metadata-osx-${{ matrix.arch }}
+          path: shared/bundle/targets/
+
       - name: Store packages as artifact
         uses: actions/upload-artifact@v3
         with:
-          name: osx-packages-${{ matrix.arch }}
+          name: packages-osx-${{ matrix.arch }}
           path: nuget/*.nupkg
 
   TestAndPushPackages-MacOS:
@@ -123,7 +129,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: osx-packages-${{ matrix.arch }}
+          name: packages-osx-${{ matrix.arch }}
           path: nuget/
 
       - name: Setup .NET Core SDK

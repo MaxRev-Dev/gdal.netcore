@@ -279,7 +279,11 @@ function Build-GenerateProjectFiles {
     Set-Location "$PSScriptRoot/../unix" 
     $vcpkgInstalled = Get-PathRelative -inputPath:$env:VCPKG_INSTALLED_PKGCONFIG -relativePath:"../build-win"
     $geosVersion = (& $env:GitBash -c "make -f generate-projects-makefile get-version IN_FILE=$("$vcpkgInstalled/geos.pc")")
-    exec { & $env:GitBash -c "make -f generate-projects-makefile BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE" }
+
+    # generate project files for C# bindings
+    Write-BuildStep "Generating project files for GDAL C# bindings"
+    exec { & $env:GitBash -c "make -f generate-projects-makefile CAT_NAME=win BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE" }
+    Write-BuildStep "Done generating project files"
 }
 
 function Build-CsharpBindings {   

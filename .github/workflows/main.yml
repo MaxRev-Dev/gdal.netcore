@@ -36,19 +36,30 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
+          pattern: packages-*
           path: nuget
-            
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: metadata-*
+          path: shared/bundle/targets
+
+      - run: ls -la nuget
+      - run: ls -la shared/bundle/targets
+
       - name: NuGet - Update credentials
         run: | 
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
           dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
+          dotnet nuget remove source local || true
+          dotnet nuget remove source local.ci || true
+          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
 
       - name: Run tests from nuget packages
         env: 
           TEST_PROJECT: tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj  
         run: |
+          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Bundle.Minimal --source local.ci
+          dotnet remove ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core || echo "no packages to remove"
           dotnet restore --ignore-failed-sources ${{ env.TEST_PROJECT }}
-          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core
-          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.LinuxRuntime.Minimal
-          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.WindowsRuntime.Minimal
           dotnet test --no-restore ${{ env.TEST_PROJECT }}
