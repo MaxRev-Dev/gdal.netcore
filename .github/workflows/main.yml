@@ -1,19 +1,12 @@
 name: Test packages from CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ] 
-
   workflow_run:
     workflows: ["MacOS Build", "Windows Build", "Linux Build"]
     branches: [main]
     types: 
       - completed
-
-  workflow_dispatch:
-    
+      
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   DOTNET_VERSION: '8.0.x'
