@@ -45,6 +45,9 @@ generate-bundles-osx: generate-bundles
 	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.arm64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
 	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.x64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
 
+generate-bundles-win:
+	echo "Nothing to do"
+
 get-version:
 	@grep -o "[Vv]ersion:\s.*" $(IN_FILE) | cut -d: -f2 | xargs
  
