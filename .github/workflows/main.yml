@@ -1,25 +1,45 @@
 name: Test packages from CI
 
 on:
-  workflow_run:
-    workflows: ["MacOS Build", "Windows Build", "Linux Build"]
-    branches: [main]
-    types: 
-      - completed
-      
+  pull_request:
+    branches: [ main ]
+
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   DOTNET_VERSION: '8.0.x'
 
 jobs:
+
+  WaitForWorkflows:
+    name: Wait for workflows
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Wait for workflows
+        id: wait
+        uses: smartcontractkit/chainlink-github-actions/utils/wait-for-workflows@main
+        with:
+          max-timeout: "7200" # 2 hours
+          polling-interval: "60" # 1 minute
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          DEBUG: "true"
+
   TestNugetPackages:
+    needs: [WaitForWorkflows]
     strategy:
       matrix:
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
-    if: "${{ github.event.workflow_run.conclusion == 'success' }} && !contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     steps:     
+      - name: Check needs results
+        if: needs.WaitForWorkflows.result != 'success'
+        run: exit 1
       - uses: actions/checkout@v4
 
       - name: Setup .NET Core SDK
