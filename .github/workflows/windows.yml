@@ -108,7 +108,7 @@ jobs:
         shell: pwsh
 
       - name: Test packages
-        run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease ${{ env.IS_PRE_RELEASE }}
+        run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease [System.Convert]::ToBoolean(${{ env.IS_PRE_RELEASE }})
         shell: pwsh
 
   PushPackages-Windows:
