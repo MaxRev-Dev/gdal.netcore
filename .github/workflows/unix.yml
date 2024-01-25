@@ -224,7 +224,7 @@ jobs:
 
       - name: Build bundle
         run: |
-          make -f publish-makefile pack-bundle-only PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          make -f publish-makefile pack-bundle-only CAT_NAME=unix PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

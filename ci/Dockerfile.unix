@@ -92,7 +92,7 @@ ARG BUILD_NUMBER_TAIL
 COPY . /build
 RUN rm -rf /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f publish-makefile pack pack-bundle $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL PRERELEASE=$PRERELEASE
+    make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL PRERELEASE=$PRERELEASE
 
 FROM --platform=$TARGETPLATFORM alpine as final
 COPY --from=base /usr/share/dotnet /usr/share/dotnet
