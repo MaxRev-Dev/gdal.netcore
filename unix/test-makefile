@@ -2,12 +2,6 @@ include RID.opt
 include ../shared/GdalCore.opt
 include ../shared/bundle/base.opt
 
-ifeq ($(PRERELEASE),)
-PRERELEASE_ARG=
-else
-PRERELEASE_ARG=--prerelease
-endif
-
 ifeq ($(APP_RUN),)
 TEST_TARGET=$(TEST_DIR)
 CMD_TYPE=dotnet test
@@ -20,6 +14,9 @@ MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Min
 
 all: test
 
+pre: 
+	@echo $(PRERELEASE_ARG)
+	@echo $(PRERELEASE)
 ###	Testing linux libraries (from nuget build output)
 test-restore:
 	cd $(TEST_TARGET) && \

@@ -9,7 +9,7 @@ CAT_NAME_UP=$(call UP,$(CAT_NAME))
 TARGET_OUT_DIR=../shared/bundle/targets
 TARGET_OUT=$(TARGET_OUT_DIR)/$(CAT_NAME).opt
 
-ifeq ($(PRERELEASE),$(filter $(PRERELEASE),true 1 yes))
+ifeq (,$(filter $(PRERELEASE),true 1 yes))
 PRERELEASE_ARG=
 else
 PRERELEASE_ARG=--prerelease
