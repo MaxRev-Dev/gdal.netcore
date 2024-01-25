@@ -86,26 +86,26 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
 ## **How to use**
 
 1. Install core package - [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
- ```powershell
- Install-Package MaxRev.Gdal.Core
- ```
-2. Install [libraries](#packages-nuget) for your runtime. You can install one of them or all with no conflicts. 
-The 
-```powershell
+```shell
+dotnet add package MaxRev.Gdal.Core
+```
+2. Install [libraries](#packages-nuget) for your runtime. You can install one of them or all with no conflicts.
+There is no requirement to install all of them or GDAL binaries. If you work on Windows and Linux you can skip MacOS package and vice versa.
+```shell
 # windows supported only for x64
-Install-Package MaxRev.Gdal.WindowsRuntime.Minimal 
+dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal 
 
 # install linux bundle which references both arm64 and x64 binaries
-Install-Package MaxRev.Gdal.LinuxRuntime.Minimal 
+dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal 
 # or install a specific runtime
-Install-Package MaxRev.Gdal.LinuxRuntime.Minimal.arm64
-Install-Package MaxRev.Gdal.LinuxRuntime.Minimal.x64
+dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal.arm64
+dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal.x64
 
 # install macos bundle which references both arm64 and x64 binaries
-Install-Package MaxRev.Gdal.MacosRuntime.Minimal 
+dotnet add package MaxRev.Gdal.MacosRuntime.Minimal 
 # or install a specific runtime
-Install-Package MaxRev.Gdal.MacosRuntime.Minimal.arm64
-Install-Package MaxRev.Gdal.MacosRuntime.Minimal.x64
+dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.arm64
+dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.x64
 ```
 3. Initialize libraries in runtime
 ```csharp
