@@ -118,7 +118,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: metadata-unix-${{ matrix.arch }}
-          path: shared/bundle/targets/
+          path: |
+            shared/bundle/targets/
+            package-build/*.csproj
           overwrite: true
 
       - name: Store packages as artifact
@@ -197,15 +199,21 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Download artifact
+      - name: Download artifact - packages
         uses: actions/download-artifact@v4
         with:
           pattern: packages-unix*
           merge-multiple: true
           path: nuget/
-      
+
+      - name: Download artifact - metadata
+        uses: actions/download-artifact@v4
+        with:
+          pattern: metadata-unix*
+          merge-multiple: true      
+
       - run: ls -la nuget/
-      
+
       - name: NuGet - Update credentials
         run: | 
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
@@ -213,6 +221,10 @@ jobs:
           dotnet nuget remove source local || true
           dotnet nuget remove source local.ci || true
           dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
+
+      - name: Build bundle
+        run: |
+          make -f publish-makefile pack-bundle-only PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
