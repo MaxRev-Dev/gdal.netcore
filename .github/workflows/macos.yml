@@ -192,6 +192,13 @@ jobs:
       - name: Build bundle
         run: |
           make -f publish-makefile pack-bundle-only CAT_NAME=osx PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+  
+      - name: Store packages as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-osx-final
+          path: nuget/*.nupkg
+          overwrite: true        
           
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
