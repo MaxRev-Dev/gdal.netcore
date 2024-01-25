@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Platforms>x64;arm64</Platforms>
     <DebugType>portable</DebugType>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
     <Copyright>MaxRev © 2024</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -18,16 +18,16 @@
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>${_PACKAGE_BUILD_NUMBER}</Version>
     <Description>
-      GDAL (${_GDAL_VERSION}) bindings for dotnet core (osx-arm64, osx-x64, linux-x64 and win-x64).
+      GDAL (${_GDAL_VERSION}) bindings for dotnet core (linux-x64, linux-arm64, osx-arm64, osx-x64, and win-x64).
       Bridge between gdal and netcore.
       Use dependency package for target runtime to get drivers.
       Works in docker containers without pkg installations!!
       Just call - GdalBase.ConfigureAll()
     </Description>
     <PackageReleaseNotes>
-      - GDAL ${_GDAL_VERSION}
-      - PROJ ${_PROJ_VERSION}
-      - GEOS ${_GEOS_VERSION}
+- GDAL ${_GDAL_VERSION}
+- PROJ ${_PROJ_VERSION}
+- GEOS ${_GEOS_VERSION}
     </PackageReleaseNotes>
   </PropertyGroup>
 

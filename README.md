@@ -90,23 +90,31 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
  Install-Package MaxRev.Gdal.Core
  ```
 2. Install [libraries](#packages-nuget) for your runtime. You can install one of them or all with no conflicts. 
+The 
 ```powershell
-Install-Package MaxRev.Gdal.WindowsRuntime.Minimal
+# windows supported only for x64
+Install-Package MaxRev.Gdal.WindowsRuntime.Minimal 
+
+# install linux bundle which references both arm64 and x64 binaries
+Install-Package MaxRev.Gdal.LinuxRuntime.Minimal 
+# or install a specific runtime
 Install-Package MaxRev.Gdal.LinuxRuntime.Minimal.arm64
 Install-Package MaxRev.Gdal.LinuxRuntime.Minimal.x64
+
+# install macos bundle which references both arm64 and x64 binaries
+Install-Package MaxRev.Gdal.MacosRuntime.Minimal 
+# or install a specific runtime
 Install-Package MaxRev.Gdal.MacosRuntime.Minimal.arm64
 Install-Package MaxRev.Gdal.MacosRuntime.Minimal.x64
 ```
 3. Initialize libraries in runtime
 ```csharp
 using MaxRev.Gdal.Core;
-...
 // call it once, before using GDAL
 // this will initialize all GDAL drivers and set PROJ6 shared library paths
 GdalBase.ConfigureAll();
-
 ```
-4. Profit! Use it in ordinary flow
+4. Profit! Use it in ordinary flow. See the section below for more info.
 
 
 ## **Using GDAL functions**

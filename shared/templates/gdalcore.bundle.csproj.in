@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Platforms>arm64;x64</Platforms>
     <DebugType>portable</DebugType>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;netcoreapp3.1;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
     <Copyright>MaxRev © 2024</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -17,14 +17,13 @@
     <Version>${_PACKAGE_BUILD_NUMBER}</Version>
     <Description>GDAL (${_GDAL_VERSION}) minimal libraries package.
       Drivers included PROJ (${_PROJ_VERSION}), GEOS (${_GEOS_VERSION}), SQLITE3, CURL, JPEG, PNG,
-      HDF4, HDF5
-      Targets linux-${_BUILD_ARCH} runtime. Target Frameworks: netstandard[2.1|2.0],
-      netcoreapp[2.1,3.1], net6.0, net7.0, net8.0
+      HDF4, HDF5, and others.
+      Targets linux-${_BUILD_ARCH} runtime. Target Frameworks: netstandard[2.1|2.0], net6.0, net7.0, net8.0
     </Description>
     <PackageReleaseNotes>
-      - GDAL ${_GDAL_VERSION}
-      - PROJ ${_PROJ_VERSION}
-      - GEOS ${_GEOS_VERSION}
+- GDAL ${_GDAL_VERSION}
+- PROJ ${_PROJ_VERSION}
+- GEOS ${_GEOS_VERSION}
     </PackageReleaseNotes>
   </PropertyGroup>
 
