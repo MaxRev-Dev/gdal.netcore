@@ -9,7 +9,7 @@ BUILD_NUMBER_TAIL=100
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
-# Nov 30, 2023
+# Jan 8, 2024
 GDAL_VERSION=3.8.3
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
