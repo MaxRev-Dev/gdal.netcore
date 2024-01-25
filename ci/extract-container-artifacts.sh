@@ -28,6 +28,6 @@ docker cp $containerName:/build/ci/cache/vcpkg-archives "$outputDir/ci/cache/vcp
 # extract metadata
 
 mkdir -p "$outputDir/shared/bundle/targets"
-docker cp $containerName:/shared/bundle/targets "$outputDir/shared/bundle/targets/"
+docker cp $containerName:/build/shared/bundle/targets "$outputDir/shared/bundle/targets/"
 
 docker rm -f $containerName
