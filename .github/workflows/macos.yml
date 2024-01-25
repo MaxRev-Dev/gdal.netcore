@@ -179,7 +179,7 @@ jobs:
           pattern: metadata-osx*
           merge-multiple: true
       
-      - run: ls -la nuget/
+      - run: ls -la ../nuget/
 
       - name: NuGet - Update credentials
         run: | 

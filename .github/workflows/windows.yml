@@ -135,8 +135,8 @@ jobs:
           merge-multiple: true
           path: nuget/
       
-      - run: ls -la nuget/
-      
+      - run: ls -la ../nuget/
+
       - name: NuGet - Update credentials
         run: | 
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
