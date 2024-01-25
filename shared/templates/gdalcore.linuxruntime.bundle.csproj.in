@@ -27,4 +27,8 @@
       - GEOS ${_GEOS_VERSION}
     </PackageReleaseNotes>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <None Include="${_ROOT_RELATIVE_PATH}/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>

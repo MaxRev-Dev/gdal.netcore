@@ -35,6 +35,7 @@ generate-build-base:
 	@echo 'PACKAGE_BUILD_NUMBER_$(CAT_NAME_UP)_FINAL=$(GDAL_VERSION).$$(shell echo $$$$(($$(BUILD_NUMBER_TAIL) + $$(PACKAGE_BUILD_NUMBER_$(CAT_NAME_UP)))))' >> $(TARGET_OUT)
 
 generate-bundles:
+	@mkdir -p $(dir $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL))
 	cat $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
 generate-bundles-unix: generate-bundles

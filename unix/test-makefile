@@ -14,9 +14,6 @@ MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Min
 
 all: test
 
-pre: 
-	@echo $(PRERELEASE_ARG)
-	@echo $(PRERELEASE)
 ###	Testing linux libraries (from nuget build output)
 test-restore:
 	cd $(TEST_TARGET) && \

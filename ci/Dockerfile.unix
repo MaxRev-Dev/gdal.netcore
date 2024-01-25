@@ -21,14 +21,14 @@ RUN apt-get update && apt-get install -y \
 RUN pip install cmake --upgrade
 
 # load cache from previous build
-COPY .dotnet*/ /usr/share/dotnet/ 
+COPY ci/cache*/dotnet* /usr/share/dotnet/ 
 
 ARG DOTNET_VERSION=8.0
 ARG DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
 
 ENV PATH="${PATH}:/usr/share/dotnet"
 # install dotnet
-RUN /usr/share/dotnet/dotnet || curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet
+RUN /usr/share/dotnet/dotnet --info || curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet
 RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
 ARG TARGETPLATFORM
@@ -65,9 +65,9 @@ COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
 COPY unix/gdal-makefile /build/unix/
 # load cache from previous build
-COPY build-unix*/ /build/build-unix/
-RUN mkdir -p /build/ci/cache/vcpkg-archives/
-COPY ci/cache*/vcpkg*/ /build/ci/cache/vcpkg-archives/
+COPY ci/cache*/vcpkg* /build/ci/cache/
+COPY ci/cache*/build-unix* /build/build-unix/
+
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f gdal-makefile $(cat /tmp/gdal-netcore-arch) init_gdal init_proj
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
@@ -100,6 +100,7 @@ COPY --from=base /usr/share/dotnet /usr/share/dotnet
 COPY --from=gdalbuild /build/build-unix /build/build-unix
 COPY --from=gdalbuild /build/shared /build/shared
 COPY --from=gdalbuild /build/ci/cache/vcpkg-archives/ /build/ci/cache/vcpkg-archives/
+COPY --from=gdalbuild /build/package-build/ /build/package-build/
 # copy nuget packages from build
 COPY --from=gdalbuild /build/nuget /build/nuget
 ENTRYPOINT ["bash"]
