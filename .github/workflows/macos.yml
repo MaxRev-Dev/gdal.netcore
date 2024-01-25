@@ -91,7 +91,7 @@ jobs:
 
       - name: Create packages
         run: |
-          make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          make -f publish-makefile pack pack-bundle BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Store metadata as artifact
         uses: actions/upload-artifact@v4
@@ -177,15 +177,9 @@ jobs:
           pattern: metadata-osx*
           merge-multiple: true
           path: shared/bundle/targets/
-          
-      - name: Install build tools
-        run: |
-          sudo apt-get update && sudo apt-get install -y build-essential make
       
-      - name: Pack bundle project
-        run: |
-          make -f publish-makefile pack-bundle CAT_NAME=osx BUILD_NUMBER_TAIL=${{ github.run_number }} PRERELEASE=${{ env.IS_PRE_RELEASE }}
-
+      - run: ls -la nuget/
+      
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
