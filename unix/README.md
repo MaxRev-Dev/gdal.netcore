@@ -11,7 +11,7 @@
 
 ## Prerequisites
 
-First of all, I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 1 hour. But from version 3.6 it possibly faster with CMake.
+First of all, I wish you to be patient & bring your snacks. Compilation from scratch takes nearly for 1 hour. But from version 3.6 it looks faster with CMake.
 
 > NOTE: this pipeline will build **only** dynamic libraries package.<br>
 > C# Bindings (aka Core) are currently build in windows
@@ -51,22 +51,22 @@ Still, you can execute them sequentially if needed.
 
 ```bash
 # install libraries with VCPKG
-make -f vcpkg-makefile
+make -f vcpkg-makefile BUILD_ARCH=arm64
 
 # install main libraries (proj,gdal)
 # > optional use [target]-force to run from scratch, ex. gdal-force
-make -f gdal-makefile
+make -f gdal-makefile  BUILD_ARCH=arm64
 
 # collect dynamic libraries 
-make -f collect-deps-makefile
+make -f collect-deps-makefile BUILD_ARCH=arm64
 
 # create packages (output to 'nuget' folder)
-make -f publish-makefile pack
+make -f publish-makefile pack  BUILD_ARCH=arm64
 
 # testing packages
 # > optional PRERELEASE=1 - testing pre-release versions
 # > optional APP_RUN=1 - testing via console app run (quick, to ensure deps were loaded correctly)
-make -f test-makefile test
+make -f test-makefile test  BUILD_ARCH=arm64
 ```
 
 ### 6. **How to check dependencies:**

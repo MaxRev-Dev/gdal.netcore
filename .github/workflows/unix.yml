@@ -1,0 +1,240 @@
+name: Linux Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOCKER_REGISTRY: ghcr.io/maxrev-dev
+  DOTNET_VERSION: '8.0.x'
+  IS_PRE_RELEASE: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' || contains(github.event.head_commit.message, '[prerelease]') }}
+
+permissions:
+  packages: write
+  contents: read
+
+jobs:
+  BuildNugetPackages-Linux:
+    strategy:
+      matrix:
+        include:
+          - os: linux/amd64
+            arch: x64
+            actions-runner: self-hosted-macos-x64
+          - os: linux/arm64
+            arch: arm64
+            actions-runner: self-hosted-macos-arm64
+
+    runs-on: ${{ matrix.actions-runner }}
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    defaults:
+      run:
+        working-directory: unix
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Cache restore
+        uses: maxnowack/local-cache@main
+        with:
+          path: |
+            ${{ github.workspace }}/.dotnet
+            ${{ github.workspace }}/ci/cache/
+          key: ${{ runner.os }}-buildx-${{ matrix.os }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=ref,event=pr
+            latest
+
+      - name: Build and push on GH runner
+        uses: docker/build-push-action@v5
+        if: ${{ !contains(matrix.actions-runner, 'self-hosted') }}
+        with:
+          push: true
+          context: .
+          file: ci/Dockerfile.unix
+          platforms: ${{ matrix.os }}
+          build-args: |
+            BUILD_NUMBER_TAIL=${{ github.run_number }}
+            PRERELEASE=${{ env.IS_PRE_RELEASE }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Build and push on local runner
+        uses: docker/build-push-action@v5
+        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
+        with:
+          load: true
+          push: false
+          tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+          context: .
+          file: ci/Dockerfile.unix
+          platforms: ${{ matrix.os }}
+          build-args: |
+            BUILD_NUMBER_TAIL=${{ github.run_number }}
+            PRERELEASE=${{ env.IS_PRE_RELEASE }}
+            DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
+            VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
+
+      - name: Extract artifacts
+        run: |
+          chmod +x '${{ github.workspace }}/ci/extract-container-artifacts.sh'
+          '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }}
+
+      - name: Store metadata as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: metadata-unix-${{ matrix.arch }}
+          path: |
+            shared/bundle/targets/
+            package-build/*.csproj
+          overwrite: true
+
+      - name: Store packages as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-unix-${{ matrix.arch }}
+          path: nuget/*.nupkg
+          overwrite: true
+      
+  TestPackages-Linux:
+    strategy:
+      matrix:
+        include:
+          - os: linux/amd64
+            arch: x64
+            actions-runner: ubuntu-latest
+          - os: linux/amd64
+            arch: x64
+            actions-runner: self-hosted-macos-x64
+          - os: linux/arm64
+            arch: arm64
+            actions-runner: self-hosted-macos-arm64
+
+    needs: BuildNugetPackages-Linux
+    runs-on: ${{ matrix.actions-runner }}
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    defaults:
+      run:
+        working-directory: unix
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-unix-${{ matrix.arch }}
+          path: nuget/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build docker image
+        run: |
+          docker buildx build --load --platform=${{ matrix.os }} \
+            --progress=plain -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest \
+            --build-arg BUILD_NUMBER_TAIL=${{ github.run_number }} \
+            --build-arg BUILD_ARCH=${{ matrix.arch }} \
+            --build-arg PRERELEASE=${{ env.IS_PRE_RELEASE }} \
+            -f '${{ github.workspace }}/ci/Dockerfile.unix.test' \
+            ${{ github.workspace }}
+
+      - name: Test packages
+        run: |
+          docker run \
+            --env BUILD_NUMBER_TAIL=${{ github.run_number }} \
+            --env BUILD_ARCH=${{ matrix.arch }} \
+            --env PRERELEASE=${{ env.IS_PRE_RELEASE }} \
+            -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest
+
+  PushPackages-Linux:
+    needs: TestPackages-Linux
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
+    defaults:
+      run:
+        working-directory: unix
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download artifact - packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: packages-unix*
+          merge-multiple: true
+          path: nuget/
+
+      - name: Download artifact - metadata
+        uses: actions/download-artifact@v4
+        with:
+          pattern: metadata-unix*
+          merge-multiple: true      
+
+      - run: ls -la ../nuget/
+
+      - name: NuGet - Update credentials
+        run: | 
+          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
+          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
+          dotnet nuget remove source local || true
+          dotnet nuget remove source local.ci || true
+          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
+
+      - name: Build bundle
+        run: |
+          make -f publish-makefile pack-bundle-only CAT_NAME=unix PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+
+      - name: Store packages as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-unix-final
+          path: nuget/*.nupkg
+          overwrite: true
+
+      - name: Push packages
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
+            BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}

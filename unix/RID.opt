@@ -1,15 +1,17 @@
 #
 #  gdal.netcore package automation
-# 
-#    Linux Runtime Identifier 
+#
+#    Linux Runtime Identifier
 #
 BASE=$(PWD)
 BASE_RUNTIME_RID=unix
-VCPKG_RID=x64-linux
+BUILD_ARCH=arm64
+VCPKG_RID=$(BUILD_ARCH)-linux
 
 # .NET RID
-RID=linux-x64
+RID=linux-$(BUILD_ARCH)
 SWIG=swig
 SHELL=/bin/bash
 
+SED=sed
 DEL_DIR=rm -rf

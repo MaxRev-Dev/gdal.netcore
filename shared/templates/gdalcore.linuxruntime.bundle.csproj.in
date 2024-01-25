@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Platforms>arm64;x64</Platforms>
+    <DebugType>portable</DebugType>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
+    <Copyright>MaxRev © 2024</Copyright>
+    <Authors>MaxRev</Authors>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageId>MaxRev.Gdal.LinuxRuntime.Minimal</PackageId>
+    <AssemblyName>MaxRev.Gdal.LinuxRuntime.Minimal</AssemblyName>
+    <PackageTags>gdal;netcore;docker</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
+    <Version>${_PACKAGE_BUILD_NUMBER}</Version>
+    <Description>GDAL (${_GDAL_VERSION}) minimal libraries package.
+      Drivers included PROJ (${_PROJ_VERSION}), GEOS (${_GEOS_VERSION}), SQLITE3, CURL, JPEG, PNG,
+      HDF4, HDF5, and others.
+      Targets linux-arm64 and linux-x64 runtimes. Target Frameworks: netstandard[2.1|2.0], net6.0, net7.0, net8.0
+    </Description>
+    <PackageReleaseNotes>
+- GDAL ${_GDAL_VERSION}
+- PROJ ${_PROJ_VERSION}
+- GEOS ${_GEOS_VERSION}
+    </PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="${_ROOT_RELATIVE_PATH}/README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

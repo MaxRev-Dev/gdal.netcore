@@ -1,0 +1,54 @@
+include RID.opt
+include ../shared/GdalCore.opt
+include ../shared/bundle/base.opt
+
+RUNTIME_PROJECT=$(RUNTIME_PROJECT_LINUX)
+IN_FILE=
+
+all: generate-projects
+
+export _BUILD_ARCH=$(BUILD_ARCH)
+export _GDAL_VERSION=$(GDAL_VERSION)
+export _PROJ_VERSION=$(PROJ_VERSION)
+export _GEOS_VERSION=$(GEOS_VERSION)
+export _ROOT_RELATIVE_PATH=..
+export _PACKAGE_BUILD_NUMBER=$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)
+
+ONSUBST='$${_BUILD_ARCH} $${_GEOS_VERSION} $${_ROOT_RELATIVE_PATH} $${_GDAL_VERSION} $${_PROJ_VERSION} $${_PACKAGE_BUILD_NUMBER}'
+
+# substitute all variables in template project files
+generate-projects: generate-build-base generate-bundles-$(CAT_NAME)
+	@mkdir -p $(dir $(GDALCORE_PROJECT_FINAL))
+	@cat $(GDALCORE_PROJECT) | envsubst $${ONSUBST} > $(GDALCORE_PROJECT_FINAL)
+	@cat $(RUNTIME_PROJECT_LINUX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_LINUX_FINAL)
+	@cat $(RUNTIME_PROJECT_OSX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_OSX_FINAL)
+	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
+	@cat $(RUNTIME_PROJECT_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_FINAL)
+
+generate-build-base:
+# 	generate target file "shared/bundle/<=OS=>.opt"
+	@mkdir -p $(TARGET_OUT_DIR)
+	@echo "GDAL_VERSION=$(GDAL_VERSION)" > $(TARGET_OUT)
+	@echo "PROJ_VERSION=$(PROJ_VERSION)" >> $(TARGET_OUT)
+	@echo "GEOS_VERSION=$(GEOS_VERSION)" >> $(TARGET_OUT)
+	@echo 'BUILD_NUMBER_TAIL_$(CAT_NAME_UP)=$(BUILD_NUMBER_TAIL)' >> $(TARGET_OUT)
+	@echo 'PACKAGE_BUILD_NUMBER_$(CAT_NAME_UP)_FINAL=$(GDAL_VERSION).$$(shell echo $$$$(($$(BUILD_NUMBER_TAIL) + $$(PACKAGE_BUILD_NUMBER_$(CAT_NAME_UP)))))' >> $(TARGET_OUT)
+
+generate-bundles:
+	@mkdir -p $(dir $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL))
+	cat $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
+
+generate-bundles-unix: generate-bundles
+	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.arm64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
+	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.x64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
+
+generate-bundles-osx: generate-bundles
+	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.arm64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
+	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.x64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
+
+generate-bundles-win:
+	echo "Nothing to do"
+
+get-version:
+	@grep -o "[Vv]ersion:\s.*" $(IN_FILE) | cut -d: -f2 | xargs
+ 

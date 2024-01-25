@@ -1,0 +1,40 @@
+# GDAL.NETCORE Builder - A lightweight test image for vcpkg package installations
+
+FROM --platform=$TARGETPLATFORM debian:11 as base
+
+RUN apt-get update && apt-get install -y \
+    build-essential gnupg \
+    curl zip unzip tar git wget \
+    pkg-config \
+    ninja-build \
+    autoconf libtool autoconf-archive libudev-dev \
+    python3 python3-pip \
+    linux-libc-dev \
+    libhdf4-dev libnetcdf-dev linux-libc-dev \
+    swig patchelf
+
+# install cmake latest
+RUN pip install cmake --upgrade
+
+# vcpkg repo (change to your local clone of vcpkg)
+COPY build-unix/vcpkg /vcpkg
+
+WORKDIR /vcpkg
+
+# default build args
+ARG BUILD_ARCH=x64
+ARG LINKAGE=static
+
+ENV VCPKG_FORCE_SYSTEM_BINARIES=1
+RUN ./bootstrap-vcpkg.sh 
+
+RUN mkdir -p custom-triplets && echo " \
+set(VCPKG_TARGET_ARCHITECTURE ${BUILD_ARCH})\n \
+set(VCPKG_CRT_LINKAGE ${LINKAGE})\n \
+set(VCPKG_LIBRARY_LINKAGE ${LINKAGE})\n \
+set(VCPKG_BUILD_TYPE release)\n \
+set(VCPKG_CMAKE_SYSTEM_NAME Linux)" > custom-triplets/${BUILD_ARCH}-linux.cmake
+
+RUN cat custom-triplets/${BUILD_ARCH}-linux.cmake
+
+RUN ./vcpkg install openssl:${BUILD_ARCH}-linux  --overlay-triplets=./custom-triplets --editable

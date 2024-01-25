@@ -1,22 +1,22 @@
 
 ##### ----------- gdal.netcore ----------- #####
-##### ------- SHARED CONFIGURATION ------- ##### 
- 
+##### ------- SHARED CONFIGURATION ------- #####
+
 ##### repo root
-ROOTDIR_=$(abspath $(BASE)/..)
-BUILD_NUMBER_TAIL=10
+ROOTDIR_=$(BASE)/..
+BUILD_NUMBER_TAIL=100
 
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
 
-# May 2, 2023
-GDAL_VERSION=3.7.0
+# Jan 8, 2024
+GDAL_VERSION=3.8.3
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
-GDAL_COMMIT_VER=v$(GDAL_VERSION)RC1
+GDAL_COMMIT_VER=v$(GDAL_VERSION)
 
-# Mar 1, 2023
-PROJ_VERSION=9.2.0
+# Dec 1, 2023
+PROJ_VERSION=9.3.1
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
 PROJ_COMMIT_VER=$(PROJ_VERSION)
@@ -25,29 +25,24 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=2023.04.15
-# latest on Nov 23, 2022
+VCPKG_COMMIT_VER=2024.01.12
 
 # base requirements for both runtimes
-VCPKG_REQUIRE=geos tiff curl 
-
+VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" curl
+VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]"
 # windows runtime now depends on GisInternals SDK
-# we have nothing to install except custom geos and proj 
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE)
-VCPKG_REQUIRE_WIN_STATIC= 
+# we have nothing to install except custom geos and proj
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
-# NOTE: some of these drivers can be installed from apt as require many boost deps
-# libnetcdf-dev libspatialite-dev librasterlite2-dev libpoppler-dev libmysql++-dev
-# icu-devtools libdeflate-dev libfreexl-dev libfreexl1 libgeos-3.9.0 libgeos-c1v5 libgeos-dev
-# libicu-dev libjbig-dev liblzma-dev libmariadb-dev libmariadb-dev-compat libmariadb3 libmysql++3v5 libproj-dev
-# libproj19 librttopo-dev librttopo1 libspatialite7 libsqlite3-dev libssl-dev libtiff-dev libtiffxx5 libxml2-dev mariadb-common mysql-common proj-data
+# libmysql is not available from vcpkg for arm64
 VCPKG_REQUIRE_UNIX=
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" openssl zlib expat xerces-c libpng zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libmysql
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[tool,rtree]"
 
-# osx requires the same libs as linux except sqlite3 should link as static
-VCPKG_REQUIRE_OSX="sqlite3[tool,rtree]"
-VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE_UNIX_DYNAMIC) libkml
+# osx requires the same libs as linux 
+VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX)
+VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) netcdf-c libmysql "sqlite3[tool,rtree]" 
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
@@ -57,8 +52,8 @@ VCPKG_INSTALLED_DYNAMIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
 # triplets
 VPCKG_CUSTOM_TRIPLETS=$(VCPKG_ROOT)/custom-triplets
 VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets
-VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --clean-after-build  
-VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse 
+VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --no-print-usage
+VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
 
 # --------------------- !VCPKG! --------------------
 
@@ -67,8 +62,9 @@ VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
 
 PRE=[gdal.netcore]
 
+PACKAGE_BUILD_ROOT=$(ROOTDIR_)/package-build
 __libshared=maxrev.gdal.core.libshared
-LIBSHARED=$(ROOTDIR_)/$(__libshared)/$(RID)/$(__libshared)
+LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(__libshared)/$(RID)/$(__libshared)
 
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
@@ -77,6 +73,11 @@ GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 BASE_SWIG_=$(GDAL_ROOT)/swig
 BASE_CSHARP_=$(BASE_SWIG_)/csharp
 SWIG_INCLUDE_=$(BASE_SWIG_)/include
+
+##### HDF build location (only for osx)
+HDF_BUILD=$(BUILD_ROOT)/hdf-build
+HDF_CMAKE_TMP=$(BUILD_ROOT)/hdf-cmake-temp
+HDF_VERSION=4.2.16-2
 
 ##### PROJ build location
 PROJ_BUILD=$(BUILD_ROOT)/proj-build
@@ -92,6 +93,24 @@ NUGET_=$(ROOTDIR_)/nuget
 ### Shared .NET Core Tests
 TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.XUnit
 TEST_DIR_APP=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests
+
+# Templates for project files
+GDALCORE_PROJECT=$(ROOTDIR_)/shared/templates/gdalcore.loader.csproj.in
+RUNTIME_PROJECT_LINUX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.in
+RUNTIME_PROJECT_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.csproj.in
+RUNTIME_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.windowsruntime.csproj.in
+RUNTIME_PROJECT_BUNDLE=$(ROOTDIR_)/shared/templates/gdalcore.bundle.csproj.in
+RUNTIME_PROJECT_BUNDLE_UNIX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.bundle.csproj.in
+RUNTIME_PROJECT_BUNDLE_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.bundle.csproj.in
+
+# Generated project files
+GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
+RUNTIME_PROJECT_LINUX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.final.csproj
+RUNTIME_PROJECT_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.final.csproj
+RUNTIME_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.windowsruntime.final.csproj
+RUNTIME_PROJECT_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.bundle.final.csproj
+RUNTIME_PROJECT_BUNDLE_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.bundle.final.csproj
+RUNTIME_PROJECT_BUNDLE_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.bundle.final.csproj
 
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx

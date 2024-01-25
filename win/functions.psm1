@@ -127,31 +127,33 @@ function Reset-PsSession {
 }
 
 function Install-PwshModuleRequirements {   
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
     if (!(Get-PackageProvider -Name "NuGet")) {
-        Import-PackageProvider NuGet -Force
+        Import-PackageProvider NuGet -Scope CurrentUser
     } 
 
     if (!(Get-PSRepository -Name "PSGallery")) {
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     }
 
-    if (!(Get-Module "Pscx")) {        
-        Install-Module Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser
-    }  
-    
-    if (!(Get-Module "7Zip4Powershell")) {
-        Install-Module -Name 7Zip4Powershell -RequiredVersion 2.2.0 -Scope CurrentUser
+    if (!(Get-Module -Name "VSSetup")) {
+        Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser -Force
+    } 
+
+    if (!(Get-Module -Name "Pscx")) {        
+        Install-Module -Name Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
     }
 
     if (!(Get-Command "Invoke-WebRequest")) {
         Install-Module -Name WebKitDev -RequiredVersion 0.4.0 -Force -Scope CurrentUser
     }
     
-    if ($null -eq (Get-Command "choco" -ErrorAction SilentlyContinue)) {
-        Install-Module -Name Choco -Scope CurrentUser
+    if (!(Get-Command "choco")) {
+        Install-Module -Name Choco -Scope CurrentUser -Force
     } 
     
-    if ($null -eq (Get-Command "swig" -ErrorAction SilentlyContinue)) {
+    if (!(Get-Command "swig")) {
         exec { cinst -y --no-progress --force swig }
     }
 }
@@ -219,4 +221,14 @@ function Get-ForceResolvePath {
     }
 
     return $FileName
+}
+
+function Get-PathRelative {
+    param (
+        [bool] $isDebug = $false,
+        [string] $inputPath,
+        [string] $relativePath
+    )
+    $path = $inputPath -replace [regex]::escape($env:BUILD_ROOT), $relativePath ;
+    return $path -replace '\\', '/'
 }

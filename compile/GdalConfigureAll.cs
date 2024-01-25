@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 #nullable enable
 
@@ -16,7 +17,7 @@ namespace MaxRev.Gdal.Core
         public static bool IsConfigured { get; private set; }
 
         /// <summary>
-        /// Performs search for gdalplugins and calls 
+        /// Performs search for gdalplugins and calls
         /// <see cref="OSGeo.GDAL.Gdal.AllRegister"/> and <see cref="OSGeo.OGR.Ogr.RegisterAll"/>
         /// <param name="gdalDataFolder">path to set as GDAL_DATA option</param>
         /// </summary>
@@ -40,7 +41,9 @@ namespace MaxRev.Gdal.Core
         {
             if (gdalDataFolder is null)
             {
-                var runtimes = $"runtimes/any-x64/native";
+                var isArm = RuntimeInformation.ProcessArchitecture is Architecture.Arm64;
+                var rid = isArm ? "any-arm64" : "any-x64";
+                var runtimes = $"runtimes/{rid}/native";
                 var helperLocations = GdalBaseExtensions.GetPackageDataPossibleLocations(runtimes, "gdal-data");
                 gdalDataFolder = helperLocations.FirstOrDefault(Directory.Exists);
             }
@@ -49,7 +52,7 @@ namespace MaxRev.Gdal.Core
 
         /// <summary>
         /// Calls <see cref="ConfigureGdalDrivers"/> and <see cref="Proj.Configure"/>
-        /// </summary> 
+        /// </summary>
         public static void ConfigureAll()
         {
             if (IsConfigured) return;

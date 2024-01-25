@@ -2,11 +2,11 @@
 #  gdal.netcore package automation
 #
 
-include RID.opt 
-include ../shared/GdalCore.opt 
+include RID.opt
+include ../shared/GdalCore.opt
 
 # default targets on linux
-TARGETS = proj gdal
+TARGETS = hdf proj gdal
 
 all: $(TARGETS)
 	@echo "$(PRE) Everything looks good. Linux libraries for GDAL is ready to packaging!"
@@ -21,7 +21,7 @@ pre_vcpkg:
 complete: pre_vcpkg all
 	@exit 0
 
-# forcing targets to execute	
+# forcing targets to execute
 force: $(addsuffix -force, $(TARGETS))
 	@exit 0
 
@@ -34,13 +34,12 @@ REP = $(shell echo '$(LW)' | sed "s/-force//g")
 
 # target pretty output
 TO = $(PRE) ${UP} |
-SHELL=/bin/bash
 
 # accepts any user params
-% : 
+% :
 ifneq ($(filter $(REP),$(TARGETS)),'')
 	@echo "$(TO) trying to make stuff for => $(REP)"
-	
+
 	@if [ ! -d "$(BUILD_ROOT)/$(REP)-build" ] || [[ "$(LW)" == *"-force" ]]; then \
 		$(MAKE) -f gdal-makefile init_$(REP) || exit 1; \
 		$(MAKE) -f gdal-makefile configure_$(REP) || exit 1; \
@@ -51,43 +50,69 @@ ifneq ($(filter $(REP),$(TARGETS)),'')
 	fi;
 else
 	@echo "$(PRE) Can not make $(REP)"
-endif 
+endif
 
-init_%: clone_% reset_% remove_cache_%
+init_%: reset_% remove_cache_%
 	@echo "$(TO) Sources restore complete"
 
-clone_%: 
+clone_%:
 	@if [ ! -d "$($(UP)_ROOT)" ]; then \
 		git clone $($(UP)_REPO) $($(UP)_ROOT); \
 	fi;
 
-reset_%:
+reset_%: clone_%
 	@echo "$(TO) Restoring $(LW) sources version to $($(UP)_COMMIT_VER)"
-	@echo "$(TO) Checking for remote changes..." 
+	@echo "$(TO) Checking for remote changes..."
 	@cd $($(UP)_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force
 	@cd $($(UP)_ROOT) && git checkout -q tags/$($(UP)_COMMIT_VER) --force || exit 1
-	@echo "$(TO) Resetting sources..." 
+	@echo "$(TO) Resetting sources..."
 	@cd $($(UP)_ROOT) && git reset --hard || exit 1
-	@echo "$(TO) Cleaning the repo before compiling from scratch..." 
+	@echo "$(TO) Cleaning the repo before compiling from scratch..."
 	@cd $($(UP)_ROOT) && $(GIT_CLEAN) || exit 1
 
 remove_cache_%:
-	@echo "$(TO) Removing build cache..." 	
+	@echo "$(TO) Removing build cache..."
 	@if [[ -d "$($(UP)_CMAKE_TMP)" ]]; then \
 		rm -r $($(UP)_CMAKE_TMP); \
 	fi;
 
+HDF_zip=CMake-hdf-$(HDF_VERSION).zip
+HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)/hdf-$(HDF_VERSION)
+
+download_hdf:
+	curl -o "$(BUILD_ROOT)/$(HDF_zip)" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF$(HDF_VERSION)/src/$(HDF_zip)"
+	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d .
+
+check_hdf_sources:
+	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
+		$(MAKE) -f gdal-makefile download_hdf; \
+	fi;
+
+configure_hdf:
+	@echo "$(TO) HDF Configuring..."
+
+	@if [[ -d "$(BUILD_ROOT)/hdf-build" ]]; then rm -r "$(BUILD_ROOT)/hdf-build"; fi;
+
+	-mkdir -p $(HDF_CMAKE_TMP)
+	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE) \
+		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_FLAGS="-Wno-dev" \
+		-DCMAKE_CXX_FLAGS="-fPIC -Wno-dev" \
+		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
+
+	@echo "$(TO) HDF was configured!"
+
 configure_gdal:
-	@echo "$(TO) GDAL Configuring..."  
+	@echo "$(TO) GDAL Configuring..."
 	@cd $(GDAL_ROOT) && \
 		git apply "$(ROOTDIR_)/shared/patch/CMakeLists.txt.patch" || exit 1
-		
+
 	@if [[ -d "$(BUILD_ROOT)/gdal-build" ]]; then rm -r "$(BUILD_ROOT)/gdal-build"; fi;
 	@if [[ -d "$(GDAL_ROOT)/autotest" ]]; then rm -r "$(GDAL_ROOT)/autotest"; fi;
 
 	-mkdir -p $(GDAL_CMAKE_TMP)
 	@cd $(GDAL_CMAKE_TMP) && cmake $(GDAL_ROOT) \
-		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_FLAGS="-fPIC" \
 		-DCMAKE_CXX_FLAGS="-fPIC" \
@@ -99,35 +124,42 @@ configure_gdal:
 		-DGDAL_CSHARP_BUILD_NUPKG=OFF \
 		-DBUILD_PYTHON_BINDINGS=OFF \
 		-DBUILD_CSHARP_BINDINGS=ON \
+		-DCSHARP_LIBRARY_VERSION=net$(DOTNET_VERSION) \
+		-DCSHARP_APPLICATION_VERSION=net$(DOTNET_VERSION) \
 		-DBUILD_JAVA_BINDINGS=OFF \
 		-DBUILD_SHARED_LIBS=ON \
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
 		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.so \
-		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
-		
+		-DCURL_INCLUDE_DIR="$(VCPKG_INSTALLED)/include" \
+		-DCURL_LIBRARY_RELEASE="$(VCPKG_INSTALLED_DYNAMIC)/lib/libcurl.so" \
+		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) \
+		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build \
+		|| exit 1
+
 	@echo "$(TO) GDAL was configured!"
-	
-configure_proj: 
-	@echo "$(TO) PROJ Configuring..." 	
+
+configure_proj:
+	@echo "$(TO) PROJ Configuring..."
 	@if [[ -d "$(BUILD_ROOT)/proj-build" ]]; then rm -r "$(BUILD_ROOT)/proj-build"; fi;
 	@if [[ -d "$(PROJ_ROOT)/test" ]]; then rm -r "$(PROJ_ROOT)/test"; fi;
 	-mkdir -p $(PROJ_CMAKE_TMP)
+
 	@cd $(PROJ_CMAKE_TMP) && \
 		cmake $(PROJ_ROOT) \
-        	-DCMAKE_BUILD_TYPE=Release \
+			-DCMAKE_BUILD_TYPE=Release \
 			-DCMAKE_MAKE_PROGRAM=make \
 			-DCMAKE_C_FLAGS="-Wno-deprecated-declarations" \
 			-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" \
 			-DCMAKE_INSTALL_PREFIX=$(PROJ_BUILD) \
-        	-DBUILD_TESTING=OFF \
+			-DBUILD_TESTING=OFF \
 			-DBUILD_SHARED_LIBS=ON \
-        	-DENABLE_CURL=ON -DENABLE_TIFF=ON \
-			-DTIFF_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
-			-DCURL_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
+			-DENABLE_CURL=ON -DENABLE_TIFF=ON \
 			-DEXE_SQLITE3="$(VCPKG_INSTALLED_DYNAMIC)/tools/sqlite3" \
 			-DSQLITE3_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
 			-DSQLITE3_LIBRARY="$(VCPKG_INSTALLED_DYNAMIC)/lib/libsqlite3.so" \
+			-DTIFF_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
 			-DTIFF_LIBRARY_RELEASE="$(VCPKG_INSTALLED_DYNAMIC)/lib/libtiff.so" \
+			-DCURL_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
 			-DCURL_LIBRARY="$(VCPKG_INSTALLED_DYNAMIC)/lib/libcurl.so" \
 			|| exit 1
 
@@ -138,9 +170,9 @@ build_%:
 	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j4 --target install || exit 1
 	@echo "$(TO) $(LW) was built successfully!"
 
-reset: reset_proj reset_gdal 
-	@echo "$(TO) Reset ALL is complete" 
+reset: reset_proj reset_gdal
+	@echo "$(TO) Reset ALL is complete"
 
 .EXPORT_ALL_VARIABLES:
-PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig:$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
-LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
+PKG_CONFIG_PATH=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
+LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib:${PROJ_BUILD}/lib:${HDF_BUILD}/lib

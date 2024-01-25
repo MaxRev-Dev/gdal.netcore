@@ -26,22 +26,22 @@ Still, you can execute them sequentially if needed.
 
 ```bash
 # install libraries with VCPKG
-make -f vcpkg-makefile
+make -f vcpkg-makefile BUILD_ARCH=arm64
 
 # install main libraries (proj,gdal)
 # > optional use [target]-force to run from scratch, ex. gdal-force
-make -f gdal-makefile
+make -f gdal-makefile BUILD_ARCH=arm64
 
 # collect dynamic libraries 
-make -f collect-deps-makefile
+make -f collect-deps-makefile BUILD_ARCH=arm64
 
 # create packages (output to 'nuget' folder)
-make -f publish-makefile pack
+make -f publish-makefile pack BUILD_ARCH=arm64
 
 # testing packages
 # > optional PRERELEASE=1 - testing pre-release versions
 # > optional APP_RUN=1 - testing via console app run (quick, to ensure deps were loaded correctly)
-make -f test-makefile test
+make -f test-makefile test BUILD_ARCH=arm64
 ```
 
 ### **How to check dependencies:**

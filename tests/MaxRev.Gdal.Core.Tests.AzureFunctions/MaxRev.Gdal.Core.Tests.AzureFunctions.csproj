@@ -2,12 +2,12 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework> 
     <RootNamespace>MaxRev.Gdal.Core.Tests.AzureFunctions</RootNamespace>
-    <Platform>x64</Platform>
+    <Platforms>x64;arm64</Platforms>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MaxRev.Gdal.Core" Version="3.7.0.*" />
+    <PackageReference Include="MaxRev.Gdal.Core" Version="3.8.3.*" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.3" />
   </ItemGroup>
   <ItemGroup>

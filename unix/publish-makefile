@@ -1,5 +1,6 @@
 include RID.opt
 include ../shared/GdalCore.opt
+include ../shared/bundle/base.opt
 
 ## Creating packages for testing and publishing
 # https://github.com/dotnet/core/issues/4404
@@ -9,22 +10,43 @@ export MSBUILDSINGLELOADCONTEXT = 1
 # using export to add dynamic libraries location
 export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
-all: pack
+RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_LINUX_FINAL)
+GEOS_VERSION=$(shell $(MAKE) -f ../unix/generate-projects-makefile get-version IN_FILE=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/geos.pc)
+CAT_NAME=unix
 
-pack-core:
-	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+all: prepare pack
 
-pack-runtime: 
-	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
+generate-projects:
+	$(MAKE) -f ../unix/generate-projects-makefile CAT_NAME=$(CAT_NAME) GEOS_VERSION=$(GEOS_VERSION) PACKAGE_BUILD_NUMBER=$(PACKAGE_BUILD_NUMBER)
 
-pack: pack-runtime pack-core
+# remove source. this was added by GDAL. ignore error
+prepare:
+	-dotnet nuget remove source local
+
+pack-core: generate-projects
+	dotnet pack -c Release -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
+
+pack-runtime: generate-projects
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_FINAL)
+
+pack-bundle: generate-projects pack-bundle-only
 	@exit 0
 
-pack-core-dev: 
-	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+pack-bundle-only:
+	dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
-pack-runtime-dev: pack-core-dev
-	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.linuxruntime.csproj
-
-pack-dev: pack-runtime-dev
+pack: prepare pack-core pack-runtime
 	@exit 0
+
+pack-core-dev: generate-projects
+	dotnet pack -c Debug -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
+
+pack-runtime-dev: generate-projects
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_) $(RUNTIME_PROJECT_FINAL)
+
+pack-bundle-dev: generate-projects
+	dotnet pack -c Debug -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
+
+pack-dev: pack-core-dev pack-runtime-dev
+	@exit 0
+

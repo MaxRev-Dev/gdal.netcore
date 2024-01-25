@@ -1,18 +1,17 @@
 #
 #  gdal.netcore package automation
-# 
-#    MacOS Runtime Identifier 
+#
+#    MacOS Runtime Identifier
 #
 BASE=$(PWD)
 BASE_RUNTIME_RID=osx
 BUILD_ARCH=arm64
-VCPKG_RID=$(BUILD_ARCH)
-
-RUNTIME_PROJECT_NAME=gdalcore.macosruntime.csproj
+VCPKG_RID=$(BUILD_ARCH)-$(BASE_RUNTIME_RID)
 
 # .NET RID
 RID=$(BASE_RUNTIME_RID)-$(BUILD_ARCH)
 SWIG=swig
 SHELL=/bin/bash
 
+SED=gsed
 DEL_DIR=rm -rf

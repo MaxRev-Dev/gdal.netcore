@@ -1,4 +1,3 @@
-*
 !tests/**
 !nuget/**
 **/.dockerignore
@@ -21,7 +20,11 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/.toolstarget
-**/build-win
-**/build-unix
+!**/build-*
+!**/build-*/**/.git
+!**/ci/cache/**/.git
+!**/ci/cache/**
+!**/ci/cache/vcpkg/**
 **/bin
 **/obj
+**/bindings

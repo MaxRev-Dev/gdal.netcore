@@ -1,14 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup> 
-    <TargetFramework>net7.0</TargetFramework>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>MaxRev.Gdal.Core.Tests.XUnit</RootNamespace>
-    <Platform>x64</Platform>
     <NoWarn>NU1605</NoWarn>
     <IsPackable>false</IsPackable>
-    <Platforms>x64</Platforms>
+    <Platforms>x64;arm64</Platforms>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MaxRev.Gdal.Core" Version="3.7.0.*" />
+    <PackageReference Include="MaxRev.Gdal.Core" Version="3.8.3.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">

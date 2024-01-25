@@ -1,44 +1,33 @@
 include RID.opt
 include ../shared/GdalCore.opt
-
-ifeq ($(PRERELEASE),)
-PRERELEASE_ARG= 
-else
-PRERELEASE_ARG=--prerelease
-endif
+include ../shared/bundle/base.opt
 
 ifeq ($(APP_RUN),)
-TEST_TARGET=$(TEST_DIR) 
-APP_RUN_TARGET=dotnet test
+TEST_TARGET=$(TEST_DIR)
+CMD_TYPE=dotnet test
 else
 TEST_TARGET=$(TEST_DIR_APP)
-APP_RUN_TARGET=dotnet run
+CMD_TYPE=dotnet run
 endif
 
-MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal 
+MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal
 
 all: test
 
 ###	Testing linux libraries (from nuget build output)
 test-restore:
-# 	remove other packages as they don't exist in the local source
-	-@for v in $(MISSING_PACKAGES); do \
-		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests.AzureFunctions" && dotnet remove package $$v &> /dev/null; \
-		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests" && dotnet remove package $$v &> /dev/null;  \
-	done;
-
-	-@cd $(TEST_TARGET) && \
-		dotnet restore --force -s "$(NUGET_)" -s "https://api.nuget.org/v3/index.json" --ignore-failed-sources
+	cd $(TEST_TARGET) && \
+		dotnet restore --ignore-failed-sources
 
 test-update:
-	-@cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal -s "$(NUGET_)" $(PRERELEASE_ARG)
-	-@cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.Core -s "$(NUGET_)" $(PRERELEASE_ARG) 
+	cd $(TEST_TARGET) && \
+		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+	cd $(TEST_TARGET) && \
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
 
 test-only: test-restore
-	@cd $(TEST_TARGET) && \
-		$(APP_RUN_TARGET) --no-restore
+	cd $(TEST_TARGET) && \
+		$(CMD_TYPE) --no-restore $(TEST_DIR)/*.csproj
 
 test: test-restore test-update test-only
 	@exit 0

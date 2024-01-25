@@ -1,12 +1,7 @@
 include RID.opt
 include ../shared/GdalCore.opt
- 
-ifeq ($(RID),)
-RID=linux-x64
-endif
 
 BUILD_BASE_LIB=$(GDAL_BUILD)/lib
-SHELL=/bin/bash
 
 # output helper
 define \n
@@ -16,31 +11,41 @@ endef
 
 all: build
 
-OUTPUT = $(ROOTDIR_)/runtimes/$(RID)/native
+OUTPUT = $(PACKAGE_BUILD_ROOT)/runtimes/$(RID)/native
 BUILD_BASE = $(BASE)/bindings
 BINDINGS_SOURCE=$(BUILD_ROOT)/gdal-cmake-temp/swig/csharp
+
+LIBS_TO_REMOVE=libc.so.* libm.so.* libstdc++.so.* libpthread.so.* linux-vdso.so.* libgcc_s.so.* librt.so.* libdl.so.* ld-linux-x86-64.so.* libresolv.so.* libcrypt.so.*
 
 build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 
 linkall: initdirs copy-deps copy-projdb collect-bindings
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
-	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN' $(lib); fi;${\n})
+	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN:$$ORIGIN/runtimes/$(RID)/native' $(lib); fi;${\n})
+
+#	patch for dotnet OpenSsl lib with precedes user loader fetching system libssl.so.3 and libcrypto.so.3 (3.0.2 instead of 3.2.0)
+#	https://github.com/microsoft/vcpkg/discussions/19127#discussioncomment-8139263
+	patchelf --replace-needed libssl.so.3 libssl.so.3.2.0 $(OUTPUT)/*.so*
+	patchelf --replace-needed libcrypto.so.3 libcrypto.so.3.2.0 $(OUTPUT)/*.so*
+	mv $(OUTPUT)/libcrypto.so.3 $(OUTPUT)/libcrypto.so.3.2.0
+	mv $(OUTPUT)/libssl.so.3 $(OUTPUT)/libssl.so.3.2.0
+
 	@echo "Libraries patched successfully"
 
 clean:
 	(cd $(BUILD_BASE) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
 	(cd $(PWD) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
-	
+
 cleanpackages:
-	@if [ -d "$(NUGET_)" ]; then rm -rf "$(NUGET_)"; fi; 
+	@if [ -d "$(NUGET_)" ]; then rm -rf "$(NUGET_)"; fi;
 
 initdirs:
 	rm -rvf $(OUTPUT)/*.*
 	mkdir -p $(OUTPUT)
 
 collect-bindings:
-# copy generatated c# sources to project directory 
+# copy generatated c# sources to project directory
 # to make them available for windows package build
 	@if [ ! -d "$(BUILD_BASE)" ]; then mkdir "$(BUILD_BASE)"; fi;
 	mkdir -p $(BUILD_BASE)/const/ && cp -fRL $(BINDINGS_SOURCE)/const/*.cs  $(BUILD_BASE)/const/
@@ -48,7 +53,7 @@ collect-bindings:
 	mkdir -p $(BUILD_BASE)/osr/ && cp -fRL $(BINDINGS_SOURCE)/osr/*.cs $(BUILD_BASE)/osr/
 	mkdir -p $(BUILD_BASE)/ogr/ && cp -fRL $(BINDINGS_SOURCE)/ogr/*.cs $(BUILD_BASE)/ogr/
 
-copy-deps: 
+copy-deps:
 #	copy gdal library
 	cp -rfL $(GDAL_BUILD)/lib/libgdal.so.?? $(OUTPUT)/
 #	copy dynamic wrappers
@@ -59,9 +64,11 @@ copy-deps:
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
 #   3. copy to output
 	ls $(OUTPUT)/ | grep -P 'libgdal.so.(?:\d+)' | \
-			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib xargs -I {} \
-			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)  
-	-rm $(OUTPUT)/libpthread.*
+			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib:$(HDF_BUILD)/lib xargs -I {} \
+			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)
+#   4. remove system libs
+#   https://github.com/dotnet/core/blob/main/Documentation/self-contained-linux-apps.md
+	@$(foreach lib, $(LIBS_TO_REMOVE),  @if [ -a  $(OUTPUT)/$(lib) ]; then echo "Removing sys lib from output -> $(lib)" & rm  $(OUTPUT)/$(lib); fi;${\n})
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)

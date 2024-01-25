@@ -1,46 +1,78 @@
 name: Test packages from CI
 
 on:
-  push:
-    branches: [ main ]
   pull_request:
     branches: [ main ]
 
-  workflow_dispatch:
+env:
+  DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
+  DOTNET_VERSION: '8.0.x'
 
 jobs:
+
+  WaitForWorkflows:
+    name: Wait for workflows
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Wait for workflows
+        id: wait
+        uses: smartcontractkit/chainlink-github-actions/utils/wait-for-workflows@main
+        with:
+          max-timeout: "7200" # 2 hours
+          polling-interval: "60" # 1 minute
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          DEBUG: "true"
+
   TestNugetPackages:
+    needs: [WaitForWorkflows]
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
+
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     steps:     
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - name: Check needs results
+        if: needs.WaitForWorkflows.result != 'success'
+        run: exit 1
+      - uses: actions/checkout@v4
+
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.0.x'
-      - uses: actions/cache@v3
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - uses: actions/download-artifact@v4
         with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-            
+          pattern: packages-*
+          path: nuget
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: metadata-*
+          path: shared/bundle/targets
+
+      - run: ls -la nuget
+      - run: ls -la shared/bundle/targets
+
       - name: NuGet - Update credentials
         run: | 
           dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
           dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
+          dotnet nuget remove source local || true
+          dotnet nuget remove source local.ci || true
+          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
 
       - name: Run tests from nuget packages
         env: 
           TEST_PROJECT: tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj  
         run: |
+          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Bundle.Minimal --source local.ci
+          dotnet remove ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core || echo "no packages to remove"
           dotnet restore --ignore-failed-sources ${{ env.TEST_PROJECT }}
-          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core
-          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.LinuxRuntime.Minimal
-          dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.WindowsRuntime.Minimal
           dotnet test --no-restore ${{ env.TEST_PROJECT }}

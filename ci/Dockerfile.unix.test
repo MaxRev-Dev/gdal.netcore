@@ -1,0 +1,45 @@
+# Runs tests from GDAL.NETCORE on Linux
+ARG DOTNET_VERSION=8.0
+FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/sdk:$DOTNET_VERSION as base
+RUN apt-get update && apt-get install -y \
+    build-essential
+ARG TARGETPLATFORM
+ARG BUILDPLATFORM
+
+RUN if [ $TARGETPLATFORM = "linux/arm64" ]; \
+    then \
+        echo "BUILD_ARCH=arm64" >> /tmp/gdal-netcore-arch; \
+        echo "VCPKG_FORCE_SYSTEM_BINARIES=1" >> /tmp/gdal-netcore-env; \
+    fi
+
+RUN if [ $TARGETPLATFORM = "linux/amd64" ]; \
+    then \
+        echo "BUILD_ARCH=x64" >> /tmp/gdal-netcore-arch; \
+    fi
+
+# env DOTNET_SYSTEM_GLOBALIZATION_INVARIANT is a workaround on https://github.com/dotnet/runtime/issues/71275
+# env DOTNET_EnableWriteXorExecute=0 is a workaround on https://github.com/dotnet/runtime/issues/80733
+
+RUN if [ $BUILDPLATFORM = "linux/arm64" ]; \
+    then \
+        echo "DOTNET_EnableWriteXorExecute=0" >> /tmp/gdal-netcore-env; \
+    fi
+
+RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
+
+WORKDIR /build/unix
+
+COPY shared /build/shared
+COPY unix /build/unix
+COPY nuget /build/nuget
+COPY tests /build/tests
+
+ARG BUILD_NUMBER_TAIL
+ARG BUILD_ARCH
+
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    cd /build/tests && \
+    dotnet nuget add source /build/nuget --name local.ci || "failed to add source"
+
+ENTRYPOINT set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f test-makefile $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL BUILD_ARCH=$BUILD_ARCH

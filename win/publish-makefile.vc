@@ -10,15 +10,15 @@ hostfix31:
 	set MSBUILDSINGLELOADCONTEXT=1
 
 pack-core: hostfix31
-	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+	dotnet pack -c Release -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
 pack-runtime: hostfix31
-	dotnet pack -c Release -o $(NUGET_) $(ROOTDIR_)/gdalcore.windowsruntime.csproj
+	dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_WIN_FINAL)
 pack: hostfix31 pack-runtime pack-core
 	
 
 pack-core-dev: hostfix31
-	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.loader.csproj
+	dotnet pack -c Debug -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
 pack-runtime-dev: hostfix31
-	dotnet pack -c Debug -o $(NUGET_) $(ROOTDIR_)/gdalcore.windowsruntime.csproj
+	dotnet pack -c Debug -o $(NUGET_) $(RUNTIME_PROJECT_WIN_FINAL)
 
 pack-dev: hostfix31 pack-runtime-dev pack-core-dev
