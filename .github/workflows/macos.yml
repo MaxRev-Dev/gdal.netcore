@@ -22,11 +22,11 @@ jobs:
   BuildNugetPackages-MacOS:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
+        os: [macos-14,macos-13]
         include:
-          - os: self-hosted-macos-arm64
+          - os: macos-14
             arch: arm64
-          - os: self-hosted-macos-x64
+          - os: macos-13
             arch: x64
 
     runs-on: ${{ matrix.os }}
