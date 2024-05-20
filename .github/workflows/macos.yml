@@ -53,15 +53,9 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Activate virtualenv
-        run: |
-          python3 -m venv .venv
-          . .venv/bin/activate
-          echo PATH=$PATH >> $GITHUB_ENV
-          
       - name: Install CMake
         run: |
-          python3 -m pip install cmake
+          pipx install cmake
           
 
       - name: Setup .NET Core SDK
