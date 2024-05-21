@@ -25,6 +25,12 @@ try {
     # $VerbosePreference = Continue
     
     # check if 'GNU make' is available
+    if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+        exec { Set-ExecutionPolicy Bypass -Scope Process -Force; `
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) }
+    }
+
     if (!(Get-Command make -ErrorAction SilentlyContinue)) {
         exec { choco install -y --no-progress --force make } 
         Write-Information "GNUmake was installed"
