@@ -129,31 +129,31 @@ function Reset-PsSession {
 function Install-PwshModuleRequirements {   
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    if (!(Get-PackageProvider -Name "NuGet" -Force)) {
+    if (!(Get-PackageProvider -Name "NuGet" -Force -ErrorAction SilentlyContinue)) {
         Import-PackageProvider NuGet -Scope CurrentUser
     } 
 
-    if (!(Get-PSRepository -Name "PSGallery")) {
+    if (!(Get-PSRepository -Name "PSGallery" -ErrorAction SilentlyContinue)) {
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     }
 
-    if (!(Get-Module -Name "VSSetup")) {
+    if (!(Get-Module -Name "VSSetup" -ErrorAction SilentlyContinue)) {
         Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser -Force
     } 
 
-    if (!(Get-Module -Name "Pscx")) {        
+    if (!(Get-Module -Name "Pscx" -ErrorAction SilentlyContinue)) {        
         Install-Module -Name Pscx -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
     }
 
-    if (!(Get-Command "Invoke-WebRequest")) {
+    if (!(Get-Command "Invoke-WebRequest" -ErrorAction SilentlyContinue)) {
         Install-Module -Name WebKitDev -RequiredVersion 0.4.0 -Force -Scope CurrentUser
     }
     
-    if (!(Get-Command "choco")) {
+    if (!(Get-Command "choco" -ErrorAction SilentlyContinue)) {
         Install-Module -Name Choco -Scope CurrentUser -Force
     } 
     
-    if (!(Get-Command "swig")) {
+    if (!(Get-Command "swig" -ErrorAction SilentlyContinue)) {
         exec { choco install -y --no-progress --force swig }
     }
 }
