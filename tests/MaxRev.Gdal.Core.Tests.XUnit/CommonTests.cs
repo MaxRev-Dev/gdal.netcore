@@ -100,7 +100,7 @@ namespace GdalCore_XUnit
             {
                 return new[]
                 {
-                   "AAIGrid","ACE2","ADRG","AIG","AirSAR","AmigoCloud","ARG",
+                   "AAIGrid","ACE2","ADRG","AIG","AirSAR","AmigoCloud",
                    "AVCBin","AVCE00","BAG","BIGGIF","BLX","BMP","BSB","BT",
                    "BYN","CAD","CALS","Carto","CEOS","COASP","COG","COSAR",
                    "CPG","CSV","CSW","CTable2","CTG","DAAS","DERIVED","DGN",
