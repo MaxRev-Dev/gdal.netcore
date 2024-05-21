@@ -26,7 +26,7 @@ try {
     
     # check if 'GNU make' is available
     if (!(Get-Command make -ErrorAction SilentlyContinue)) {
-        exec { cinst -y --no-progress --force make } 
+        exec { choco install -y --no-progress --force make } 
         Write-Information "GNUmake was installed"
     }
 

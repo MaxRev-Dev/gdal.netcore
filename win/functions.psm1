@@ -154,7 +154,7 @@ function Install-PwshModuleRequirements {
     } 
     
     if (!(Get-Command "swig")) {
-        exec { cinst -y --no-progress --force swig }
+        exec { choco install -y --no-progress --force swig }
     }
 }
 
