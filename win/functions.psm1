@@ -129,7 +129,7 @@ function Reset-PsSession {
 function Install-PwshModuleRequirements {   
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    if (!(Get-PackageProvider -Name "NuGet")) {
+    if (!(Get-PackageProvider -Name "NuGet" -Force)) {
         Import-PackageProvider NuGet -Scope CurrentUser
     } 
 
