@@ -128,6 +128,22 @@ function Reset-PsSession {
 
 function Install-PwshModuleRequirements {   
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    
+    if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+        exec { Set-ExecutionPolicy Bypass -Scope Process -Force; `
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) }
+    }
+
+    if (!(Get-Command make -ErrorAction SilentlyContinue)) {
+        exec { choco install -y --no-progress --force make } 
+        Write-Information "GNUmake was installed"
+    }
+    
+    if (!(Get-Command cmake -ErrorAction SilentlyContinue)) {
+        exec { choco install -y --no-progress --force cmake } 
+        Write-Information "CMake was installed"
+    }
 
     if (!(Get-PackageProvider -Name "NuGet" -Force -ErrorAction SilentlyContinue)) {
         Import-PackageProvider NuGet -Scope CurrentUser
