@@ -141,7 +141,7 @@ function Install-PwshModuleRequirements {
     }
     
     if (!(Get-Command cmake -ErrorAction SilentlyContinue)) {
-        exec { choco install cmake.install --force -y --no-progress --installargs '"ADD_CMAKE_TO_PATH=User"' } 
+        exec { choco install cmake.install --force -y --no-progress --installargs '"ADD_CMAKE_TO_PATH=System"' } 
         Write-Information "CMake was installed"
     }
 
