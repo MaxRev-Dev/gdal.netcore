@@ -163,8 +163,8 @@ configure_proj:
 			-DENABLE_CURL=ON -DENABLE_TIFF=ON \
 			-DTIFF_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
 			-DEXE_SQLITE3="$(VCPKG_INSTALLED)/tools/sqlite3" \
-			-SQLite3_INCLUDE_DIR="$(VCPKG_INSTALLED)/include" \
-			-SQLite3_LIBRARY="$(VCPKG_INSTALLED)/lib/libsqlite3.a" \
+			-DSQLite3_INCLUDE_DIR="$(VCPKG_INSTALLED)/include" \
+			-DSQLite3_LIBRARY="$(VCPKG_INSTALLED)/lib/libsqlite3.a" \
 			-DTIFF_LIBRARY_RELEASE="$(VCPKG_INSTALLED_DYNAMIC)/lib/libtiff.dylib" \
 			-DCMAKE_PREFIX_PATH="$(VCPKG_INSTALLED_DYNAMIC)" \
 			|| exit 1
