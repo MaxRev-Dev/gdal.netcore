@@ -141,6 +141,7 @@ function Install-Proj {
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
         -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_ROOT\installed\x64-windows" `
         -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }

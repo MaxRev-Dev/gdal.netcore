@@ -114,10 +114,10 @@ jobs:
       matrix:
         os: [self-hosted-macos-arm64,self-hosted-macos-x64, macos-13, macos-14]
         include:
-          - os: self-hosted-macos-arm64
-            arch: arm64
-          - os: self-hosted-macos-x64
-            arch: x64
+          # - os: self-hosted-macos-arm64
+          #   arch: arm64
+          # - os: self-hosted-macos-x64
+          #   arch: x64
           - os: macos-14
             arch: arm64
           - os: macos-13
@@ -190,7 +190,7 @@ jobs:
           dotnet nuget remove source local || true
           dotnet nuget remove source local.ci || true
           dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
-     
+
       - name: Build bundle
         run: |
           make -f publish-makefile pack-bundle-only CAT_NAME=osx PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
