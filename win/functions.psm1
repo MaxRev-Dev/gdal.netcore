@@ -142,7 +142,7 @@ function Install-PwshModuleRequirements {
     } 
 
     if (!(Get-Module -Name "Pscx")) {        
-        Install-Module -Name Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
+        Install-Module -Name Pscx -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
     }
 
     if (!(Get-Command "Invoke-WebRequest")) {
