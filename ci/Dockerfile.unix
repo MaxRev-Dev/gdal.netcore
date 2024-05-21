@@ -58,6 +58,7 @@ RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
 FROM --platform=$TARGETPLATFORM base as gdalbuild
 WORKDIR /build/unix
 ARG VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
+RUN mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
 COPY --from=base /tmp/gdal-netcore-env /tmp/gdal-netcore-env
 COPY --from=base /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
 COPY shared/GdalCore.opt /build/shared/
