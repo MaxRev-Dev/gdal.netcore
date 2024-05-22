@@ -50,6 +50,7 @@ jobs:
       - name: Compile GDAL and create packages
         id: compile-source
         run: |
+          git config --system core.longpaths true
           ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ env.IS_PRE_RELEASE }}
           echo "GDAL_VERSION=$env:GDAL_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           

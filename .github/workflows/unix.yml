@@ -204,15 +204,13 @@ jobs:
         with:
           pattern: packages-unix*
           merge-multiple: true
-          path: nuget/
+          path: "${{ github.workspace}}/nuget/"
 
       - name: Download artifact - metadata
         uses: actions/download-artifact@v4
         with:
           pattern: metadata-unix*
-          merge-multiple: true      
-
-      - run: ls -la ../nuget/
+          merge-multiple: true
 
       - name: NuGet - Update credentials
         run: | 
