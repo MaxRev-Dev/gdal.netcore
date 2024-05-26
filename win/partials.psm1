@@ -246,7 +246,9 @@ function Build-Gdal {
 
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild
     New-FolderIfNotExists "$PSScriptRoot\..\nuget"
-
+    
+    # disabling KEA driver as it causes build issues on Windows
+    # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" `
@@ -255,6 +257,7 @@ function Build-Gdal {
         $env:WEBP_ROOT  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:POPPLER_EXTRA_LIBRARIES `
+        -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
         -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" `
         -DGDAL_CSHARP_APPS=OFF `
