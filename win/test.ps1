@@ -17,9 +17,12 @@ $existingVariables = Get-Variable
 try { 
     Set-GdalVariables
 
+    Install-PwshModuleRequirements
+    
     if (!(Get-Command "nmake" -ErrorAction SilentlyContinue)) {
         Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
     }
+
     $preReleaseArg = ""
     if ($preRelease){
         $preReleaseArg = "PRERELEASE=1"
