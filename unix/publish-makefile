@@ -19,6 +19,12 @@ all: prepare pack
 generate-projects:
 	$(MAKE) -f ../unix/generate-projects-makefile CAT_NAME=$(CAT_NAME) GEOS_VERSION=$(GEOS_VERSION) PACKAGE_BUILD_NUMBER=$(PACKAGE_BUILD_NUMBER)
 
+update-targets:
+	cd $(PACKAGE_BUILD_ROOT) && \
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+	cd $(PACKAGE_BUILD_ROOT) && \
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+
 # remove source. this was added by GDAL. ignore error
 prepare:
 	-dotnet nuget remove source local
@@ -32,7 +38,7 @@ pack-runtime: generate-projects
 pack-bundle: generate-projects pack-bundle-only
 	@exit 0
 
-pack-bundle-only:
+pack-bundle-only: prepare update-targets
 	dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
 pack: prepare pack-core pack-runtime
