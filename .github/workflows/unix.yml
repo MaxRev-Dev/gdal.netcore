@@ -131,6 +131,7 @@ jobs:
           overwrite: true
       
   TestPackages-Linux:
+    needs: BuildNugetPackages-Linux
     strategy:
       matrix:
         include:
@@ -144,7 +145,6 @@ jobs:
           #   arch: arm64
           #   actions-runner: self-hosted-macos-arm64
 
-    needs: BuildNugetPackages-Linux
     runs-on: ${{ matrix.actions-runner }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
@@ -184,7 +184,13 @@ jobs:
 
   PushPackages-Linux:
     needs: TestPackages-Linux
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - os: linux/amd64
+            arch: x64
+            actions-runner: ubuntu-latest
+    runs-on: ${{ matrix.actions-runner }}
     if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
@@ -202,14 +208,14 @@ jobs:
       - name: Download artifact - packages
         uses: actions/download-artifact@v4
         with:
-          pattern: packages-unix*
+          pattern: packages-unix-${{ matrix.arch }}
           merge-multiple: true
           path: "${{ github.workspace}}/nuget/"
 
       - name: Download artifact - metadata
         uses: actions/download-artifact@v4
         with:
-          pattern: metadata-unix*
+          pattern: metadata-unix-${{ matrix.arch }}
           merge-multiple: true
 
       - name: NuGet - Update credentials
@@ -227,7 +233,7 @@ jobs:
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: packages-unix-final
+          name: packages-unix-final-${{ matrix.arch }}
           path: nuget/*.nupkg
           overwrite: true
 

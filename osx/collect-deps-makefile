@@ -71,7 +71,7 @@ copy-deps:
 		-s $(GDAL_BUILD)/lib \
 		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
-		-cd -d $(OUTPUT)/ -p "@loader_path/"
+		-cd -d $(OUTPUT)/ -p "@executable_path/"
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)
