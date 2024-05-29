@@ -7,7 +7,7 @@ TEST_TARGET=$(TEST_DIR)
 CMD_TYPE=dotnet test
 else
 TEST_TARGET=$(TEST_DIR_APP)
-CMD_TYPE=DYLD_PRINT_LIBRARIES=1 dotnet run
+CMD_TYPE=dotnet run
 endif
 
 MISSING_PACKAGES=MaxRev.Gdal.LinuxRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal

@@ -72,12 +72,6 @@ copy-deps:
 		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
 		-cd -d $(OUTPUT)/ -p "@loader_path/"
-# #
-# 	mv $(OUTPUT)/libsqlite3.dylib $(OUTPUT)/gdal_sqlite3.dylib
-# 	install_name_tool -id @loader_path/gdal_sqlite3.dylib $(OUTPUT)/gdal_sqlite3.dylib
-# 	install_name_tool -change @loader_path/libsqlite3.dylib @loader_path/gdal_sqlite3.dylib $(OUTPUT)/libproj*.dylib
-# 	install_name_tool -change @loader_path/libsqlite3.dylib @loader_path/gdal_sqlite3.dylib $(OUTPUT)/libgdal*.*.dylib
-# 	codesign --force --deep --preserve-metadata=entitlements,requirements,flags,runtime --sign - $(OUTPUT)/*.dylib
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)
