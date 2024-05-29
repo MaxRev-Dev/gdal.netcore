@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <PropertyGroup>
+        <MaxRevGdalOutputBase Condition="'$(MaxRevGdalOutputBase)' == ''"></MaxRevGdalOutputBase>
+        <!-- EnsureTrailingSlash is only available since VS 2017 -->
+        <MaxRevGdalOutputBase Condition="'$(MaxRevGdalOutputBase)' != '' AND !HasTrailingSlash('$(MaxRevGdalOutputBase)')">$(MaxRevGdalOutputBase)\</MaxRevGdalOutputBase>
+    </PropertyGroup>
+
+    <!-- Mono still needs to copy the native dependencies to the output directory -->
+    <ItemGroup Condition="'$(MSBuildRuntimeType)' == 'Mono'">
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\osx-${_BUILD_ARCH}\native\*">
+            <Link>$(MaxRevGdalOutputBase)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+</Project>

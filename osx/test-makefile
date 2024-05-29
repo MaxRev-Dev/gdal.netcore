@@ -7,10 +7,12 @@ TEST_TARGET=$(TEST_DIR)
 CMD_TYPE=dotnet test
 else
 TEST_TARGET=$(TEST_DIR_APP)
-CMD_TYPE=dotnet run
+CMD_TYPE=DYLD_PRINT_LIBRARIES=1 dotnet run
 endif
 
 MISSING_PACKAGES=MaxRev.Gdal.LinuxRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal
+
+_BUILD_NUMBER_TAIL=$(shell echo $$(($(BUILD_NUMBER_TAIL) + $(PACKAGE_BUILD_NUMBER))))
 
 any: test
 
@@ -25,9 +27,9 @@ test-restore:
 
 test-update:
 	cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(_BUILD_NUMBER_TAIL)" -s $(NUGET_) $(PRERELEASE_ARG)
 	cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(_BUILD_NUMBER_TAIL)" -s $(NUGET_) $(PRERELEASE_ARG)
 
 test-only: test-restore
 	cd $(TEST_TARGET) && \
