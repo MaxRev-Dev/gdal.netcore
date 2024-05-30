@@ -22,11 +22,11 @@ jobs:
   BuildNugetPackages-MacOS:
     strategy:
       matrix:
-        os: [macos-14, macos-14]
+        os: [macos-14, macos-13]
         include:
           - os: macos-14
             arch: arm64
-          - os: macos-14
+          - os: macos-13
             arch: x64
           
     runs-on: ${{ matrix.os }}
@@ -114,11 +114,11 @@ jobs:
   TestPackages-MacOS:
     strategy:
       matrix:
-        os: [macos-14, macos-14]
+        os: [macos-14, macos-13]
         include:
           - os: macos-14
             arch: arm64
-          - os: macos-14
+          - os: macos-13
             arch: x64
 
     needs: BuildNugetPackages-MacOS
