@@ -42,8 +42,9 @@ VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[to
 
 # osx requires the same libs as linux
 # sqlite static is required only to build proj.db
+# mysql fails on arm64-dynamic
 VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX) "sqlite3[tool,rtree]"
-VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) netcdf-c libmysql "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) netcdf-c "sqlite3[tool,rtree]"
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
