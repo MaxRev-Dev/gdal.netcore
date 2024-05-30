@@ -133,8 +133,8 @@ configure_gdal:
 		-DBUILD_SHARED_LIBS=ON \
 		-DSQLite3_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include \
 		-DSQLite3_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libsqlite3.dylib \
-		-DMYSQL_LIBRARY=$(VCPKG_INSTALLED)/lib/libmysqlclient.a \
-		-DMYSQL_INCLUDE_DIR=$(VCPKG_INSTALLED)/include/mysql \
+		-DMYSQL_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libmysqlclient.dylib \
+		-DMYSQL_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include/mysql \
 		-DHDF4_INCLUDE_DIR=$(BUILD_ROOT)/hdf-build/include \
 		-DHDF4_df_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libhdf.dylib \
 		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.dylib \

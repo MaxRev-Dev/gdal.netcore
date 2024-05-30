@@ -21,11 +21,13 @@ generate-projects:
 
 update-targets:
 	cd $(PACKAGE_BUILD_ROOT) && \
-		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) \
+			--no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
 	cd $(PACKAGE_BUILD_ROOT) && \
-		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.Core \
+			--no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
 
-# remove source. this was added by GDAL. ignore error
+# remove source and ignore the error. this source was added by GDAL. 
 prepare:
 	-dotnet nuget remove source local
 
