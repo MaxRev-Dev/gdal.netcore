@@ -176,10 +176,21 @@ build_%:
 	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j4 --target install || exit 1
 	@echo "$(TO) $(LW) was built successfully!"
 
+__DYLIBS_GDAL=DYLD_LIBRARY_PATH=$(DYLD_LIBRARY_PATH):$(BUILD_ROOT)/gdal-build/lib
+formats-output:
+	@mkdir -p $(TEST_FORMATS_OUTPUT)
+	@cd $(BUILD_ROOT)/gdal-build/bin && $(__DYLIBS_GDAL) \
+		./gdal-config --formats > $(TEST_FORMATS_OUTPUT)/gdal-formats-osx.txt
+
+	@cd $(BUILD_ROOT)/gdal-build/bin && $(__DYLIBS_GDAL) \
+		./gdalinfo --formats > $(TEST_FORMATS_OUTPUT)/gdal-formats-osx-raster.txt
+
+	@cd $(BUILD_ROOT)/gdal-build/bin && $(__DYLIBS_GDAL) \
+		./ogrinfo --formats > $(TEST_FORMATS_OUTPUT)/gdal-formats-osx-vector.txt
+
 reset: reset_proj reset_gdal
 	@echo "$(TO) Reset ALL is complete"
 
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
-LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib:${PROJ_BUILD}/lib:${HDF_BUILD}/lib
 DYLD_LIBRARY_PATH=$$DYLD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib:${PROJ_BUILD}/lib:${HDF_BUILD}/lib

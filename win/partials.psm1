@@ -300,6 +300,8 @@ function Build-CsharpBindings {
     
     Set-Location $PSScriptRoot
     
+    Write-GdalFormats
+
     exec { & nmake -f collect-deps-makefile.vc }
     
     Build-GenerateProjectFiles -packageVersion $packageVersion 
@@ -310,5 +312,19 @@ function Build-CsharpBindings {
     }
     else {
         exec { & nmake -f publish-makefile.vc pack PACKAGE_BUILD_NUMBER=$packageVersion }
+    }
+}
+
+function Write-GdalFormats {
+    Set-Location "$env:GDAL_INSTALL_DIR\bin"
+    # write to file
+    try {
+        $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\MaxRev.Gdal.Core.Tests.XUnit\gdal-formats")
+        New-FolderIfNotExists $formats_path
+        exec { & .\gdal-config.exe --formats | Set-Content -Path "$formats_path\gdal-formats-win.txt" -Force }
+        exec { & .\gdalinfo.exe --formats | Set-Content -Path "$formats_path\gdal-formats-win-raster.txt" -Force }
+        exec { & .\ogrinfo.exe --formats | Set-Content -Path "$formats_path\gdal-formats-win-vector.txt" -Force }
+    } catch {
+        Write-Host "Failed to get GDAL formats"
     }
 }
