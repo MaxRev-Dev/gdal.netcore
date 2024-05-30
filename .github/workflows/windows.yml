@@ -15,7 +15,7 @@ concurrency:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   DOTNET_VERSION: '8.0.x'
-  IS_PRE_RELEASE: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' || contains(github.event.head_commit.message, '[prerelease]') }}
+  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 jobs:
   BuildNugetPackages-Windows:

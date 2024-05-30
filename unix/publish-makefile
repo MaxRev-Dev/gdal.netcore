@@ -13,6 +13,7 @@ export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_LINUX_FINAL)
 GEOS_VERSION=$(shell $(MAKE) -f ../unix/generate-projects-makefile get-version IN_FILE=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/geos.pc)
 CAT_NAME=unix
+RUNTIME_PACKAGE_PARTIAL=LinuxRuntime
 
 all: prepare pack
 
@@ -21,7 +22,7 @@ generate-projects:
 
 update-targets:
 	cd $(PACKAGE_BUILD_ROOT) && \
-		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) \
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal.$(BUILD_ARCH) \
 			--no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
 	cd $(PACKAGE_BUILD_ROOT) && \
 		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.Core \
