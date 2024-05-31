@@ -102,6 +102,7 @@ COPY --from=gdalbuild /build/build-unix /build/build-unix
 COPY --from=gdalbuild /build/shared /build/shared
 COPY --from=gdalbuild /build/ci/cache/vcpkg-archives/ /build/ci/cache/vcpkg-archives/
 COPY --from=gdalbuild /build/package-build/ /build/package-build/
+COPY --from=gdalbuild /build/tests/gdal-formats /build/tests/gdal-formats
 # copy nuget packages from build
 COPY --from=gdalbuild /build/nuget /build/nuget
 ENTRYPOINT ["bash"]
