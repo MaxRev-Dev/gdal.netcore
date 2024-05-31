@@ -19,7 +19,7 @@ LIBS_TO_REMOVE=libc.so.* libm.so.* libstdc++.so.* libpthread.so.* linux-vdso.so.
 
 build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
-	(cd $(GDAL_BUILD)/bin/ && $(MAKE) -f gdal-makefile formats-output)
+	$(MAKE) -f gdal-makefile formats-output
 
 linkall: initdirs copy-deps copy-projdb collect-bindings
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
