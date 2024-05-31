@@ -240,9 +240,6 @@ function Build-Gdal {
     Remove-Item -Path $env:GDAL_SOURCE/autotest -Recurse -Force  -ErrorAction SilentlyContinue
     # PATCH 2: apply patch to cmake pipeline. remove redundant compile steps
     git apply "$PSScriptRoot\..\shared\patch\CMakeLists.txt.patch"
-    # PATCH 3: apply patch for FindSPATIALITE
-    git apply "$PSScriptRoot\..\shared\patch\FindSPATIALITE.cmake.patch"
-
 
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild
     New-FolderIfNotExists "$PSScriptRoot\..\nuget"
@@ -303,7 +300,7 @@ function Build-CsharpBindings {
     Write-GdalFormats
 
     Set-Location $PSScriptRoot
-    
+
     exec { & nmake -f collect-deps-makefile.vc }
     
     Build-GenerateProjectFiles -packageVersion $packageVersion 
