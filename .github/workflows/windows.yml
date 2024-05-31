@@ -61,6 +61,14 @@ jobs:
           path: shared/bundle/targets/
           overwrite: true
 
+      - name: GDAL formats windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: formats-win
+          path: |
+            tests/gdal-formats/
+          overwrite: true
+          
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
         with:

@@ -175,6 +175,7 @@ build_%:
 	@echo "$(TO) $(LW) Building..."
 	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j4 --target install || exit 1
 	@echo "$(TO) $(LW) was built successfully!"
+	$(MAKE) -f gdal-makefile formats-output
 
 __DYLIBS_GDAL=DYLD_LIBRARY_PATH=$(DYLD_LIBRARY_PATH):$(BUILD_ROOT)/gdal-build/lib
 formats-output:

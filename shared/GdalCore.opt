@@ -94,7 +94,7 @@ NUGET_=$(ROOTDIR_)/nuget
 ### Shared .NET Core Tests
 TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.XUnit
 TEST_DIR_APP=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests
-TEST_FORMATS_OUTPUT=$(TEST_DIR)/gdal-formats
+TEST_FORMATS_OUTPUT=$(ROOTDIR_)/tests/gdal-formats
 
 # Templates for project files
 GDALCORE_PROJECT=$(ROOTDIR_)/shared/templates/gdalcore.loader.csproj.in

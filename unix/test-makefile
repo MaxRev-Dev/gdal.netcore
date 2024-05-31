@@ -14,9 +14,6 @@ MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Min
 
 all: test
 
-test-prepare:
-	$(MAKE) -f gdal-makefile formats-output
-
 ###	Testing linux libraries (from nuget build output)
 test-restore:
 	cd $(TEST_TARGET) && \
@@ -32,5 +29,5 @@ test-only: test-restore
 	cd $(TEST_TARGET) && \
 		$(CMD_TYPE) --no-restore $(TEST_DIR)/*.csproj
 
-test: test-prepare test-restore test-update test-only
+test: test-restore test-update test-only
 	@exit 0

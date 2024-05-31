@@ -104,6 +104,14 @@ jobs:
             package-build/*.csproj
           overwrite: true
 
+      - name: GDAL formats osx
+        uses: actions/upload-artifact@v4
+        with:
+          name: formats-osx-${{ matrix.arch }}
+          path: |
+            tests/gdal-formats/
+          overwrite: true    
+
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
         with:
