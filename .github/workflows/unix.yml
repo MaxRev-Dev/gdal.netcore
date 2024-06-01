@@ -217,7 +217,7 @@ jobs:
           merge-multiple: true
 
       - name: NuGet - set credentials
-        uses: .github/actions/set-credentials
+        uses: ${{ github.workspace }}/.github/actions/set-credentials
         with:
           api-key-github: ${{ secrets.API_KEY_GITHUB }}
           api-key-nuget: ${{ secrets.API_KEY_NUGET }}
