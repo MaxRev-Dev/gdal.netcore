@@ -10,7 +10,6 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   DOCKER_REGISTRY: ghcr.io/maxrev-dev
@@ -222,8 +221,8 @@ jobs:
           (cd ${{ github.workspace}} && dotnet new nugetconfig --force)
           dotnet nuget remove source local > /dev/null || :
           dotnet nuget remove source local.ci > /dev/null || :
-          dotnet nuget add source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile "${{ github.workspace}}/nuget.config"
-          dotnet nuget add source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile "${{ github.workspace}}/nuget.config"
+            dotnet nuget add source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
+            dotnet nuget add source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
           dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile "${{ github.workspace}}/nuget.config"
 
       - name: Build bundle
