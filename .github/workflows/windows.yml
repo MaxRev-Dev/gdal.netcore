@@ -106,14 +106,13 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: NuGet - Update credentials
-        run: |
-          ${{ github.workspace }}/.github/workflows/configure-nuget-sources.sh
-          dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github \
-            --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
-          dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org \
-            --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
-        shell: pwsh
+      - name: NuGet - set credentials
+        uses: .github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Test packages
         run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ env.IS_PRE_RELEASE }}
@@ -143,13 +142,14 @@ jobs:
           merge-multiple: true
           path: nuget/
 
-      - name: NuGet - Update credentials
-        run: |
-          ${{ github.workspace }}/.github/workflows/configure-nuget-sources.sh
-          dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github \
-            --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
-          dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org \
-            --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
+      - name: NuGet - set credentials
+        uses: .github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
