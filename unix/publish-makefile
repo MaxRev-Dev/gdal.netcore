@@ -18,7 +18,7 @@ RUNTIME_PACKAGE_PARTIAL=LinuxRuntime
 all: prepare pack
 
 generate-projects:
-	$(MAKE) -f ../unix/generate-projects-makefile CAT_NAME=$(CAT_NAME) GEOS_VERSION=$(GEOS_VERSION) PACKAGE_BUILD_NUMBER=$(PACKAGE_BUILD_NUMBER)
+	$(MAKE) -f ../unix/generate-projects-makefile RUNTIME_PACKAGE_PARTIAL=${RUNTIME_PACKAGE_PARTIAL} CAT_NAME=$(CAT_NAME) GEOS_VERSION=$(GEOS_VERSION) PACKAGE_BUILD_NUMBER=$(PACKAGE_BUILD_NUMBER)
 
 update-targets:
 	cd $(PACKAGE_BUILD_ROOT) && \
@@ -30,7 +30,7 @@ update-targets:
 
 # remove source and ignore the error. this source was added by GDAL. 
 prepare:
-	-dotnet nuget remove source local
+	-@dotnet nuget remove source local
 
 pack-core: generate-projects
 	dotnet pack -c Release -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)

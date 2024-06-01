@@ -283,7 +283,7 @@ function Build-GenerateProjectFiles {
 
     # generate project files for C# bindings
     Write-BuildStep "Generating project files for GDAL C# bindings"
-    exec { & $env:GitBash -c "make -f generate-projects-makefile CAT_NAME=win BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE" }
+    exec { & $env:GitBash -c "make -f generate-projects-makefile RUNTIME_PACKAGE_PARTIAL=WindowsRuntime CAT_NAME=win BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE" }
     Write-BuildStep "Done generating project files"
 }
 
