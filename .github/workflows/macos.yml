@@ -189,7 +189,7 @@ jobs:
       
       - name: NuGet - Update credentials
         run: |
-          (cd ${{ github.workspace}} && dotnet new nugetconfig)
+          (cd ${{ github.workspace}} && dotnet new nugetconfig --force)
           dotnet nuget remove source local > /dev/null || :
           dotnet nuget remove source local.ci > /dev/null || :
           dotnet nuget add source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile "${{ github.workspace}}/nuget.config"
