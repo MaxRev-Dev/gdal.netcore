@@ -5,10 +5,12 @@
 #
 BASE = $(MAKEDIR)
 BASE_RUNTIME_RID = win
-VCPKG_RID = x64-windows
+TARGET_OS = $(BASE_RUNTIME_RID)
+BUILD_ARCH = x64
+VCPKG_RID = $(BUILD_ARCH)-windows
 
 # .NET RID
-RID = win-x64
+RID = $(BASE_RUNTIME_RID)-$(BUILD_ARCH)
 SWIG = swig
 
 COPY = copy 

@@ -1,6 +1,10 @@
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
 include RID.opt
 include ../shared/GdalCore.opt
 include ../shared/bundle/base.opt
+-include ../shared/bundle/targets/osx.opt
+-include ../shared/bundle/targets/unix.opt
+-include ../shared/bundle/targets/win.opt
 
 RUNTIME_PROJECT=$(RUNTIME_PROJECT_LINUX)
 IN_FILE=
@@ -13,11 +17,15 @@ export _PROJ_VERSION=$(PROJ_VERSION)
 export _GEOS_VERSION=$(GEOS_VERSION)
 export _ROOT_RELATIVE_PATH=..
 export _PACKAGE_BUILD_NUMBER=$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)
+export _PACKAGE_NAME_RUNTIME=$(PACKAGE_NAME_RUNTIME)
+export _RID=$(BUILD_ARCH)
+export _TARGET_OS=$(TARGET_OS)
+export _BUILD_ARCH=$(BUILD_ARCH)
 
 ONSUBST='$${_BUILD_ARCH} $${_GEOS_VERSION} $${_ROOT_RELATIVE_PATH} $${_GDAL_VERSION} $${_PROJ_VERSION} $${_PACKAGE_BUILD_NUMBER}'
 
 # substitute all variables in template project files
-generate-projects: generate-build-base generate-bundles-$(CAT_NAME)
+generate-projects: generate-build-base generate-bundles-$(CAT_NAME) generate-targets
 	@mkdir -p $(dir $(GDALCORE_PROJECT_FINAL))
 	@cat $(GDALCORE_PROJECT) | envsubst $${ONSUBST} > $(GDALCORE_PROJECT_FINAL)
 	@cat $(RUNTIME_PROJECT_LINUX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_LINUX_FINAL)
@@ -51,4 +59,20 @@ generate-bundles-win:
 
 get-version:
 	@grep -o "[Vv]ersion:\s.*" $(IN_FILE) | cut -d: -f2 | xargs
- 
+
+generate-target-single:
+	@echo "Generating target file $(RID)"
+	@echo "  TARGET_OS: $(TARGET_OS)"
+	@echo "  BUILD_ARCH: $(BUILD_ARCH)"
+	@echo "  RUNTIME_PACKAGE_PARTIAL: $(RUNTIME_PACKAGE_PARTIAL)"
+	@echo "  BASE_RUNTIME_RID: $(BASE_RUNTIME_RID)"
+	@cat $(RUNTIME_TARGET_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_TARGET_BUNDLE_FINAL)
+
+generate-targets:
+	@echo "Generating target files..."
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=MacosRuntime BASE_RUNTIME_RID=osx BUILD_ARCH=arm64
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=MacosRuntime BASE_RUNTIME_RID=osx BUILD_ARCH=x64
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BASE_RUNTIME_RID=linux BUILD_ARCH=arm64
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BASE_RUNTIME_RID=linux BUILD_ARCH=x64
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=WindowsRuntime BASE_RUNTIME_RID=win BUILD_ARCH=x64
+

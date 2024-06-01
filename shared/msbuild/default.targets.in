@@ -7,9 +7,9 @@
         <MaxRevGdalOutputBase Condition="'$(MaxRevGdalOutputBase)' != '' AND !HasTrailingSlash('$(MaxRevGdalOutputBase)')">$(MaxRevGdalOutputBase)\</MaxRevGdalOutputBase>
     </PropertyGroup>
 
-    <!-- Mono still needs to copy the native dependencies to the output directory -->
-    <ItemGroup Condition="'$(MSBuildRuntimeType)' == 'Mono'">
-        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\osx-${_BUILD_ARCH}\native\*">
+    <!-- This copy step is only necessary if we are not building with .NET Core -->
+    <ItemGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\${_TARGET_OS}-${_BUILD_ARCH}\native\*">
             <Link>$(MaxRevGdalOutputBase)%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>

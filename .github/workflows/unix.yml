@@ -218,12 +218,13 @@ jobs:
           merge-multiple: true
 
       - name: NuGet - Update credentials
-        run: | 
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
+        run: |
+          (cd ${{ github.workspace}} && dotnet new nugetconfig)
           dotnet nuget remove source local > /dev/null || :
           dotnet nuget remove source local.ci > /dev/null || :
-          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
+          dotnet nuget add source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile "${{ github.workspace}}/nuget.config"
+          dotnet nuget add source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile "${{ github.workspace}}/nuget.config"
+          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile "${{ github.workspace}}/nuget.config"
 
       - name: Build bundle
         run: |

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Platform>${_BUILD_ARCH}</Platform>
     <DebugType>portable</DebugType>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0;net461</TargetFrameworks>
     <Copyright>MaxRev © 2024</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -35,6 +35,10 @@
     </None>
     <None Include="maxrev.gdal.core.libshared/osx-${_BUILD_ARCH}/**">
       <PackagePath>runtimes/osx-${_BUILD_ARCH}/native/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="./${_PACKAGE_NAME_RUNTIME}.${_BUILD_ARCH}.targets">
+      <PackagePath>build/net461/</PackagePath>
       <Pack>true</Pack>
     </None>
   </ItemGroup>
