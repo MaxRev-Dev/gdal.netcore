@@ -24,11 +24,11 @@ runs:
       if: ${{ inputs.shell == 'pwsh' }}
       shell: ${{ inputs.shell }} 
       run: |
-        dotnet new nugetconfig --force
         dotnet nuget remove source local > $null -ErrorAction SilentlyContinue
         dotnet nuget remove source local.ci > $null -ErrorAction SilentlyContinue
         dotnet nuget remove source github > $null -ErrorAction SilentlyContinue
         dotnet nuget remove source nuget.org > $null -ErrorAction SilentlyContinue
+        dotnet new nugetconfig --force
         dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
         dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
 
@@ -36,10 +36,10 @@ runs:
       if: ${{ inputs.shell == 'bash' }}
       shell: ${{ inputs.shell }}
       run: |
-        dotnet new nugetconfig --force
         dotnet nuget remove source local > /dev/null || :
         dotnet nuget remove source local.ci > /dev/null || :
         dotnet nuget remove source github > /dev/null || :
         dotnet nuget remove source nuget.org > /dev/null || :
+        dotnet new nugetconfig --force
         dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
         dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
