@@ -23,10 +23,9 @@ runs:
     - name: NuGet - Update credentials
       shell: ${{ inputs.shell }}
       run: |
-        dotnet new nugetconfig --force
         dotnet nuget remove source local > /dev/null || :
         dotnet nuget remove source local.ci > /dev/null || :
         dotnet nuget remove source github > /dev/null || :
         dotnet nuget remove source nuget.org > /dev/null || :
-        dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }} --configfile ./nuget.config
-        dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }} --configfile ./nuget.config
+        dotnet nuget update source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }} --configfile ./nuget.config
+        dotnet nuget update source https://api.nuget.org/v3/index.json --name nuget.org --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }} --configfile ./nuget.config
