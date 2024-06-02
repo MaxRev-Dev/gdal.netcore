@@ -36,7 +36,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4     
+
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Select Xcode version
         run: sudo xcode-select -s '/Applications/Xcode_14.3.1.app/Contents/Developer'

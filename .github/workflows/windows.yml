@@ -30,7 +30,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.0
         with:
-          fetch-depth: 0
+          fetch-depth: 0      
+
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+          shell: pwsh
 
       - name: Restore cached packages 
         id: build-packages-cache-restore
