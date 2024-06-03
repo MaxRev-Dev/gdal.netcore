@@ -31,7 +31,7 @@ runs:
         dotnet new nugetconfig --force
         dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
         dotnet nuget update source nuget --source https://api.nuget.org/v3/index.json --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
-        dotnet nuget add source "./nuget/" --name local.ci && mkdir "./nuget/" -ea 0
+        dotnet nuget add source "./nuget/" --name local.ci && New-Item -Path "./nuget/" -ItemType Directory -Force
 
     - name: NuGet - Update credentials unix
       if: ${{ inputs.shell == 'bash' }}
