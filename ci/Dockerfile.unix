@@ -91,7 +91,7 @@ RUN set -a && . /tmp/gdal-netcore-env && set +a; \
 ARG PRERELEASE
 ARG BUILD_NUMBER_TAIL
 COPY . /build
-RUN rm -rf /build/nuget
+RUN rm -rf /build/nuget && mkdir -p /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL PRERELEASE=$PRERELEASE
 
