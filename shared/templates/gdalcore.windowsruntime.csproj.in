@@ -38,7 +38,7 @@
       <PackagePath>runtimes/win-${_BUILD_ARCH}/native/</PackagePath>
       <Pack>true</Pack>
     </None>
-    <None Include="./${_PACKAGE_NAME_RUNTIME}.${_BUILD_ARCH}.targets">
+    <None Include="./${_PACKAGE_NAME_RUNTIME}.targets">
       <PackagePath>build/net461/</PackagePath>
       <Pack>true</Pack>
     </None>
