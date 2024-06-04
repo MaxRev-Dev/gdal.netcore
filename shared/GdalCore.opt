@@ -7,7 +7,7 @@ ROOTDIR_=$(BASE)/..
 BUILD_NUMBER_TAIL=100
 
 ### build (drivers) root
-BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
+BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RID)
 
 # May 10, 2024
 GDAL_VERSION=3.9.0

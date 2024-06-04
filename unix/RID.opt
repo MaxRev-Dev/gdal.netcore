@@ -4,7 +4,7 @@
 #    Linux Runtime Identifier
 #
 BASE=$(PWD)
-BASE_RUNTIME_RID=unix
+BASE_RID=unix
 BUILD_ARCH=arm64
 TARGET_OS=linux
 VCPKG_RID=$(BUILD_ARCH)-$(TARGET_OS)

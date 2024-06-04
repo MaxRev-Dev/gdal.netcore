@@ -8,7 +8,7 @@
 all: install_vcpkg install_requirements
 
 BASE = $(MAKEDIR)
-BASE_RUNTIME_RID = win
+BASE_RID = win
 VCPKG_RID = x64-windows
 
 VCPKG_CLEANUP = buildtrees downloads packages installed

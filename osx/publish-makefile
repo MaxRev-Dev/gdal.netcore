@@ -8,7 +8,7 @@ all: all
 	$(MAKE) -f ../unix/publish-makefile $@ \
 		BUILD_ARCH=$(BUILD_ARCH) \
 		RID=$(RID) \
-		CAT_NAME=$(BASE_RUNTIME_RID) \
+		CAT_NAME=$(BASE_RID) \
 		VCPKG_RID=$(VCPKG_RID) \
 		RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_OSX_FINAL) \
 		RUNTIME_PACKAGE_PARTIAL=MacosRuntime
