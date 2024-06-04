@@ -69,6 +69,8 @@ LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(__libshared)/$(RID)/$(__libshared)
 
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
+##### Dotnet version for GDAL
+DOTNET_VERSION=8.0
 
 ##### SWIG executable and interface
 BASE_SWIG_=$(GDAL_ROOT)/swig

@@ -228,7 +228,7 @@ function Build-Gdal {
         Write-BuildInfo "Removing build cache (CMakeCache.txt)"
         Remove-Item "$env:GdalCmakeBuild\CMakeCache.txt"  -ErrorAction SilentlyContinue
     }
- 
+
     # PATCH 1: replace build root of SDK with our own
     Set-ReplaceContentInFiles -Path $env:SDK_PREFIX `
         -FileFilter "*.pc", "*.cmake", "*.opt" `
@@ -244,12 +244,13 @@ function Build-Gdal {
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild
     New-FolderIfNotExists "$PSScriptRoot\..\nuget"
     
+    $env:ARCH_FLAGS = "/arch:AVX2  /Ob2 /Oi /Os /Oy"
     # disabling KEA driver as it causes build issues on Windows
     # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
-        $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" `
-        -DCMAKE_CXX_FLAGS=" /WX $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
+        $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" $env:ARCH_FLAGS" `
+        -DCMAKE_CXX_FLAGS=" $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
         -DGDAL_USE_MSSQL_ODBC=OFF `
         $env:WEBP_ROOT  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
