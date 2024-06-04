@@ -66,11 +66,18 @@ generate-target-single:
 	@echo "  RUNTIME_PACKAGE_PARTIAL: $(RUNTIME_PACKAGE_PARTIAL)"
 	@cat $(RUNTIME_TARGET_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_TARGET_BUNDLE_FINAL)
 
+generate-target-single-win:
+	@echo "Generating target file $(RID)"
+	@echo "  TARGET_OS: $(TARGET_OS)"
+	@echo "  BUILD_ARCH: $(BUILD_ARCH)"
+	@echo "  RUNTIME_PACKAGE_PARTIAL: $(RUNTIME_PACKAGE_PARTIAL)"
+	@cat $(RUNTIME_TARGET_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_TARGET_BUNDLE_FINAL_WIN)
+
 generate-targets:
 	@echo "Generating target files..."
 	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=MacosRuntime TARGET_OS=osx BUILD_ARCH=arm64
 	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=MacosRuntime TARGET_OS=osx BUILD_ARCH=x64
 	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=LinuxRuntime TARGET_OS=linux BUILD_ARCH=arm64
 	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=LinuxRuntime TARGET_OS=linux BUILD_ARCH=x64
-	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=WindowsRuntime TARGET_OS=win BUILD_ARCH=x64
+	@$(MAKE) -f $(THIS_FILE) generate-target-single-win RUNTIME_PACKAGE_PARTIAL=WindowsRuntime TARGET_OS=win BUILD_ARCH=x64
 
