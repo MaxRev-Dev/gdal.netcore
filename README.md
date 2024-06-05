@@ -147,6 +147,8 @@ To view full list of drivers, To view the complete list of drivers, you can view
 
 **NOTE**: Runtime drivers availability may differ. Ask me about a specific driver for runtime. Please issue if I need to mention any packages.
 
+Starting version 3.9.0 the packages can be compiled and run on .NET Framework 4.6.1+. The libraries and gdal-data will be automatically copied to the output directory.  See [tests/MaxRev.Gdal.Core.Tests.NetFramework](tests/MaxRev.Gdal.Core.Tests.NetFramework) for more info.
+
 ## Building runtime libraries
 
 Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**. Still, the resulting core bindings are the same on each runtime package (OS).
@@ -198,6 +200,10 @@ A: The current version of packages was compiled on MacOS Ventura and 11.3 SDK re
 
 A: It's a known issue related to the linking of the shared libraries. If you find any solution/workaround, please let me know.
 Currently, linker tries to find all shared libraries in the `@loader_path/`. It should point to the executable directory.
+
+#### Q: BadImageFormatException on Windows
+
+A: Ensure that you are using the same architecture for your project and the runtime package. If you are using AnyCPU, you should use only the x64 runtime package. See the sample project for details in [tests/MaxRev.Gdal.Core.Tests.NetFramework](tests/MaxRev.Gdal.Core.Tests.NetFramework/).
 
 ## About and Contacts
 

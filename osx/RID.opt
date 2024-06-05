@@ -16,3 +16,4 @@ SHELL=/bin/bash
 
 SED=gsed
 DEL_DIR=rm -rf
+OSX_DEPLOYMENT_TARGET=10.10
