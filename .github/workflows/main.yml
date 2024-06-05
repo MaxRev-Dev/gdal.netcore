@@ -35,7 +35,6 @@ jobs:
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     steps:     
       - name: Check needs results
         if: needs.WaitForWorkflows.result != 'success'

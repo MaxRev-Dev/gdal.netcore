@@ -44,16 +44,16 @@
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="${_ROOT_RELATIVE_PATH}/build-osx/gdal-build/share/gdal/**">
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="${_ROOT_RELATIVE_PATH}/build-unix/gdal-build/share/gdal/**">
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="./${_PACKAGE_NAME_CORE}.targets">
+      <PackagePath>build/net461/</PackagePath>
       <Pack>true</Pack>
     </None>
   </ItemGroup>

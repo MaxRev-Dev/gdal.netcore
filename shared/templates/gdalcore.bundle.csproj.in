@@ -28,17 +28,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MaxRev.Gdal.Core" Version="${_PACKAGE_BUILD_NUMBER_UNIX}" />
-    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.arm64"
-      Version="${_PACKAGE_BUILD_NUMBER_UNIX}" />
-    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.x64"
-      Version="${_PACKAGE_BUILD_NUMBER_UNIX}" />
-    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.arm64"
-      Version="${_PACKAGE_BUILD_NUMBER_OSX}" />
-    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.x64"
-      Version="${_PACKAGE_BUILD_NUMBER_OSX}" />
-    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal.x64"
-      Version="${_PACKAGE_BUILD_NUMBER_WIN}" />
+    <PackageReference Include="MaxRev.Gdal.Core" Version="${_PACKAGE_BUILD_NUMBER}" />
+    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.arm64" Version="${_PACKAGE_BUILD_NUMBER}" />
+    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER}" />
+    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.arm64" Version="${_PACKAGE_BUILD_NUMBER}" />
+    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER}" />
+    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER}" />
   </ItemGroup>
 
   <ItemGroup>

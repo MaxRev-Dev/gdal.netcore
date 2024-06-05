@@ -101,7 +101,7 @@ TEST_FORMATS_OUTPUT=$(ROOTDIR_)/tests/gdal-formats
 
 # Templates for project files
 GDALCORE_PROJECT=$(ROOTDIR_)/shared/templates/gdalcore.loader.csproj.in
-RUNTIME_PROJECT_LINUX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.in
+RUNTIME_PROJECT_UNIX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.in
 RUNTIME_PROJECT_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.csproj.in
 RUNTIME_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.windowsruntime.csproj.in
 RUNTIME_PROJECT_BUNDLE=$(ROOTDIR_)/shared/templates/gdalcore.bundle.csproj.in
@@ -110,7 +110,7 @@ RUNTIME_PROJECT_BUNDLE_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.bu
 
 # Generated project files
 GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
-RUNTIME_PROJECT_LINUX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.final.csproj
+RUNTIME_PROJECT_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.final.csproj
 RUNTIME_PROJECT_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.final.csproj
 RUNTIME_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.windowsruntime.final.csproj
 RUNTIME_PROJECT_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.bundle.final.csproj
@@ -122,6 +122,7 @@ PACKAGE_NAME_RUNTIME=MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal
 RUNTIME_TARGET_BUNDLE=$(ROOTDIR_)/shared/msbuild/default.targets.in
 RUNTIME_TARGET_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).$(BUILD_ARCH).targets
 RUNTIME_TARGET_BUNDLE_FINAL_WIN=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).targets
+RUNTIME_TARGET_BUNDLE_FINAL_CORE=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_CORE).targets
 
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx

@@ -29,7 +29,6 @@ jobs:
             arch: x64
           
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: osx
@@ -138,7 +137,6 @@ jobs:
 
     needs: BuildNugetPackages-MacOS
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: osx
@@ -173,7 +171,6 @@ jobs:
   PushPackages-Macos:
     needs: TestPackages-MacOS
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: osx

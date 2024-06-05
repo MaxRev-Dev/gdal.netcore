@@ -9,7 +9,7 @@
 
     <!-- This copy step is only necessary if we are not building with .NET Core -->
     <ItemGroup Condition="'$(MSBuildRuntimeType)' != 'Core'">
-        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\${_TARGET_OS}-${_BUILD_ARCH}\native\**\*">
+        <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\${_RID_TARGET}\native\**\*">
             <Link>$(MaxRevGdalOutputBase)%(RecursiveDir)%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>

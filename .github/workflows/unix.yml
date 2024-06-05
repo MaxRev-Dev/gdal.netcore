@@ -33,7 +33,6 @@ jobs:
             actions-runner: self-hosted-macos-arm64
 
     runs-on: ${{ matrix.actions-runner }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: unix
@@ -158,7 +157,6 @@ jobs:
             actions-runner: self-hosted-macos-arm64
 
     runs-on: ${{ matrix.actions-runner }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: unix
@@ -197,7 +195,6 @@ jobs:
   PushPackages-Linux:
     needs: TestPackages-Linux 
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: unix
