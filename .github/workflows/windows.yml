@@ -40,15 +40,6 @@ jobs:
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
           shell: pwsh
 
-      - name: Restore cached packages 
-        id: build-packages-cache-restore
-        uses: maxnowack/local-cache@main
-        with:
-          path: |
-            ${{ github.workspace }}/build-win
-            ${{ github.workspace }}/.dotnet
-          key: ${{ runner.os }}-packages
-
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
