@@ -72,7 +72,7 @@ update: checkout_ver
 
 $(VCPKG_CLEANUP):
 	@if [ -d "$(VCPKG_ROOT)/$@/" ]; then \
-		 rm -rf "$(VCPKG_ROOT)/$@"; \
+		rm -rf "$(VCPKG_ROOT)/$@"; \
 	fi;
 
 build_cleanup: $(VCPKG_CLEANUP)

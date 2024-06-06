@@ -16,9 +16,9 @@
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>${_PACKAGE_BUILD_NUMBER}</Version>
     <Description>GDAL (${_GDAL_VERSION}) minimal libraries package.
-      Drivers included PROJ (${_PROJ_VERSION}), GEOS (${_GEOS_VERSION}), SQLITE3, CURL, JPEG, PNG,
-      HDF4, HDF5, and others.
-      Targets osx-arm64 and osx-x64 runtimes. Target Frameworks: netstandard[2.1|2.0], netframework $\geq$ 4.6.1, net6.0, net7.0, net8.0
+Drivers included PROJ (${_PROJ_VERSION}), GEOS (${_GEOS_VERSION}), SQLITE3, CURL, JPEG, PNG,
+HDF4, HDF5, and others.
+Targets osx-arm64 and osx-x64 runtimes. Target Frameworks: netstandard[2.1|2.0], netframework 4.6.1+, net6.0, net7.0, net8.0
     </Description>
     <PackageReleaseNotes>
 - GDAL ${_GDAL_VERSION}
@@ -26,6 +26,7 @@
 - GEOS ${_GEOS_VERSION}
     </PackageReleaseNotes>
   </PropertyGroup> 
+  
   <ItemGroup>
     <None Include="${_ROOT_RELATIVE_PATH}/README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
