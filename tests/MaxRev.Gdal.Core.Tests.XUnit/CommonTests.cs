@@ -106,7 +106,7 @@ namespace GdalCore_XUnit
                     "CPG","CSV","CSW","CTable2","CTG","DAAS","DERIVED","DGN",
                     "DIMAP","DIPEx","DOQ1","DOQ2","DTED","DXF","ECRGTOC","EDIGEO",
                     "EEDA","EEDAI","EHdr","EIR","ELAS","Elasticsearch","ENVI","ERS",
-                    "ESAT","ESRI Shapefile","ESRIC","ESRIJSON","FAST","FIT","FITS",
+                    "ESAT","ESRI Shapefile","ESRIC","ESRIJSON", "EXR", "FAST","FIT","FITS",
                     "FlatGeobuf","GenBin","Geoconcept","GeoJSON","GeoJSONSeq","GeoRSS",
                     "GFF","GIF","GML","GMLAS","GNMDatabase","GNMFile","GPKG","GPSBabel",
                     "GPX","GRASSASCIIGrid","GRIB","GS7BG","GSAG","GSBG","GSC","GTFS","GTI","GTiff",

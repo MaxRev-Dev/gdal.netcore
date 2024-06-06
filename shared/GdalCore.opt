@@ -29,21 +29,21 @@ VCPKG_COMMIT_VER=2024.04.26
 
 # base requirements for both runtimes
 VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" curl
-VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio "openexr[tools]" unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]"
+VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio "openexr[tools]" unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]" "sqlite3[tool,rtree]"
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" "openexr[tools]"
 VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
 # libmysql is not available from vcpkg for arm64
 VCPKG_REQUIRE_UNIX=
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC)
 
 # osx requires the same libs as linux
 # sqlite static is required only to build proj.db
 VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX) "sqlite3[tool,rtree]"
-VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) netcdf-c libmysql "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) netcdf-c libmysql
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
