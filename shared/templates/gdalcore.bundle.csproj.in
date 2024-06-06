@@ -7,8 +7,8 @@
     <Copyright>MaxRev © 2024</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>MaxRev.Gdal.Bundle.Minimal</PackageId>
-    <AssemblyName>MaxRev.Gdal.Bundle.Minimal</AssemblyName>
+    <PackageId>MaxRev.Gdal.Universal</PackageId>
+    <AssemblyName>MaxRev.Gdal.Universal</AssemblyName>
     <PackageTags>gdal;netcore;docker</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -16,26 +16,15 @@
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>${_PACKAGE_BUILD_NUMBER}</Version>
     <Description>GDAL (${_GDAL_VERSION}) minimal libraries package.
-Drivers included PROJ (${_PROJ_VERSION}), GEOS (${_GEOS_VERSION}), SQLITE3, CURL, JPEG, PNG,
-HDF4, HDF5, and others.
+Drivers included PROJ (${_PROJ_VERSION}), GEOS, SQLITE3, CURL, JPEG, PNG, HDF4, HDF5, and others.
 Targets linux-${_BUILD_ARCH} runtime. Target Frameworks: netstandard[2.1|2.0], netframework 4.6.1+, net6.0, net7.0, net8.0
     </Description>
     <PackageReleaseNotes>
 - GDAL ${_GDAL_VERSION}
 - PROJ ${_PROJ_VERSION}
-- GEOS ${_GEOS_VERSION}
     </PackageReleaseNotes>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MaxRev.Gdal.Core" Version="${_PACKAGE_BUILD_NUMBER}" />
-    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.arm64" Version="${_PACKAGE_BUILD_NUMBER}" />
-    <PackageReference Include="MaxRev.Gdal.LinuxRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER}" />
-    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.arm64" Version="${_PACKAGE_BUILD_NUMBER}" />
-    <PackageReference Include="MaxRev.Gdal.MacosRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER}" />
-    <PackageReference Include="MaxRev.Gdal.WindowsRuntime.Minimal.x64" Version="${_PACKAGE_BUILD_NUMBER}" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <None Include="${_ROOT_RELATIVE_PATH}/README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
