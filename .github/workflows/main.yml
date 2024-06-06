@@ -1,4 +1,4 @@
-name: Test packages from CI
+name: Bundle packages
 
 on:
   pull_request:
@@ -9,36 +9,23 @@ env:
   DOTNET_VERSION: '8.0.x'
 
 jobs:
+  LinuxBuild:
+    uses: MaxRev-Dev/gdal.netcore/.github/workflows/unix.yml@main
 
-  WaitForWorkflows:
-    name: Wait for workflows
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+  WindowsBuild:
+    uses: MaxRev-Dev/gdal.netcore/.github/workflows/windows.yml@main
 
-      - name: Wait for workflows
-        id: wait
-        uses: smartcontractkit/chainlink-github-actions/utils/wait-for-workflows@main
-        with:
-          max-timeout: "7200" # 2 hours
-          polling-interval: "60" # 1 minute
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          DEBUG: "true"
+  MacOSBuild:
+    uses: MaxRev-Dev/gdal.netcore/.github/workflows/macos.yml@main
 
   TestNugetPackages:
-    needs: [WaitForWorkflows]
+    needs: [LinuxBuild, WindowsBuild, MacOSBuild]
     strategy:
       matrix:
         os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
-    steps:     
-      - name: Check needs results
-        if: needs.WaitForWorkflows.result != 'success'
-        run: exit 1
+    steps:
       - uses: actions/checkout@v4
 
       - name: Setup .NET Core SDK
@@ -75,3 +62,60 @@ jobs:
           dotnet remove ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core || echo "no packages to remove"
           dotnet restore --ignore-failed-sources ${{ env.TEST_PROJECT }}
           dotnet test --no-restore ${{ env.TEST_PROJECT }}
+
+  PushPackages-Linux:
+    needs: TestPackages-Bundle 
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: unix
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Download artifact - packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: |
+            packages-unix*
+            packages-win*
+            packages-osx*
+          merge-multiple: true
+          path: "${{ github.workspace}}/nuget/"
+
+      - name: Download artifact - metadata
+        uses: actions/download-artifact@v4
+        with:
+          pattern: metadata-*
+          merge-multiple: true
+
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+
+      - name: Build bundle
+        run: |
+          make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+
+      - name: Store packages as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-final
+          path: nuget/*.nupkg
+          overwrite: true
+
+      - name: Push packages
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        run: |
+          make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
+            BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}

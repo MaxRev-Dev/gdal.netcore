@@ -1,6 +1,7 @@
 name: Windows Build
 
 on:
+  workflow_call:
   push:
     branches:
       - main
@@ -66,7 +67,7 @@ jobs:
           path: |
             tests/gdal-formats/
           overwrite: true
-          
+
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
         with:

@@ -1,6 +1,7 @@
 name: Linux Build
 
 on:
+  workflow_call:
   push:
     branches:
       - main
