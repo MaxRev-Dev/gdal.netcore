@@ -53,7 +53,7 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
   * [About build configuration](#about-build-configuration)
   * [Building runtime libraries](#building-runtime-libraries)
   * [FAQ](#faq)
-      - [Q: Packages do not work on CentOS 7, Ubuntu 18.04](#q-packages-does-not-work-on-centos-7-ubuntu-1804)
+      - [Q: Packages does not work on CentOS 7, Ubuntu 18.04](#q-packages-does-not-work-on-centos-7--ubuntu-1804)
       - [Q: Can I compile it on Ubuntu or another Unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system-)
       - [Q: Projections are not working as expected](#q-projections-are-not-working-as-expected)
       - [Q: Some drivers complain about missing data files](#q-some-drivers-complain-about-missing-data-files)
@@ -61,21 +61,22 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
       - [Q: GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
       - [Q: Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
       - [Q: In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
-      - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception) 
+      - [Q: OSGeo.OGR.SpatialReference throws System.EntryPointNotFoundException exception](#q-osgeoogrspatialreference-throws-systementrypointnotfoundexception-exception)
       - [Q: Packages does not work on MacOS Catalina or lower](#q-packages-does-not-work-on-macos-catalina-or-lower)
       - [Q: The first run on MacOS is slow and takes more than 3 seconds](#q-the-first-run-on-macos-is-slow-and-takes-more-than-3-seconds)
+      - [Q: BadImageFormatException on Windows](#q-badimageformatexception-on-windows)
+      - [Q: Publishing the project with runtime packages](#q-publishing-the-project-with-runtime-packages)
   * [About and Contacts](#about-and-contacts)
   * [Acknowledgements](#acknowledgements)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
-
 ## **About this library**
 
 ### What is this library
 
 - Only generates assemblies and binds everything into one package.
 - Provides easy access to GDAL by installing **only core and runtime package**
-- DOES NOT require installation of GDAL. From 3.7.0 version GDAL_DATA is also shipped. While it contains the `proj.db` database you can require `proj-data` grid shifts.
+- DOES NOT require installation of GDAL. From 3.7.0 version GDAL_DATA is also shipped. While it contains the `proj.db` database you may require `proj-data` grid shifts.
 
 ### What is not
 
@@ -204,6 +205,10 @@ Currently, linker tries to find all shared libraries in the `@loader_path/`. It 
 #### Q: BadImageFormatException on Windows
 
 A: Ensure that you are using the same architecture for your project and the runtime package. If you are using AnyCPU, you should use only the x64 runtime package. See the sample project for details in [tests/MaxRev.Gdal.Core.Tests.NetFramework](tests/MaxRev.Gdal.Core.Tests.NetFramework/).
+
+#### Q: Publishing the project with runtime packages
+
+A: There are several ways to publish. One important thing to keep in mind, that you have to ensure the output folder contains either `runtimes/<os>-<arch>/native` path, `gdal-data` folder and `maxrev.gdal.core.libshared/proj.db`. In most cases this should be handled automatically by dotnet. Usually, we release a runtime-dependent binary. The end user will have to install the .NET runtime, but the size of the app will be small and the build time is faster. Otherwise, you can publish a self-contained app which will include all required .NET runtime libraries. More details on publishing can be found [here](https://learn.microsoft.com/en-us/dotnet/core/deploying/). Also, see the sample dockerized project for details in [tests/MaxRev.Gdal.Core.Tests/Dockerfile](tests/MaxRev.Gdal.Core.Tests/Dockerfile).
 
 ## About and Contacts
 
