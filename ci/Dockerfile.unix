@@ -66,7 +66,7 @@ COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
 COPY unix/gdal-makefile /build/unix/
 # load cache from previous build
-COPY ci/cache*/vcpkg* /build/ci/cache/
+COPY ci/cache*/vcpkg* /build/ci/cache/vcpkg-archives/
 COPY ci/cache*/build-unix* /build/build-unix/
 
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
