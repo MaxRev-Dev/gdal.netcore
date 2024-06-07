@@ -16,6 +16,7 @@ concurrency:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   DOTNET_VERSION: '8.0.x'
+  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
   IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 jobs:
@@ -47,7 +48,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/.dotnet
-            ${{ github.workspace }}/build-win/vcpkg
+            ${{ github.workspace }}/vcpkg-archives/
           key: ${{ runner.os }}-buildx-${{ matrix.os }}
           restore-keys: |
             ${{ runner.os }}-buildx-
