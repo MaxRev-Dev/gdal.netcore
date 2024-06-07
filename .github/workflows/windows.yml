@@ -42,6 +42,16 @@ jobs:
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
           shell: pwsh
 
+      - name: Cache restore
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ github.workspace }}/.dotnet
+            ${{ github.workspace }}/build-win/vcpkg
+          key: ${{ runner.os }}-buildx-${{ matrix.os }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
