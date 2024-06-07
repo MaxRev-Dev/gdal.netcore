@@ -253,8 +253,6 @@ function Build-Gdal {
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
         -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_INSTALLED" `
-        -DGEOS_LIBRARY=$env:VCPKG_INSTALLED\lib\geos.lib `
-        -DGEOS_INCLUDE_DIR=$env:VCPKG_INSTALLED\include `
         -DGDAL_USE_OPENEXR=OFF `
         -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         $env:WEBP_ROOT  $env:WEBP_LIB `

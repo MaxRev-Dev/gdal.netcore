@@ -108,6 +108,14 @@ jobs:
         run: |
           make -f generate-projects-makefile generate-final-bundle BUILD_NUMBER_TAIL=${{ github.run_number }}
           make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: MaxRev-Dev
+          author_email: cmthea32@gmail.com
+          message: 'List of drivers in current version'
+          add: 'tests/gdal-formats/**'
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
