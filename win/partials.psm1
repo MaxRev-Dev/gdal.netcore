@@ -82,6 +82,8 @@ function Get-VcpkgInstallation {
         [bool] $bootstrapVcpkg = $true
     )
 
+    New-FolderIfNotExists $env:VCPKG_DEFAULT_BINARY_CACHE
+
     Write-BuildStep "Checking for VCPKG installation"    
     if ($bootstrapVcpkg) {
         Get-CloneAndCheckoutCleanGitRepo https://github.com/Microsoft/vcpkg.git master $env:VCPKG_ROOT
