@@ -97,10 +97,10 @@ configure_hdf:
 
 	-mkdir -p $(HDF_CMAKE_TMP)
 	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE) \
-		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build \
+		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_FLAGS="-Wno-dev" \
-		-DCMAKE_CXX_FLAGS="-fPIC -Wno-dev" \
+		-DCMAKE_C_FLAGS="-fPIC" \
+		-DCMAKE_CXX_FLAGS="-fPIC" \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) \
 		-DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_DEPLOYMENT_TARGET) || exit 1
 
@@ -122,7 +122,7 @@ configure_gdal:
 
 	-mkdir -p $(GDAL_CMAKE_TMP)
 	@cd $(GDAL_CMAKE_TMP) && cmake $(GDAL_ROOT) \
-		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build \
+		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_FLAGS="-fPIC" \
 		-DCMAKE_CXX_FLAGS="-fPIC" \
@@ -162,7 +162,7 @@ configure_proj:
 	-mkdir -p $(PROJ_CMAKE_TMP)
 	@cd $(PROJ_CMAKE_TMP) && \
 		cmake $(PROJ_ROOT) \
-			-DCMAKE_BUILD_TYPE=Release \
+			-DCMAKE_BUILD_TYPE=Release -Wno-dev \
 			-DCMAKE_MAKE_PROGRAM=make \
 			-DCMAKE_C_FLAGS="-Wno-deprecated-declarations" \
 			-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" \

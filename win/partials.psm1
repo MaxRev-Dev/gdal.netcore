@@ -194,7 +194,6 @@ function Build-Gdal {
     $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
     $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=$env:GDAL_INSTALL_DIR"
     $env:PROJ_ROOT = "-DPROJ_ROOT=$env:PROJ_INSTALL_DIR"
-    $env:CMAKE_PREFIX_PATH = "-DCMAKE_PREFIX_PATH=$env:SDK_PREFIX;$env:VCPKG_ROOT\installed\x64-windows"
     $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
     $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=$env:SDK_LIB\freetype.lib;$env:SDK_LIB\harfbuzz.lib"
 
@@ -249,15 +248,15 @@ function Build-Gdal {
     # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
-        $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" $env:ARCH_FLAGS" `
-        -DCMAKE_CXX_FLAGS=" $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
+        -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
+        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:BUILD_ROOT\vcpkg\installed\x64-windows" `
+        -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
         -DGDAL_USE_MSSQL_ODBC=OFF `
         $env:WEBP_ROOT  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:POPPLER_EXTRA_LIBRARIES `
         -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
-        -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" `
         -DGDAL_CSHARP_APPS=ON `
         -DGDAL_CSHARP_TESTS=OFF `
         -DGDAL_CSHARP_BUILD_NUPKG=OFF `
