@@ -244,14 +244,15 @@ function Build-Gdal {
     New-FolderIfNotExists "$PSScriptRoot\..\nuget"
     
     $env:ARCH_FLAGS = "/arch:AVX2  /Ob2 /Oi /Os /Oy"
+    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows" 
     # disabling KEA driver as it causes build issues on Windows
     # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
-        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:BUILD_ROOT\vcpkg\installed\x64-windows" `
-        -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
-        -DGDAL_USE_MSSQL_ODBC=OFF `
+        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_INSTALLED" `
+        -DGDAL_USE_OPENEXR=OFF `
+        -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         $env:WEBP_ROOT  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:POPPLER_EXTRA_LIBRARIES `
@@ -263,6 +264,7 @@ function Build-Gdal {
         -DBUILD_CSHARP_BINDINGS=ON `
         -DBUILD_JAVA_BINDINGS=OFF `
         -DBUILD_PYTHON_BINDINGS=OFF
+
 
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
@@ -315,7 +317,7 @@ function Build-CsharpBindings {
 }
 
 function Write-GdalFormats {
-    Set-Location "$env:GDAL_INSTALL_DIR\bin"
+    Set-Location "$env:GDAL_INSTALL_DIR\share\csharp"
     # write to file
     try {
         $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats")
