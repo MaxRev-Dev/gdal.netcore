@@ -249,6 +249,13 @@ function Build-Gdal {
     $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows" 
     # disabling KEA driver as it causes build issues on Windows
     # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
+
+    # for the same reason, we are disabling OpenEXR
+    # -DOpenEXR_LIBRARY="$env:VCPKG_INSTALLED\lib\OpenEXR-3_2.lib" `
+    # -DOpenEXR_INCLUDE_DIR="$env:VCPKG_INSTALLED\include\OpenEXR" `
+    # -DOpenEXR_UTIL_LIBRARY="$env:VCPKG_INSTALLED\lib\OpenEXRUtil-3_2.lib" `
+    # -DOpenEXR_HALF_LIBRARY="$env:VCPKG_INSTALLED\lib\Imath-3_1.lib" `
+    # -DOpenEXR_IEX_LIBRARY="$env:VCPKG_INSTALLED\lib\Iex-3_2.lib" `
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
@@ -319,7 +326,9 @@ function Build-CsharpBindings {
 }
 
 function Write-GdalFormats {
-    Set-Location "$env:GDAL_INSTALL_DIR\share\csharp"
+    Set-Location "$env:GDAL_INSTALL_DIR\bin"
+
+    $env:PATH = "$env:PATH;$env:GDAL_INSTALL_DIR\bin;$env:BUILD_ROOT\vcpkg\installed\x64-windows\bin;$env:SDK_PREFIX\bin"
     # write to file
     try {
         $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats")
