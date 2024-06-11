@@ -14,13 +14,13 @@ env:
 
 jobs:
   LinuxBuild:
-    uses: .github/workflows/unix.yml
+    uses: ./.github/workflows/unix.yml
 
   WindowsBuild:
-    uses: .github/workflows/windows.yml
+    uses: ./.github/workflows/windows.yml
 
   MacOSBuild:
-    uses: .github/workflows/macos.yml
+    uses: ./.github/workflows/macos.yml
 
   TestNugetPackages:
     needs: [LinuxBuild, WindowsBuild, MacOSBuild]
