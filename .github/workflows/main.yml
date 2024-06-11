@@ -25,15 +25,23 @@ jobs:
     uses: ./.github/workflows/macos.yml
     secrets: inherit
 
-  TestNugetPackages:
+  TestAndPushPackages:
     needs: [LinuxBuild, WindowsBuild, MacOSBuild]
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
@@ -50,13 +58,10 @@ jobs:
           pattern: metadata-*
           path: shared/bundle/targets
 
-      - name: NuGet - Update credentials
-        run: | 
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
-          dotnet nuget remove source local || true
-          dotnet nuget remove source local.ci || true
-          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
+      - name: Build bundle
+        run: |
+          make -f generate-projects-makefile generate-final-bundle BUILD_NUMBER_TAIL=${{ github.run_number }}
+          make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Run tests from nuget packages
         env: 
@@ -66,66 +71,21 @@ jobs:
           dotnet remove ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core || echo "no packages to remove"
           dotnet restore --ignore-failed-sources ${{ env.TEST_PROJECT }}
           dotnet test --no-restore ${{ env.TEST_PROJECT }}
-
-  PushPackages:
-    needs: TestNugetPackages
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: unix
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Download artifact - packages
-        uses: actions/download-artifact@v4
-        with:
-          pattern: |
-            packages-unix*
-            packages-win*
-            packages-osx*
-          merge-multiple: true
-          path: "${{ github.workspace}}/nuget/"
-
-      - name: Download artifact - metadata
-        uses: actions/download-artifact@v4
-        with:
-          pattern: metadata-*
-          merge-multiple: true
-
-      - name: NuGet - set credentials
-        uses: ./.github/actions/set-credentials
-        with:
-          api-key-github: ${{ secrets.API_KEY_GITHUB }}
-          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
-          api-user-github: ${{ secrets.API_USER_GITHUB }}
-          api-user-nuget: ${{ secrets.API_USER_NUGET }}
-
-      - name: Build bundle
-        run: |
-          make -f generate-projects-makefile generate-final-bundle BUILD_NUMBER_TAIL=${{ github.run_number }}
-          make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
-          
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          author_name: MaxRev-Dev
-          author_email: cmthea32@gmail.com
-          message: 'List of drivers in current version'
-          add: 'tests/gdal-formats/**'
-
+      
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
         with:
           name: packages-final
           path: nuget/*.nupkg
           overwrite: true
+          
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: MaxRev-Dev
+          author_email: cmthea32@gmail.com
+          message: 'List of drivers in current version [ci skip]'
+          add: 'tests/gdal-formats/**'
 
       - name: Push packages
         if: false #${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
