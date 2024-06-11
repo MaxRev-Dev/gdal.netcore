@@ -14,13 +14,13 @@ env:
 
 jobs:
   LinuxBuild:
-    uses: MaxRev-Dev/gdal.netcore/.github/workflows/unix.yml@main
+    uses: MaxRev-Dev/gdal.netcore/.github/workflows/unix.yml
 
   WindowsBuild:
-    uses: MaxRev-Dev/gdal.netcore/.github/workflows/windows.yml@main
+    uses: MaxRev-Dev/gdal.netcore/.github/workflows/windows.yml
 
   MacOSBuild:
-    uses: MaxRev-Dev/gdal.netcore/.github/workflows/macos.yml@main
+    uses: MaxRev-Dev/gdal.netcore/.github/workflows/macos.yml
 
   TestNugetPackages:
     needs: [LinuxBuild, WindowsBuild, MacOSBuild]
