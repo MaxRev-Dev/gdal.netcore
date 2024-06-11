@@ -15,12 +15,15 @@ env:
 jobs:
   LinuxBuild:
     uses: ./.github/workflows/unix.yml
+    secrets: inherit
 
   WindowsBuild:
     uses: ./.github/workflows/windows.yml
+    secrets: inherit
 
   MacOSBuild:
     uses: ./.github/workflows/macos.yml
+    secrets: inherit
 
   TestNugetPackages:
     needs: [LinuxBuild, WindowsBuild, MacOSBuild]
