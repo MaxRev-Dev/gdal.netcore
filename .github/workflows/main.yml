@@ -60,8 +60,8 @@ jobs:
 
       - name: Build bundle
         run: |
-          make -f generate-projects-makefile generate-final-bundle BUILD_NUMBER_TAIL=${{ github.run_number }}
-          make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          cd unix && make -f generate-projects-makefile generate-final-bundle BUILD_NUMBER_TAIL=${{ github.run_number }}
+          cd unix && make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Run tests from nuget packages
         env: 
@@ -78,7 +78,7 @@ jobs:
           name: packages-final
           path: nuget/*.nupkg
           overwrite: true
-          
+
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
