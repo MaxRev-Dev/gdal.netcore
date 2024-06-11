@@ -82,6 +82,9 @@ function Get-VcpkgInstallation {
         [bool] $bootstrapVcpkg = $true
     )
 
+    if ($null -eq $env:VCPKG_DEFAULT_BINARY_CACHE) {
+        $env:VCPKG_DEFAULT_BINARY_CACHE = "$env:BUILD_ROOT\vcpkg-cache"
+    }
     New-FolderIfNotExists $env:VCPKG_DEFAULT_BINARY_CACHE
 
     Write-BuildStep "Checking for VCPKG installation"    
@@ -326,17 +329,45 @@ function Build-CsharpBindings {
 }
 
 function Write-GdalFormats {
-    Set-Location "$env:GDAL_INSTALL_DIR\bin"
+    Set-GdalVariables
 
-    $env:PATH = "$env:PATH;$env:GDAL_INSTALL_DIR\bin;$env:BUILD_ROOT\vcpkg\installed\x64-windows\bin;$env:SDK_PREFIX\bin"
-    # write to file
+    $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
+    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows" 
+    
+    $env:GDAL_DATA = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
+
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:BUILD_ROOT\vcpkg\installed\x64-windows\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin")
+    $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
+    $newPath = $originalPath + ";" + ($dllDirectories -join ";")
+    [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
+
+    
+    Set-Location "$env:GDAL_INSTALL_DIR\bin" 
     try {
-        $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats")
+
+        $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats") 
         New-FolderIfNotExists $formats_path
-        exec { & .\gdal-config.exe --formats | Set-Content -Path "$formats_path\gdal-formats-win.txt" -Force }
-        exec { & .\gdalinfo.exe --formats | Set-Content -Path "$formats_path\gdal-formats-win-raster.txt" -Force }
-        exec { & .\ogrinfo.exe --formats | Set-Content -Path "$formats_path\gdal-formats-win-vector.txt" -Force }
-    } catch {
-        Write-Host "Failed to get GDAL formats"
+
+        # Run the executable
+        #Start-Process "$env:GDAL_INSTALL_DIR\bin\gdal-config" --formats
+        (& .\gdalinfo.exe --formats) | Set-Content -Path "$formats_path\gdal-formats-win-raster.txt" -Force  
+        (& .\ogrinfo.exe --formats) | Set-Content -Path "$formats_path\gdal-formats-win-vector.txt" -Force  
+
+        # on windows, gdal-config contains a line that causes issues when the shell is invoked
+        Set-ReplaceContentInFiles -Path  "$env:GDAL_INSTALL_DIR\bin" `
+            -FileFilter "gdal-config" `
+            -What "CONFIG_DEP_LIBS" `
+            -With "#CONFIG_DEP_LIBS"
+        
+        (& $env:GitBash -c "./gdal-config --formats") | Set-Content -Path "$formats_path\gdal-formats-win.txt" -Force
     }
+    catch {  
+        Write-BuildError "Failed to write GDAL formats" 
+        Write-BuildError $_.Exception.Message
+    }
+
+    # Restore the original PATH
+    [System.Environment]::SetEnvironmentVariable("PATH", $originalPath, [System.EnvironmentVariableTarget]::Process)
 }
