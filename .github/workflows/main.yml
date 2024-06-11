@@ -65,7 +65,7 @@ jobs:
           dotnet test --no-restore ${{ env.TEST_PROJECT }}
 
   PushPackages:
-    needs: TestPackages-Bundle 
+    needs: TestNugetPackages
     runs-on: ubuntu-latest
     defaults:
       run:
