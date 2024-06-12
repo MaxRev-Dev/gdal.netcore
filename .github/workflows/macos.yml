@@ -51,7 +51,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/build-osx/
             ${{ github.workspace }}/.dotnet/
             ${{ github.workspace }}/vcpkg-archives/
           key: ${{ runner.os }}-packages-${{ matrix.os }}
@@ -76,7 +75,6 @@ jobs:
       - name: Fetch VCPKG packages
         run: |
           mkdir -p ${{ github.workspace }}/vcpkg-archives/
-          make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }} build_cleanup
           make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
 
       - name: Compile HDF
