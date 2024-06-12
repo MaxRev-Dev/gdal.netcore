@@ -59,8 +59,8 @@ jobs:
           path: |
             ${{ github.workspace }}/.dotnet
             ${{ github.workspace }}/ci/cache/
-          key: ${{ runner.os }}-buildx-${{ matrix.os }}
-          
+          key: ${{ matrix.os }}-buildx-${{ matrix.arch }}
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:

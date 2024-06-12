@@ -53,7 +53,7 @@ jobs:
           path: |
             ${{ github.workspace }}/.dotnet/
             ${{ github.workspace }}/vcpkg-archives/
-          key: ${{ runner.os }}-packages-${{ matrix.os }}
+          key: ${{ matrix.os }}-packages-${{ matrix.arch }}
 
       - name: Set up Homebrew
         id: set-up-homebrew
