@@ -68,7 +68,7 @@ jobs:
 
       - name: Run tests from nuget packages
         env: 
-          TEST_PROJECT: tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj  
+          TEST_PROJECT: ${{ github.workspace }}/tests/MaxRev.Gdal.Core.Tests.XUnit/MaxRev.Gdal.Core.Tests.XUnit.csproj  
         run: |
           dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Universal --source local.ci --no-restore
           dotnet remove ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core || echo "no packages to remove"
