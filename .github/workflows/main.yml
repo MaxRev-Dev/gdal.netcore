@@ -30,6 +30,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
+    defaults:
+      run:
+        working-directory: unix
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -60,8 +63,8 @@ jobs:
 
       - name: Build bundle
         run: |
-          cd unix && make -f generate-projects-makefile generate-final-bundle BUILD_NUMBER_TAIL=${{ github.run_number }}
-          cd unix && make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          make -f generate-projects-makefile generate-final-bundle BUILD_NUMBER_TAIL=${{ github.run_number }}
+          make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Run tests from nuget packages
         env: 
