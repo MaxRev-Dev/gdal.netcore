@@ -24,7 +24,7 @@ generate-projects:
 
 update-targets-no-ver:
 	cd $(PACKAGE_BUILD_ROOT) && \
-		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal$(BUILD_ARCH_SUFFIX) -s $(NUGET_)
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal$(BUILD_ARCH_SUFFIX) -s $(NUGET_) --no-restore
 
 
 update-targets:
@@ -55,7 +55,7 @@ pack-bundle-final:
 	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=win BUILD_ARCH_SUFFIX= RUNTIME_PACKAGE_PARTIAL=WindowsRuntime
 	
 	cd $(PACKAGE_BUILD_ROOT) && \
-		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.Core -s $(NUGET_)
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.Core -s $(NUGET_) --no-restore
 	
 	dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_FINAL)
 
