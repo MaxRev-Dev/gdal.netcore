@@ -72,6 +72,7 @@ generate-projects-win: generate-build-base generate-bundles-win
 	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
 
 generate-final-bundle:
+	@mkdir -p $(dir $(RUNTIME_PROJECT_BUNDLE_FINAL))
 	@cat $(RUNTIME_PROJECT_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_FINAL)
 
 get-version:
