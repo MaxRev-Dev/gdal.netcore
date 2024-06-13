@@ -58,8 +58,8 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          pattern: metadata-*
-          path: shared/bundle/targets
+          pattern: formats-*
+          path: 'tests/gdal-formats'
 
       - name: Build bundle
         run: |
