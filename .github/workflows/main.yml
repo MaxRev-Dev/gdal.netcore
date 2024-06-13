@@ -88,7 +88,8 @@ jobs:
       - name: Process gdal formats
         working-directory: shared/scripts
         run: |
-          pipx install -r requirements.txt
+          python -m venv venv && source venv/bin/activate
+          pip install -r requirements.txt
           python ./combine-formats.py '${{ github.workspace }}/tests/gdal-formats'
 
       - name: Commit changes

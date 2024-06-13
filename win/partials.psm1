@@ -345,10 +345,8 @@ function Write-GdalFormats {
     Set-Location "$env:GDAL_INSTALL_DIR\bin" 
     try {
         # Run the executable
-        Write-BuildInfo "GDAL Formats:" + (& .\gdalinfo.exe --formats)
-        (& .\gdalinfo.exe --formats) | Set-Content -Path "$formats_path\gdal-formats-win-raster.txt" -Force  
-        Write-BuildInfo "OGR Formats:" + (& .\ogrinfo.exe --formats)
-        (& .\ogrinfo.exe --formats) | Set-Content -Path "$formats_path\gdal-formats-win-vector.txt" -Force  
+        (Start-Process -NoNewWindow -Wait -RedirectStandardOutput "$formats_path\gdal-formats-win-raster.txt" -FilePath .\gdalinfo.exe --formats) 
+        (Start-Process -NoNewWindow -Wait -RedirectStandardOutput "$formats_path\gdal-formats-win-vector.txt" -FilePath .\ogrinfo.exe --formats)
 
         # Fix windows style paths in gdal-config
         Write-FixShellScriptOnWindows -shellScriptPath "$env:GDAL_INSTALL_DIR\bin\gdal-config" -variableName "CONFIG_DEP_LIBS"

@@ -73,7 +73,7 @@ jobs:
         with:
           name: formats-win
           path: |
-            tests/gdal-formats/
+            tests/gdal-formats/*.txt
           overwrite: true
 
       - name: Store packages as artifact

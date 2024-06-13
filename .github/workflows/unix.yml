@@ -130,7 +130,7 @@ jobs:
         with:
           name: formats-unix-${{ matrix.arch }}
           path: |
-            tests/gdal-formats/
+            tests/gdal-formats/*.txt
           overwrite: true
 
       - name: Store packages as artifact
