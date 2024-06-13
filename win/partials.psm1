@@ -22,7 +22,11 @@ function Set-GdalVariables {
     $env:SDK_PREFIX = "$env:BUILD_ROOT\sdk\$env:SDK"
     $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
-    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"
+    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"   
+    $env:SDK_LIB = "$env:SDK_PREFIX\lib"
+    $env:SDK_BIN = "$env:SDK_PREFIX\bin"
+    $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
+
 
 }
 
@@ -192,11 +196,8 @@ function Build-Gdal {
         [bool] $cleanGdalIntermediate = $true,
         [bool] $fetchGdal = $true
     )
-
-    $env:SDK_LIB = "$env:SDK_PREFIX\lib"
-    $env:SDK_BIN = "$env:SDK_PREFIX\bin"
-    $env:PATH = "$env:BUILD_ROOT\proj-build\bin;$env:SDK_BIN;$env:PATH"
-    $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
+    Set-GdalVariables 
+    $env:PATH = "$env:BUILD_ROOT\proj-build\bin;$env:SDK_BIN;$env:PATH" 
     $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=$env:GDAL_INSTALL_DIR"
     $env:PROJ_ROOT = "-DPROJ_ROOT=$env:PROJ_INSTALL_DIR"
     $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
@@ -343,31 +344,52 @@ function Write-GdalFormats {
     $newPath = $originalPath + ";" + ($dllDirectories -join ";")
     [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
 
-    
     Set-Location "$env:GDAL_INSTALL_DIR\bin" 
     try {
-
+    
         $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats") 
         New-FolderIfNotExists $formats_path
-
+    
         # Run the executable
-        #Start-Process "$env:GDAL_INSTALL_DIR\bin\gdal-config" --formats
         (& .\gdalinfo.exe --formats) | Set-Content -Path "$formats_path\gdal-formats-win-raster.txt" -Force  
         (& .\ogrinfo.exe --formats) | Set-Content -Path "$formats_path\gdal-formats-win-vector.txt" -Force  
 
-        # on windows, gdal-config contains a line that causes issues when the shell is invoked
-        Set-ReplaceContentInFiles -Path  "$env:GDAL_INSTALL_DIR\bin" `
-            -FileFilter "gdal-config" `
-            -What "CONFIG_DEP_LIBS" `
-            -With "#CONFIG_DEP_LIBS"
-        
+        # Fix windows style paths in gdal-config
+        Write-FixShellScriptOnWindows -shellScriptPath "$env:GDAL_INSTALL_DIR\bin\gdal-config" -variableName "CONFIG_DEP_LIBS"
+            
         (& $env:GitBash -c "./gdal-config --formats") | Set-Content -Path "$formats_path\gdal-formats-win.txt" -Force
     }
     catch {  
         Write-BuildError "Failed to write GDAL formats" 
         Write-BuildError $_.Exception.Message
     }
-
+    
     # Restore the original PATH
     [System.Environment]::SetEnvironmentVariable("PATH", $originalPath, [System.EnvironmentVariableTarget]::Process)
+}
+
+function  Write-FixShellScriptOnWindows {
+    param (
+        [string] $shellScriptPath, 
+        [string] $variableName
+    )
+    $shellScriptContent = Get-Content -Path $shellScriptPath -Raw
+    $pattern = [regex]::Escape($variableName) + '="([^""].*)"'
+    if ($shellScriptContent -match $pattern) {
+        $value = $matches[1]
+        $paths = $value -split ' (?=(?:[^"]*"[^"]*")*[^"]*$)'
+        $escapedPaths = $paths | ForEach-Object {
+            $_.Replace(" ", "\\ ").Replace("(", "\(").Replace(")", "\)").Replace('"', '\"');
+        }
+        $escapedValue = ($escapedPaths -join ' ')
+        $newLine = "$variableName=""$escapedValue"""
+        $shellScriptContent = $shellScriptContent -replace "$variableName=""[^""].*""", $newLine
+        Set-Content -Path $shellScriptPath -Value $shellScriptContent
+    
+        Write-Output "Shell script has been updated successfully."
+    
+    }
+    else {
+        Write-Output "Variable $variableName not found in the script."
+    }
 }
