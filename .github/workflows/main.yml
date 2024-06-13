@@ -11,6 +11,7 @@ concurrency:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   DOTNET_VERSION: '8.0.x'
+  IS_RELEASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
 
 jobs:
   LinuxBuild:
@@ -68,6 +69,8 @@ jobs:
         run: |
           make -f generate-projects-makefile generate-final-bundle BUILD_NUMBER_TAIL=${{ github.run_number }}
           make -f publish-makefile pack-bundle-final PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          echo "GDAL_VERSION=$(make -f publish-makefile get-gdal-version)" >> $GITHUB_ENV
+          echo "PACKAGES_VERSION=$(make -f publish-makefile get-package-version BUILD_NUMBER_TAIL=${{ github.run_number }})" >> $GITHUB_ENV 
 
       - name: Run tests from nuget packages
         env: 
@@ -86,6 +89,7 @@ jobs:
           overwrite: true
 
       - name: Process gdal formats
+        if: ${{ env.IS_RELEASE }}
         working-directory: shared/scripts
         run: |
           python -m venv venv && source venv/bin/activate
@@ -93,15 +97,17 @@ jobs:
           python ./combine-formats.py '${{ github.workspace }}/tests/gdal-formats'
 
       - name: Commit changes
+        if: ${{ env.IS_RELEASE }}
         uses: EndBug/add-and-commit@v9
         with:
           author_name: ${{ secrets.COMMIT_AUTHOR }}
           author_email: ${{ secrets.COMMIT_EMAIL }}
           message: 'List of drivers in current version [ci skip]'
           add: '${{ github.workspace }}/tests/gdal-formats/**'
+          tag: 'v${{ env.PACKAGES_VERSION }} --force'
 
       - name: Push packages
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ env.IS_RELEASE }}
         run: |
           make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
             BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}

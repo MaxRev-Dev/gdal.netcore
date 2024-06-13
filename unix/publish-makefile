@@ -2,6 +2,9 @@ THIS_FILE := $(lastword $(MAKEFILE_LIST))
 include RID.opt
 include ../shared/GdalCore.opt
 include ../shared/bundle/base.opt
+-include ../shared/bundle/targets/osx.opt
+-include ../shared/bundle/targets/unix.opt
+-include ../shared/bundle/targets/win.opt
 
 ## Creating packages for testing and publishing
 # https://github.com/dotnet/core/issues/4404
@@ -74,3 +77,9 @@ pack-bundle-dev: generate-projects
 pack-dev: pack-core-dev pack-runtime-dev
 	@exit 0
 
+
+get-gdal-version:
+	@echo $(GDAL_VERSION)
+
+get-package-version:
+	@echo $(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)

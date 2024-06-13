@@ -65,7 +65,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: metadata-win-x64
-          path: shared/bundle/targets/
+          path: |
+            shared/bundle/targets/
+            build-win/gdal-build/bin/gdal-config
           overwrite: true
 
       - name: GDAL formats windows
