@@ -40,7 +40,7 @@ jobs:
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
-          
+
       - name: NuGet - set credentials
         uses: ./.github/actions/set-credentials
         with:
@@ -85,16 +85,22 @@ jobs:
           path: nuget/*.nupkg
           overwrite: true
 
+      - name: Process gdal formats
+        working-directory: shared/scripts
+        run: |
+          pipx install -r requirements.txt
+          python ./combine-formats.py '${{ github.workspace }}/tests/gdal-formats'
+
       - name: Commit changes
         uses: EndBug/add-and-commit@v9
         with:
-          author_name: MaxRev-Dev
-          author_email: cmthea32@gmail.com
+          author_name: ${{ secrets.COMMIT_AUTHOR }}
+          author_email: ${{ secrets.COMMIT_EMAIL }}
           message: 'List of drivers in current version [ci skip]'
           add: '${{ github.workspace }}/tests/gdal-formats/**'
 
       - name: Push packages
-        if: false #${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
           make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
             BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}

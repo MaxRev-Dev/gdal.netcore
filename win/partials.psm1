@@ -26,8 +26,7 @@ function Set-GdalVariables {
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
     $env:SDK_BIN = "$env:SDK_PREFIX\bin"
     $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
-
-
+    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows"
 }
 
 function Get-7ZipInstallation {   
@@ -331,36 +330,33 @@ function Build-CsharpBindings {
 
 function Write-GdalFormats {
     Set-GdalVariables
-
-    $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
-    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows" 
-    
     $env:GDAL_DATA = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:BUILD_ROOT\vcpkg\installed\x64-windows\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin")
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin")
     $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
     $newPath = $originalPath + ";" + ($dllDirectories -join ";")
     [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
 
+    $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats") 
+    New-FolderIfNotExists $formats_path
+    
     Set-Location "$env:GDAL_INSTALL_DIR\bin" 
     try {
-    
-        $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats") 
-        New-FolderIfNotExists $formats_path
-    
         # Run the executable
+        Write-BuildInfo "GDAL Formats:" + (& .\gdalinfo.exe --formats)
         (& .\gdalinfo.exe --formats) | Set-Content -Path "$formats_path\gdal-formats-win-raster.txt" -Force  
+        Write-BuildInfo "OGR Formats:" + (& .\ogrinfo.exe --formats)
         (& .\ogrinfo.exe --formats) | Set-Content -Path "$formats_path\gdal-formats-win-vector.txt" -Force  
 
         # Fix windows style paths in gdal-config
         Write-FixShellScriptOnWindows -shellScriptPath "$env:GDAL_INSTALL_DIR\bin\gdal-config" -variableName "CONFIG_DEP_LIBS"
-            
+        
         (& $env:GitBash -c "./gdal-config --formats") | Set-Content -Path "$formats_path\gdal-formats-win.txt" -Force
     }
-    catch {  
-        Write-BuildError "Failed to write GDAL formats" 
+    catch {
+        Write-BuildError "Failed to write GDAL formats"
         Write-BuildError $_.Exception.Message
     }
     
@@ -377,6 +373,10 @@ function  Write-FixShellScriptOnWindows {
     $pattern = [regex]::Escape($variableName) + '="([^""].*)"'
     if ($shellScriptContent -match $pattern) {
         $value = $matches[1]
+        if ($value.Contains("\(") -or $value.Contains('\"')) {
+            Write-Output "Variable $variableName already fixed in the script."
+            return
+        }
         $paths = $value -split ' (?=(?:[^"]*"[^"]*")*[^"]*$)'
         $escapedPaths = $paths | ForEach-Object {
             $_.Replace(" ", "\\ ").Replace("(", "\(").Replace(")", "\)").Replace('"', '\"');

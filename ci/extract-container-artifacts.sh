@@ -30,7 +30,7 @@ docker cp $containerName:/build/shared/bundle/targets "$outputDir/shared/bundle/
 
 # extract gdal formats
 mkdir -p "$outputDir/tests/gdal-formats"
-docker cp $containerName:/build/tests/gdal-formats/ "$outputDir/tests/gdal-formats/"
+docker cp $containerName:/build/tests/gdal-formats/ "$outputDir/tests/"
 
 mkdir -p "$outputDir/package-build"
 docker cp $containerName:/build/package-build/ "$outputDir/"

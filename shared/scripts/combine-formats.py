@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import regex as re
 import sys
 
+
 def parse_file(file_path):
     drivers = {}
     with open(file_path, "r") as file:
@@ -23,18 +24,19 @@ def main(directory):
     data = {}
     all_drivers = set()
 
-    for file_name in os.listdir(directory):
-        if file_name.startswith("gdal-") and file_name.endswith(".txt"):
-            parts = file_name.split("-")
-            if len(parts) < 4:
-                continue
-            os_tag = parts[2]
-            type_tag = parts[3].split(".")[0]
-            key = f"{os_tag} ({type_tag})"
-            file_path = os.path.join(directory, file_name)
-            drivers = parse_file(file_path)
-            data[key] = drivers
-            all_drivers.update(drivers.keys())
+    for root, _, files in os.walk(directory):
+        for file_name in files:
+            if file_name.startswith("gdal-") and file_name.endswith(".txt"):
+                parts = file_name.split("-")
+                if len(parts) < 4:
+                    continue
+                os_tag = parts[2]
+                type_tag = parts[3].split(".")[0]
+                key = f"{os_tag} ({type_tag})"
+                file_path = os.path.join(root, file_name)
+                drivers = parse_file(file_path)
+                data[key] = drivers
+                all_drivers.update(drivers.keys())
 
     # Sort columns by type (raster, vector)
     sorted_keys = sorted(data.keys(), key=lambda x: ("vector" in x, x))
