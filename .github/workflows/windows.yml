@@ -43,8 +43,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/.dotnet
-            ${{ github.workspace }}/vcpkg-archives/
+            .dotnet
+            vcpkg-archives/
           key: ${{ runner.os }}-buildx-${{ matrix.os }}
           restore-keys: |
             ${{ runner.os }}-buildx-

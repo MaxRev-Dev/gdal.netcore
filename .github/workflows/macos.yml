@@ -51,8 +51,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/.dotnet/
-            ${{ github.workspace }}/vcpkg-archives/
+            .dotnet/
+            vcpkg-archives/
           key: ${{ matrix.os }}-packages-${{ matrix.arch }}
 
       - name: Set up Homebrew
