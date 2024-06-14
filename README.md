@@ -10,6 +10,10 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
 
 ## Packages (NuGet)
 
+[MaxRev.Gdal.Universal](https://www.nuget.org/packages/MaxRev.Gdal.Universal/) 
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.Universal) 
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.Universal) <br>
+
 [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.Core) 
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.Core) <br>
@@ -46,6 +50,10 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
     + [What is this library](#what-is-this-library)
     + [What is not](#what-is-not)
   * [**How to use**](#how-to-use)
+    + [Universal package](#universal-package)
+    + [Separate core and runtime packages](#separate-core-and-runtime-packages)
+    + [Initialize libraries in runtime](#initialize-libraries-in-runtime)
+  * [Supported runtimes](#supported-runtimes)
   * [**Using GDAL functions**](#using-gdal-functions)
   * [**Development**](#--development--)
   * [How to compile on Windows](#how-to-compile-on-windows)
@@ -86,6 +94,14 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
 
 ## **How to use**
 
+### Universal package
+1. Install universal package - [MaxRev.Gdal.Universal](https://www.nuget.org/packages/MaxRev.Gdal.Universal/). It references all runtime packages and the core package. They will be automatically installed during restore. Note that this **may increase** the size of your **nuget cache**.
+```shell
+dotnet add package MaxRev.Gdal.Universal
+```
+
+### Separate core and runtime packages
+
 1. Install core package - [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
 ```shell
 dotnet add package MaxRev.Gdal.Core
@@ -108,7 +124,7 @@ dotnet add package MaxRev.Gdal.MacosRuntime.Minimal
 dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.arm64
 dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.x64
 ```
-3. Initialize libraries in runtime
+### Initialize libraries in runtime
 ```csharp
 using MaxRev.Gdal.Core;
 // call it once, before using GDAL
@@ -117,6 +133,10 @@ GdalBase.ConfigureAll();
 ```
 4. Profit! Use it in ordinary flow. See the section below for more info.
 
+## Supported runtimes
+- Windows x64 (.NET Framework 4.6.1+, .NET Standard 2.0+, .NET 6/7/8+)
+- Linux x64/arm64 (.NET Framework 4.6.1+, .NET Standard 2.0+, .NET 6/7/8+)
+- MacOS x64/arm64 (.NET Framework 4.6.1+, .NET Standard 2.0+, .NET 6/7/8+)
 
 ## **Using GDAL functions**
 If you're struggling using GDAL functions.
