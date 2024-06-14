@@ -44,6 +44,11 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.MacosRuntime.Minimal.arm64)
 
 ## Table Of Contents
+
+<details>
+ <summary>Show</summary>
+<p>
+
   * [Packages (NuGet)](#packages-nuget)
   * [Table Of Contents](#table-of-contents)
   * [**About this library**](#about-this-library)
@@ -55,17 +60,17 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
     + [Initialize libraries in runtime](#initialize-libraries-in-runtime)
   * [Supported runtimes](#supported-runtimes)
   * [**Using GDAL functions**](#using-gdal-functions)
-  * [**Development**](#--development--)
+  * [**Development**](#development)
   * [How to compile on Windows](#how-to-compile-on-windows)
   * [How to compile on Unix](#how-to-compile-on-unix)
   * [About build configuration](#about-build-configuration)
   * [Building runtime libraries](#building-runtime-libraries)
   * [FAQ](#faq)
-      - [Q: Packages does not work on CentOS 7, Ubuntu 18.04](#q-packages-does-not-work-on-centos-7--ubuntu-1804)
-      - [Q: Can I compile it on Ubuntu or another Unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system-)
+      - [Q: Packages does not work on CentOS 7, Ubuntu 18.04](#q-packages-does-not-work-on-centos-7-ubuntu-1804)
+      - [Q: Can I compile it on Ubuntu or another Unix-based system?](#q-can-i-compile-it-on-ubuntu-or-another-unix-based-system)
       - [Q: Projections are not working as expected](#q-projections-are-not-working-as-expected)
       - [Q: Some drivers complain about missing data files](#q-some-drivers-complain-about-missing-data-files)
-      - [Q: Missing {some} drivers, can you add more?](#q-missing--some--drivers--can-you-add-more-)
+      - [Q: Missing {some} drivers, can you add more?](#q-missing-some-drivers-can-you-add-more)
       - [Q: GDAL functions are not working as expected](#q-gdal-functions-are-not-working-as-expected)
       - [Q: Some types throw exceptions from SWIG on Windows](#q-some-types-throw-exceptions-from-swig-on-windows)
       - [Q: In some methods performance is slower on Unix](#q-in-some-methods-performance-is-slower-on-unix)
@@ -78,6 +83,11 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
   * [Acknowledgements](#acknowledgements)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
+
+</p>
+</details> 
+
 ## **About this library**
 
 ### What is this library
