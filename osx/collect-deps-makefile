@@ -32,6 +32,7 @@ $(WRAP_TARGETS): force
 
 build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
+	$(MAKE) -f gdal-makefile formats-output
 
 linkall: initdirs copy-projdb collect-bindings copy-deps
 	@echo "Libraries patched successfully"

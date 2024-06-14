@@ -72,7 +72,7 @@ update: checkout_ver
 
 $(VCPKG_CLEANUP):
 	@if [ -d "$(VCPKG_ROOT)/$@/" ]; then \
-		 rm -rf "$(VCPKG_ROOT)/$@"; \
+		rm -rf "$(VCPKG_ROOT)/$@"; \
 	fi;
 
 build_cleanup: $(VCPKG_CLEANUP)
@@ -86,6 +86,7 @@ define VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE
 	set(VCPKG_LIBRARY_LINKAGE dynamic)
 	set(VCPKG_BUILD_TYPE release)
 	set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
+	set(VCPKG_OSX_DEPLOYMENT_TARGET $(OSX_DEPLOYMENT_TARGET))
 endef
 
 define VCPKG_TRIPLET_OSX_STATIC_RELEASE
@@ -94,6 +95,7 @@ define VCPKG_TRIPLET_OSX_STATIC_RELEASE
 	set(VCPKG_LIBRARY_LINKAGE static)
 	set(VCPKG_BUILD_TYPE release)
 	set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
+	set(VCPKG_OSX_DEPLOYMENT_TARGET $(OSX_DEPLOYMENT_TARGET))
 endef
 
 export VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE

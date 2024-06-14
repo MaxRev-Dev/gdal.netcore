@@ -1,0 +1,47 @@
+
+description: "Set credentials for NuGet & GitHub packages"
+inputs:
+  api-key-github:
+    required: true
+    description: "GitHub API key"
+  api-user-github:
+    required: true
+    description: "GitHub API user"
+  api-key-nuget:
+    required: true
+    description: "NuGet API key"
+  api-user-nuget:
+    required: true
+    description: "NuGet API user"
+  shell:
+    required: false
+    description: "Shell to use"
+    default: "bash"
+runs:
+  using: "composite"
+  steps:
+    - name: NuGet - Update credentials windows
+      if: ${{ inputs.shell == 'pwsh' }}
+      shell: ${{ inputs.shell }} 
+      run: |
+        dotnet nuget remove source local > $null -ErrorAction SilentlyContinue
+        dotnet nuget remove source local.ci > $null -ErrorAction SilentlyContinue
+        dotnet nuget remove source github > $null -ErrorAction SilentlyContinue
+        dotnet nuget remove source nuget.org > $null -ErrorAction SilentlyContinue
+        dotnet new nugetconfig --force
+        dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
+        dotnet nuget update source nuget --source https://api.nuget.org/v3/index.json --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
+        dotnet nuget add source "./nuget/" --name local.ci && New-Item -Path "./nuget/" -ItemType Directory -Force
+
+    - name: NuGet - Update credentials unix
+      if: ${{ inputs.shell == 'bash' }}
+      shell: ${{ inputs.shell }}
+      run: |
+        dotnet nuget remove source local > /dev/null || :
+        dotnet nuget remove source local.ci > /dev/null || :
+        dotnet nuget remove source github > /dev/null || :
+        dotnet nuget remove source nuget.org > /dev/null || :
+        dotnet new nugetconfig --force
+        dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
+        dotnet nuget update source nuget --source https://api.nuget.org/v3/index.json --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
+        dotnet nuget add source "./nuget/" --name local.ci && mkdir -p "./nuget/"

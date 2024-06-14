@@ -7,16 +7,16 @@ ROOTDIR_=$(BASE)/..
 BUILD_NUMBER_TAIL=100
 
 ### build (drivers) root
-BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RUNTIME_RID)
+BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RID)
 
-# Jan 8, 2024
-GDAL_VERSION=3.8.3
+# May 10, 2024
+GDAL_VERSION=3.9.0
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
 GDAL_COMMIT_VER=v$(GDAL_VERSION)
 
-# Dec 1, 2023
-PROJ_VERSION=9.3.1
+# Mar 1, 2024
+PROJ_VERSION=9.4.0
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
 PROJ_COMMIT_VER=$(PROJ_VERSION)
@@ -25,24 +25,25 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=2024.01.12
+VCPKG_COMMIT_VER=2024.04.26
 
 # base requirements for both runtimes
 VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" curl
-VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]"
+VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio "openexr[tools]" unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]" "sqlite3[tool,rtree]" cryptopp  blosc
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj
-VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" libiconv lz4 liblzma "libjxl[tools]" blosc cryptopp
 VCPKG_REQUIRE_WIN_STATIC=
 
 # the default configuration is dynamic
 # libmysql is not available from vcpkg for arm64
 VCPKG_REQUIRE_UNIX=
-VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_UNIX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC)
 
-# osx requires the same libs as linux 
-VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX)
-VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) netcdf-c libmysql "sqlite3[tool,rtree]" 
+# osx requires the same libs as linux
+# sqlite static is required only to build proj.db
+VCPKG_REQUIRE_OSX=$(VCPKG_REQUIRE_UNIX) "sqlite3[tool,rtree]"
+VCPKG_REQUIRE_OSX_DYNAMIC=$(VCPKG_REQUIRE) $(VCPKG_REQUIRE_DYNAMIC) netcdf-c libmysql
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
@@ -68,6 +69,9 @@ LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(__libshared)/$(RID)/$(__libshared)
 
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
+##### Dotnet version for GDAL
+DOTNET_VERSION=8.0
+GDAL_CSHARP_VERSION=net8.0
 
 ##### SWIG executable and interface
 BASE_SWIG_=$(GDAL_ROOT)/swig
@@ -93,10 +97,11 @@ NUGET_=$(ROOTDIR_)/nuget
 ### Shared .NET Core Tests
 TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.XUnit
 TEST_DIR_APP=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests
+TEST_FORMATS_OUTPUT=$(ROOTDIR_)/tests/gdal-formats
 
 # Templates for project files
 GDALCORE_PROJECT=$(ROOTDIR_)/shared/templates/gdalcore.loader.csproj.in
-RUNTIME_PROJECT_LINUX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.in
+RUNTIME_PROJECT_UNIX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.in
 RUNTIME_PROJECT_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.csproj.in
 RUNTIME_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.windowsruntime.csproj.in
 RUNTIME_PROJECT_BUNDLE=$(ROOTDIR_)/shared/templates/gdalcore.bundle.csproj.in
@@ -105,12 +110,19 @@ RUNTIME_PROJECT_BUNDLE_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.bu
 
 # Generated project files
 GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
-RUNTIME_PROJECT_LINUX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.final.csproj
+RUNTIME_PROJECT_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.final.csproj
 RUNTIME_PROJECT_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.final.csproj
 RUNTIME_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.windowsruntime.final.csproj
 RUNTIME_PROJECT_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.bundle.final.csproj
 RUNTIME_PROJECT_BUNDLE_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.bundle.final.csproj
 RUNTIME_PROJECT_BUNDLE_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.bundle.final.csproj
+
+PACKAGE_NAME_CORE=MaxRev.Gdal.Core
+PACKAGE_NAME_RUNTIME=MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal
+RUNTIME_TARGET_BUNDLE=$(ROOTDIR_)/shared/msbuild/default.targets.in
+RUNTIME_TARGET_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).$(BUILD_ARCH).targets
+RUNTIME_TARGET_BUNDLE_FINAL_WIN=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).targets
+RUNTIME_TARGET_BUNDLE_FINAL_CORE=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_CORE).targets
 
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx

@@ -1,53 +1,59 @@
 name: MacOS Build
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet/
   DOTNET_VERSION: '8.0.x'
   VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
-  IS_PRE_RELEASE: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' || contains(github.event.head_commit.message, '[prerelease]') }}
+  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 jobs:
   BuildNugetPackages-MacOS:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64]
+        os: [macos-14, macos-13]
         include:
-          - os: self-hosted-macos-arm64
+          - os: macos-14
             arch: arm64
-          - os: self-hosted-macos-x64
+          - os: macos-13
             arch: x64
-
+          
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: osx
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4     
+
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s '/Applications/Xcode_14.3.1.app/Contents/Developer'
 
       - name: Restore cached packages
         id: build-packages-cache-restore
-        uses: maxnowack/local-cache@main
+        uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/build-osx/
-            ${{ github.workspace }}/.dotnet/
-            ${{ github.workspace }}/vcpkg-archives/
-          key: ${{ runner.os }}-packages-${{ matrix.os }}
+            .dotnet/
+            vcpkg-archives/
+          key: ${{ matrix.os }}-packages-${{ matrix.arch }}
 
       - name: Set up Homebrew
         id: set-up-homebrew
@@ -55,8 +61,7 @@ jobs:
 
       - name: Install CMake
         run: |
-          python3 -m pip install cmake
-          
+          pipx install cmake
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
@@ -70,7 +75,6 @@ jobs:
       - name: Fetch VCPKG packages
         run: |
           mkdir -p ${{ github.workspace }}/vcpkg-archives/
-          make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }} build_cleanup
           make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
 
       - name: Compile HDF
@@ -102,6 +106,14 @@ jobs:
             package-build/*.csproj
           overwrite: true
 
+      - name: GDAL formats osx
+        uses: actions/upload-artifact@v4
+        with:
+          name: formats-osx-${{ matrix.arch }}
+          path: |
+            tests/gdal-formats/*.txt
+          overwrite: true    
+
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -112,18 +124,15 @@ jobs:
   TestPackages-MacOS:
     strategy:
       matrix:
-        os: [self-hosted-macos-arm64,self-hosted-macos-x64,macos-latest]
+        os: [macos-14, macos-13]
         include:
-          - os: self-hosted-macos-arm64
+          - os: macos-14
             arch: arm64
-          - os: self-hosted-macos-x64
-            arch: x64
-          - os: macos-latest
+          - os: macos-13
             arch: x64
 
     needs: BuildNugetPackages-MacOS
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: osx
@@ -143,13 +152,13 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: NuGet - Update credentials
-        run: |
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
-          dotnet nuget remove source local || true
-          dotnet nuget remove source local.ci || true
-          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ../nuget.config
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Test packages
         run: |
@@ -158,10 +167,9 @@ jobs:
   PushPackages-Macos:
     needs: TestPackages-MacOS
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
-        working-directory: unix
+        working-directory: osx
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -178,17 +186,15 @@ jobs:
         with:
           pattern: metadata-osx*
           merge-multiple: true
-      
-      - run: ls -la ../nuget/
 
-      - name: NuGet - Update credentials
-        run: | 
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
-          dotnet nuget remove source local || true
-          dotnet nuget remove source local.ci || true
-          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
-     
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+        
       - name: Build bundle
         run: |
           make -f publish-makefile pack-bundle-only CAT_NAME=osx PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
@@ -203,4 +209,4 @@ jobs:
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: |
-          make -f push-packages-makefile BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
+          make -f ../unix/push-packages-makefile BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}

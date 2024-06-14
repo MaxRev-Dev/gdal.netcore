@@ -1,8 +1,12 @@
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
 include RID.opt
 include ../shared/GdalCore.opt
 include ../shared/bundle/base.opt
+-include ../shared/bundle/targets/osx.opt
+-include ../shared/bundle/targets/unix.opt
+-include ../shared/bundle/targets/win.opt
 
-RUNTIME_PROJECT=$(RUNTIME_PROJECT_LINUX)
+RUNTIME_PROJECT=$(RUNTIME_PROJECT_UNIX)
 IN_FILE=
 
 all: generate-projects
@@ -13,17 +17,19 @@ export _PROJ_VERSION=$(PROJ_VERSION)
 export _GEOS_VERSION=$(GEOS_VERSION)
 export _ROOT_RELATIVE_PATH=..
 export _PACKAGE_BUILD_NUMBER=$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)
+export _PACKAGE_NAME_RUNTIME=$(PACKAGE_NAME_RUNTIME)
+export _PACKAGE_NAME_CORE=$(PACKAGE_NAME_CORE)
+export _TARGET_OS=$(TARGET_OS)
+export _BUILD_ARCH=$(BUILD_ARCH)
+RID_TARGET=$(TARGET_OS)-$(BUILD_ARCH)
+export _RID_TARGET=$(RID_TARGET)
 
-ONSUBST='$${_BUILD_ARCH} $${_GEOS_VERSION} $${_ROOT_RELATIVE_PATH} $${_GDAL_VERSION} $${_PROJ_VERSION} $${_PACKAGE_BUILD_NUMBER}'
+ONSUBST='$${_BUILD_ARCH} $${_GEOS_VERSION} $${_ROOT_RELATIVE_PATH} $${_GDAL_VERSION} $${_PROJ_VERSION} $${_PACKAGE_BUILD_NUMBER} $${_PACKAGE_NAME_RUNTIME} $${_TARGET_OS} $${_BUILD_ARCH} $${_RID_TARGET} $${_PACKAGE_NAME_CORE}'
 
 # substitute all variables in template project files
-generate-projects: generate-build-base generate-bundles-$(CAT_NAME)
+generate-projects: generate-build-base generate-bundles-$(CAT_NAME) generate-projects-$(CAT_NAME)
 	@mkdir -p $(dir $(GDALCORE_PROJECT_FINAL))
 	@cat $(GDALCORE_PROJECT) | envsubst $${ONSUBST} > $(GDALCORE_PROJECT_FINAL)
-	@cat $(RUNTIME_PROJECT_LINUX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_LINUX_FINAL)
-	@cat $(RUNTIME_PROJECT_OSX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_OSX_FINAL)
-	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
-	@cat $(RUNTIME_PROJECT_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_FINAL)
 
 generate-build-base:
 # 	generate target file "shared/bundle/<=OS=>.opt"
@@ -33,6 +39,8 @@ generate-build-base:
 	@echo "GEOS_VERSION=$(GEOS_VERSION)" >> $(TARGET_OUT)
 	@echo 'BUILD_NUMBER_TAIL_$(CAT_NAME_UP)=$(BUILD_NUMBER_TAIL)' >> $(TARGET_OUT)
 	@echo 'PACKAGE_BUILD_NUMBER_$(CAT_NAME_UP)_FINAL=$(GDAL_VERSION).$$(shell echo $$$$(($$(BUILD_NUMBER_TAIL) + $$(PACKAGE_BUILD_NUMBER_$(CAT_NAME_UP)))))' >> $(TARGET_OUT)
+
+	@$(MAKE) -f $(THIS_FILE) generate-target-single-core RID_TARGET=any
 
 generate-bundles:
 	@mkdir -p $(dir $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL))
@@ -47,8 +55,45 @@ generate-bundles-osx: generate-bundles
 	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.x64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
 
 generate-bundles-win:
-	echo "Nothing to do"
+	@echo "Nothing to do"
+
+generate-projects-osx: generate-build-base generate-bundles-osx
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=MacosRuntime TARGET_OS=osx BUILD_ARCH=arm64
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=MacosRuntime TARGET_OS=osx BUILD_ARCH=x64
+	@cat $(RUNTIME_PROJECT_OSX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_OSX_FINAL)
+
+generate-projects-unix: generate-build-base generate-bundles-unix
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=LinuxRuntime TARGET_OS=linux BUILD_ARCH=arm64
+	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=LinuxRuntime TARGET_OS=linux BUILD_ARCH=x64
+	@cat $(RUNTIME_PROJECT_UNIX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_UNIX_FINAL) 
+
+generate-projects-win: generate-build-base generate-bundles-win
+	@$(MAKE) -f $(THIS_FILE) generate-target-single-win RUNTIME_PACKAGE_PARTIAL=WindowsRuntime TARGET_OS=win BUILD_ARCH=x64
+	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
+
+generate-final-bundle:
+	@mkdir -p $(dir $(RUNTIME_PROJECT_BUNDLE_FINAL))
+	@cat $(RUNTIME_PROJECT_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_FINAL)
 
 get-version:
 	@grep -o "[Vv]ersion:\s.*" $(IN_FILE) | cut -d: -f2 | xargs
- 
+
+generate-target-single:
+	@echo "Generating target file"
+	@echo "  TARGET_OS: $(TARGET_OS)"
+	@echo "  BUILD_ARCH: $(BUILD_ARCH)"
+	@echo "  RUNTIME_PACKAGE_PARTIAL: $(RUNTIME_PACKAGE_PARTIAL)"
+	@cat $(RUNTIME_TARGET_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_TARGET_BUNDLE_FINAL)
+
+generate-target-single-win:
+	@echo "Generating target file - Windows"
+	@echo "  TARGET_OS: $(TARGET_OS)"
+	@echo "  BUILD_ARCH: $(BUILD_ARCH)"
+	@echo "  RUNTIME_PACKAGE_PARTIAL: $(RUNTIME_PACKAGE_PARTIAL)"
+	@cat $(RUNTIME_TARGET_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_TARGET_BUNDLE_FINAL_WIN)
+
+generate-target-single-core:
+	@echo "Generating target file - Core"
+	@cat $(RUNTIME_TARGET_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_TARGET_BUNDLE_FINAL_CORE)
+
+

@@ -4,11 +4,13 @@
 #    Windows Runtime Identifier 
 #
 BASE = $(MAKEDIR)
-BASE_RUNTIME_RID = win
-VCPKG_RID = x64-windows
+BASE_RID = win
+TARGET_OS = $(BASE_RID)
+BUILD_ARCH = x64
+VCPKG_RID = $(BUILD_ARCH)-windows
 
 # .NET RID
-RID = win-x64
+RID = $(BASE_RID)-$(BUILD_ARCH)
 SWIG = swig
 
 COPY = copy 

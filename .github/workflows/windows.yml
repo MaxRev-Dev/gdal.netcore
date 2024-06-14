@@ -1,46 +1,53 @@
 name: Windows Build
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   DOTNET_VERSION: '8.0.x'
-  IS_PRE_RELEASE: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' || contains(github.event.head_commit.message, '[prerelease]') }}
+  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
+  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 jobs:
   BuildNugetPackages-Windows:
     strategy:
       matrix:
-        os: [self-hosted-win-x64]
+        os: [windows-latest]
 
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: win
     steps:
       - uses: actions/checkout@v3.0.0
         with:
-          fetch-depth: 0
+          fetch-depth: 0      
 
-      - name: Restore cached packages 
-        id: build-packages-cache-restore
-        uses: maxnowack/local-cache@main
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+          shell: pwsh
+
+      - name: Cache restore
+        uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/build-win
-            ${{ github.workspace }}/.dotnet
-          key: ${{ runner.os }}-packages
+            .dotnet
+            vcpkg-archives/
+          key: ${{ runner.os }}-buildx-${{ matrix.os }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
@@ -50,6 +57,7 @@ jobs:
       - name: Compile GDAL and create packages
         id: compile-source
         run: |
+          git config --system core.longpaths true
           ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ env.IS_PRE_RELEASE }}
           echo "GDAL_VERSION=$env:GDAL_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
           
@@ -57,7 +65,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: metadata-win-x64
-          path: shared/bundle/targets/
+          path: |
+            shared/bundle/targets/
+            build-win/gdal-build/bin/gdal-config
+          overwrite: true
+
+      - name: GDAL formats windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: formats-win
+          path: |
+            tests/gdal-formats/*.txt
           overwrite: true
 
       - name: Store packages as artifact
@@ -73,10 +91,9 @@ jobs:
   TestPackages-Windows:
     strategy:
       matrix:
-        os: [self-hosted-win-x64]
+        os: [windows-latest]
     needs: BuildNugetPackages-Windows
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: win
@@ -98,14 +115,14 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: NuGet - Update credentials
-        run: |
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }} --configfile ../nuget.config
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }} --configfile ../nuget.config
-          dotnet nuget remove source local 1>$null
-          dotnet nuget remove source local.ci 1>$null
-          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci
-        shell: pwsh
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+          shell: pwsh
 
       - name: Test packages
         run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ env.IS_PRE_RELEASE }}
@@ -114,7 +131,6 @@ jobs:
   PushPackages-Windows:
     needs: TestPackages-Windows
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: unix
@@ -134,16 +150,15 @@ jobs:
           pattern: packages-win*
           merge-multiple: true
           path: nuget/
-      
-      - run: ls -la ../nuget/
 
-      - name: NuGet - Update credentials
-        run: | 
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
-          dotnet nuget remove source local || true
-          dotnet nuget remove source local.ci || true
-          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+          shell: pwsh
 
       - name: Push packages
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}

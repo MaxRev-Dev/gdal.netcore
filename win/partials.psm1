@@ -22,8 +22,13 @@ function Set-GdalVariables {
     $env:SDK_PREFIX = "$env:BUILD_ROOT\sdk\$env:SDK"
     $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
-    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"
-
+    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"   
+    $env:SDK_LIB = "$env:SDK_PREFIX\lib"
+    $env:SDK_BIN = "$env:SDK_PREFIX\bin"
+    $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
+    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows"
+    
+    $env:WEBP_ROOT = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
 }
 
 function Get-7ZipInstallation {   
@@ -81,6 +86,11 @@ function Get-VcpkgInstallation {
     param (
         [bool] $bootstrapVcpkg = $true
     )
+
+    if ($null -eq $env:VCPKG_DEFAULT_BINARY_CACHE) {
+        $env:VCPKG_DEFAULT_BINARY_CACHE = "$env:BUILD_ROOT\vcpkg-cache"
+    }
+    New-FolderIfNotExists $env:VCPKG_DEFAULT_BINARY_CACHE
 
     Write-BuildStep "Checking for VCPKG installation"    
     if ($bootstrapVcpkg) {
@@ -141,6 +151,7 @@ function Install-Proj {
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
         -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
+        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_ROOT\installed\x64-windows" `
         -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
@@ -186,20 +197,14 @@ function Build-Gdal {
         [bool] $cleanGdalIntermediate = $true,
         [bool] $fetchGdal = $true
     )
-
-    $env:SDK_LIB = "$env:SDK_PREFIX\lib"
-    $env:SDK_BIN = "$env:SDK_PREFIX\bin"
-    $env:PATH = "$env:BUILD_ROOT\proj-build\bin;$env:SDK_BIN;$env:PATH"
-    $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
+    Set-GdalVariables 
+    $env:PATH = "$env:BUILD_ROOT\proj-build\bin;$env:SDK_BIN;$env:PATH" 
     $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=$env:GDAL_INSTALL_DIR"
     $env:PROJ_ROOT = "-DPROJ_ROOT=$env:PROJ_INSTALL_DIR"
-    $env:CMAKE_PREFIX_PATH = "-DCMAKE_PREFIX_PATH=$env:SDK_PREFIX"
     $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
     $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=$env:SDK_LIB\freetype.lib;$env:SDK_LIB\harfbuzz.lib"
-
-    $webpRoot = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
-    $env:WEBP_ROOT = "-DWEBP_INCLUDE_DIR=$webpRoot\include"
-    $env:WEBP_LIB = "-DWEBP_LIBRARY=$webpRoot\lib\libwebp.lib"
+    $env:WEBP_INCLUDE = "-DWEBP_INCLUDE_DIR=$env:WEBP_ROOT\include"
+    $env:WEBP_LIB = "-DWEBP_LIBRARY=$env:WEBP_ROOT\lib\libwebp.lib"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -227,7 +232,7 @@ function Build-Gdal {
         Write-BuildInfo "Removing build cache (CMakeCache.txt)"
         Remove-Item "$env:GdalCmakeBuild\CMakeCache.txt"  -ErrorAction SilentlyContinue
     }
- 
+
     # PATCH 1: replace build root of SDK with our own
     Set-ReplaceContentInFiles -Path $env:SDK_PREFIX `
         -FileFilter "*.pc", "*.cmake", "*.opt" `
@@ -239,29 +244,39 @@ function Build-Gdal {
     Remove-Item -Path $env:GDAL_SOURCE/autotest -Recurse -Force  -ErrorAction SilentlyContinue
     # PATCH 2: apply patch to cmake pipeline. remove redundant compile steps
     git apply "$PSScriptRoot\..\shared\patch\CMakeLists.txt.patch"
-    # PATCH 3: apply patch for FindSPATIALITE
-    git apply "$PSScriptRoot\..\shared\patch\FindSPATIALITE.cmake.patch"
-
 
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild
     New-FolderIfNotExists "$PSScriptRoot\..\nuget"
+    
+    $env:ARCH_FLAGS = "/arch:AVX2  /Ob2 /Oi /Os /Oy"
+    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows" 
+    # disabling KEA driver as it causes build issues on Windows
+    # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
 
+    # for the same reason, we are disabling OpenEXR
+    # -DOpenEXR_LIBRARY="$env:VCPKG_INSTALLED\lib\OpenEXR-3_2.lib" `
+    # -DOpenEXR_INCLUDE_DIR="$env:VCPKG_INSTALLED\include\OpenEXR" `
+    # -DOpenEXR_UTIL_LIBRARY="$env:VCPKG_INSTALLED\lib\OpenEXRUtil-3_2.lib" `
+    # -DOpenEXR_HALF_LIBRARY="$env:VCPKG_INSTALLED\lib\Imath-3_1.lib" `
+    # -DOpenEXR_IEX_LIBRARY="$env:VCPKG_INSTALLED\lib\Iex-3_2.lib" `
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
-        $env:CMAKE_PREFIX_PATH -DCMAKE_C_FLAGS=" /WX $env:ARCH_FLAGS" `
-        -DCMAKE_CXX_FLAGS=" /WX $env:ARCH_FLAGS" -DGDAL_USE_DEFLATE=OFF `
-        -DGDAL_USE_MSSQL_ODBC=OFF `
-        $env:WEBP_ROOT  $env:WEBP_LIB `
+        -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
+        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_INSTALLED" `
+        -DGDAL_USE_OPENEXR=OFF `
+        -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
+        $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:POPPLER_EXTRA_LIBRARIES `
+        -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
-        -DECW_INTERFACE_COMPILE_DEFINITIONS="_MBCS;_UNICODE;UNICODE;_WINDOWS;LIBECWJ2;WIN32;_WINDLL;NO_X86_MMI" `
-        -DGDAL_CSHARP_APPS=OFF `
+        -DGDAL_CSHARP_APPS=ON `
         -DGDAL_CSHARP_TESTS=OFF `
         -DGDAL_CSHARP_BUILD_NUPKG=OFF `
         -DBUILD_CSHARP_BINDINGS=ON `
         -DBUILD_JAVA_BINDINGS=OFF `
         -DBUILD_PYTHON_BINDINGS=OFF
+
 
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
@@ -282,7 +297,7 @@ function Build-GenerateProjectFiles {
 
     # generate project files for C# bindings
     Write-BuildStep "Generating project files for GDAL C# bindings"
-    exec { & $env:GitBash -c "make -f generate-projects-makefile CAT_NAME=win BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE" }
+    exec { & $env:GitBash -c "make -f generate-projects-makefile CAT_NAME=win RUNTIME_PACKAGE_PARTIAL=WindowsRuntime BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE" }
     Write-BuildStep "Done generating project files"
 }
 
@@ -296,6 +311,10 @@ function Build-CsharpBindings {
     
     Set-Location $PSScriptRoot
     
+    Write-GdalFormats
+
+    Set-Location $PSScriptRoot
+
     exec { & nmake -f collect-deps-makefile.vc }
     
     Build-GenerateProjectFiles -packageVersion $packageVersion 
@@ -306,5 +325,68 @@ function Build-CsharpBindings {
     }
     else {
         exec { & nmake -f publish-makefile.vc pack PACKAGE_BUILD_NUMBER=$packageVersion }
+    }
+}
+
+function Write-GdalFormats {
+    Set-GdalVariables
+    $env:GDAL_DATA = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
+
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
+    $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
+    $newPath = $originalPath + ";" + ($dllDirectories -join ";")
+    [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
+
+    $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats") 
+    New-FolderIfNotExists $formats_path
+    
+    Set-Location "$env:GDAL_INSTALL_DIR\bin" 
+    try {
+        (& .\gdalinfo.exe --formats) | Set-Content .\gdal-formats-win-raster.txt -Force
+        (& .\ogrinfo.exe --formats) | Set-Content .\gdal-formats-win-vector.txt -Force
+
+        # Fix windows style paths in gdal-config
+        Write-FixShellScriptOnWindows -shellScriptPath "$env:GDAL_INSTALL_DIR\bin\gdal-config" -variableName "CONFIG_DEP_LIBS"
+        
+        (& $env:GitBash -c "./gdal-config --formats") | Set-Content -Path "$formats_path\gdal-formats-win.txt" -Force
+    }
+    catch {
+        Write-BuildError "Failed to write GDAL formats"
+        Write-BuildError $_.Exception.Message
+    }
+    
+    # Restore the original PATH
+    [System.Environment]::SetEnvironmentVariable("PATH", $originalPath, [System.EnvironmentVariableTarget]::Process)
+}
+
+function  Write-FixShellScriptOnWindows {
+    param (
+        [string] $shellScriptPath, 
+        [string] $variableName
+    )
+    $shellScriptContent = Get-Content -Path $shellScriptPath -Raw
+    $pattern = [regex]::Escape($variableName) + '="([^""].*)"'
+    if ($shellScriptContent -match $pattern) {
+        $value = $matches[1]
+        if ($value.Contains("\(") -or $value.Contains('\"')) {
+            Write-Output "Variable $variableName already fixed in the script."
+            return
+        }
+        $paths = $value -split ' (?=(?:[^"]*"[^"]*")*[^"]*$)'
+        $escapedPaths = $paths | ForEach-Object {
+            $_.Replace(" ", "\\ ").Replace("(", "\(").Replace(")", "\)").Replace('"', '\"');
+        }
+        $escapedValue = ($escapedPaths -join ' ')
+        $newLine = "$variableName=""$escapedValue"""
+        $shellScriptContent = $shellScriptContent -replace "$variableName=""[^""].*""", $newLine
+        Set-Content -Path $shellScriptPath -Value $shellScriptContent
+    
+        Write-Output "Shell script has been updated successfully."
+    
+    }
+    else {
+        Write-Output "Variable $variableName not found in the script."
     }
 }

@@ -128,33 +128,49 @@ function Reset-PsSession {
 
 function Install-PwshModuleRequirements {   
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    
+    if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
+        exec { Set-ExecutionPolicy Bypass -Scope Process -Force; `
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
+        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) }
+    }
 
-    if (!(Get-PackageProvider -Name "NuGet")) {
+    if (!(Get-Command make -ErrorAction SilentlyContinue)) {
+        exec { choco install -y --no-progress --force make } 
+        Write-Information "GNUmake was installed"
+    }
+    
+    if (!(Get-Command cmake -ErrorAction SilentlyContinue)) {
+        exec { choco install cmake.install --force -y --no-progress --installargs '"ADD_CMAKE_TO_PATH=System"' } 
+        Write-Information "CMake was installed"
+    }
+
+    if (!(Get-PackageProvider -Name "NuGet" -Force -ErrorAction SilentlyContinue)) {
         Import-PackageProvider NuGet -Scope CurrentUser
     } 
 
-    if (!(Get-PSRepository -Name "PSGallery")) {
+    if (!(Get-PSRepository -Name "PSGallery" -ErrorAction SilentlyContinue)) {
         Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     }
 
-    if (!(Get-Module -Name "VSSetup")) {
+    if (!(Get-Module -Name "VSSetup" -ErrorAction SilentlyContinue)) {
         Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser -Force
     } 
 
-    if (!(Get-Module -Name "Pscx")) {        
-        Install-Module -Name Pscx -RequiredVersion '4.0.0-beta4' -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
+    if (!(Get-Module -Name "Pscx" -ErrorAction SilentlyContinue)) {        
+        Install-Module -Name Pscx -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
     }
 
-    if (!(Get-Command "Invoke-WebRequest")) {
+    if (!(Get-Command "Invoke-WebRequest" -ErrorAction SilentlyContinue)) {
         Install-Module -Name WebKitDev -RequiredVersion 0.4.0 -Force -Scope CurrentUser
     }
     
-    if (!(Get-Command "choco")) {
+    if (!(Get-Command "choco" -ErrorAction SilentlyContinue)) {
         Install-Module -Name Choco -Scope CurrentUser -Force
     } 
     
-    if (!(Get-Command "swig")) {
-        exec { cinst -y --no-progress --force swig }
+    if (!(Get-Command "swig" -ErrorAction SilentlyContinue)) {
+        exec { choco install -y --no-progress --force swig }
     }
 }
 

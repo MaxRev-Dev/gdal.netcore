@@ -58,6 +58,7 @@ RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
 FROM --platform=$TARGETPLATFORM base as gdalbuild
 WORKDIR /build/unix
 ARG VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
+RUN mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
 COPY --from=base /tmp/gdal-netcore-env /tmp/gdal-netcore-env
 COPY --from=base /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
 COPY shared/GdalCore.opt /build/shared/
@@ -65,7 +66,7 @@ COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
 COPY unix/gdal-makefile /build/unix/
 # load cache from previous build
-COPY ci/cache*/vcpkg* /build/ci/cache/
+COPY ci/cache*/vcpkg* /build/ci/cache/vcpkg-archives/
 COPY ci/cache*/build-unix* /build/build-unix/
 
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
@@ -90,7 +91,7 @@ RUN set -a && . /tmp/gdal-netcore-env && set +a; \
 ARG PRERELEASE
 ARG BUILD_NUMBER_TAIL
 COPY . /build
-RUN rm -rf /build/nuget
+RUN rm -rf /build/nuget && mkdir -p /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL PRERELEASE=$PRERELEASE
 
@@ -101,6 +102,7 @@ COPY --from=gdalbuild /build/build-unix /build/build-unix
 COPY --from=gdalbuild /build/shared /build/shared
 COPY --from=gdalbuild /build/ci/cache/vcpkg-archives/ /build/ci/cache/vcpkg-archives/
 COPY --from=gdalbuild /build/package-build/ /build/package-build/
+COPY --from=gdalbuild /build/tests/gdal-formats /build/tests/gdal-formats
 # copy nuget packages from build
 COPY --from=gdalbuild /build/nuget /build/nuget
 ENTRYPOINT ["bash"]

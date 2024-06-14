@@ -1,6 +1,10 @@
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
 include RID.opt
 include ../shared/GdalCore.opt
 include ../shared/bundle/base.opt
+-include ../shared/bundle/targets/osx.opt
+-include ../shared/bundle/targets/unix.opt
+-include ../shared/bundle/targets/win.opt
 
 ## Creating packages for testing and publishing
 # https://github.com/dotnet/core/issues/4404
@@ -10,18 +14,29 @@ export MSBUILDSINGLELOADCONTEXT = 1
 # using export to add dynamic libraries location
 export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
-RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_LINUX_FINAL)
+RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_UNIX_FINAL)
 GEOS_VERSION=$(shell $(MAKE) -f ../unix/generate-projects-makefile get-version IN_FILE=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/geos.pc)
 CAT_NAME=unix
+RUNTIME_PACKAGE_PARTIAL=LinuxRuntime
+BUILD_ARCH_SUFFIX=.$(BUILD_ARCH)
 
-all: prepare pack
+all: pack
 
 generate-projects:
-	$(MAKE) -f ../unix/generate-projects-makefile CAT_NAME=$(CAT_NAME) GEOS_VERSION=$(GEOS_VERSION) PACKAGE_BUILD_NUMBER=$(PACKAGE_BUILD_NUMBER)
+	$(MAKE) -f ../unix/generate-projects-makefile RUNTIME_PACKAGE_PARTIAL=${RUNTIME_PACKAGE_PARTIAL} CAT_NAME=$(CAT_NAME) GEOS_VERSION=$(GEOS_VERSION) PACKAGE_BUILD_NUMBER=$(PACKAGE_BUILD_NUMBER)
 
-# remove source. this was added by GDAL. ignore error
-prepare:
-	-dotnet nuget remove source local
+update-targets-no-ver:
+	cd $(PACKAGE_BUILD_ROOT) && \
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal$(BUILD_ARCH_SUFFIX) -s $(NUGET_) --no-restore
+
+
+update-targets:
+	cd $(PACKAGE_BUILD_ROOT) && \
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal$(BUILD_ARCH_SUFFIX) \
+			--no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
+	cd $(PACKAGE_BUILD_ROOT) && \
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.Core \
+			--no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
 
 pack-core: generate-projects
 	dotnet pack -c Release -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
@@ -32,10 +47,22 @@ pack-runtime: generate-projects
 pack-bundle: generate-projects pack-bundle-only
 	@exit 0
 
-pack-bundle-only:
+pack-bundle-only: update-targets
 	dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
-pack: prepare pack-core pack-runtime
+pack-bundle-final:
+	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=unix RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BUILD_ARCH=x64
+	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=unix RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BUILD_ARCH=arm64
+	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=osx RUNTIME_PACKAGE_PARTIAL=MacosRuntime BUILD_ARCH=x64
+	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=osx RUNTIME_PACKAGE_PARTIAL=MacosRuntime BUILD_ARCH=arm64
+	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=win BUILD_ARCH_SUFFIX= RUNTIME_PACKAGE_PARTIAL=WindowsRuntime
+	
+	cd $(PACKAGE_BUILD_ROOT) && \
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.Core -s $(NUGET_) --no-restore
+	
+	dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_FINAL)
+
+pack: pack-core pack-runtime
 	@exit 0
 
 pack-core-dev: generate-projects
@@ -50,3 +77,9 @@ pack-bundle-dev: generate-projects
 pack-dev: pack-core-dev pack-runtime-dev
 	@exit 0
 
+
+get-gdal-version:
+	@echo $(GDAL_VERSION)
+
+get-package-version:
+	@echo $(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)

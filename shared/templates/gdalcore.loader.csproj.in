@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Platforms>x64;arm64</Platforms>
     <DebugType>portable</DebugType>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0;net461</TargetFrameworks>
     <Copyright>MaxRev © 2024</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -17,12 +17,11 @@
     <LangVersion>10.0</LangVersion>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>${_PACKAGE_BUILD_NUMBER}</Version>
-    <Description>
-      GDAL (${_GDAL_VERSION}) bindings for dotnet core (linux-x64, linux-arm64, osx-arm64, osx-x64, and win-x64).
-      Bridge between gdal and netcore.
-      Use dependency package for target runtime to get drivers.
-      Works in docker containers without pkg installations!!
-      Just call - GdalBase.ConfigureAll()
+    <Description>GDAL (${_GDAL_VERSION}) bindings for dotnet core (linux-x64, linux-arm64, osx-arm64, osx-x64, and win-x64).
+Bridge between gdal and netcore.
+Use dependency package for target runtime to get drivers.
+Works in docker containers without pkg installations!!
+Just call - GdalBase.ConfigureAll()
     </Description>
     <PackageReleaseNotes>
 - GDAL ${_GDAL_VERSION}
@@ -44,17 +43,20 @@
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="${_ROOT_RELATIVE_PATH}/build-osx/gdal-build/share/gdal/**">
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="${_ROOT_RELATIVE_PATH}/build-unix/gdal-build/share/gdal/**">
       <PackagePath>runtimes/any/native/gdal-data/</PackagePath>
       <Pack>true</Pack>
     </None>
+    <None Include="./${_PACKAGE_NAME_CORE}.targets">
+      <PackagePath>build/net461/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
   </ItemGroup>
 </Project>

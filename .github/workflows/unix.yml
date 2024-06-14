@@ -1,21 +1,18 @@
 name: Linux Build
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
 
 env:
   DOCKER_REGISTRY: ghcr.io/maxrev-dev
   DOTNET_VERSION: '8.0.x'
-  IS_PRE_RELEASE: ${{ github.event_name == 'push' && github.ref != 'refs/heads/main' || contains(github.event.head_commit.message, '[prerelease]') }}
+  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 permissions:
   packages: write
@@ -28,13 +25,12 @@ jobs:
         include:
           - os: linux/amd64
             arch: x64
-            actions-runner: self-hosted-macos-x64
+            actions-runner: ubuntu-latest
           - os: linux/arm64
             arch: arm64
             actions-runner: self-hosted-macos-arm64
 
     runs-on: ${{ matrix.actions-runner }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: unix
@@ -43,6 +39,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       
@@ -50,14 +54,12 @@ jobs:
         uses: docker/setup-buildx-action@v3
         
       - name: Cache restore
-        uses: maxnowack/local-cache@main
+        uses: actions/cache@v4
         with:
           path: |
-            ${{ github.workspace }}/.dotnet
-            ${{ github.workspace }}/ci/cache/
-          key: ${{ runner.os }}-buildx-${{ matrix.os }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
+            .dotnet
+            ci/cache/
+          key: ${{ matrix.os }}-buildx-${{ matrix.arch }}
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
@@ -123,6 +125,14 @@ jobs:
             package-build/*.csproj
           overwrite: true
 
+      - name: GDAL formats unix
+        uses: actions/upload-artifact@v4
+        with:
+          name: formats-unix-${{ matrix.arch }}
+          path: |
+            tests/gdal-formats/*.txt
+          overwrite: true
+
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -131,22 +141,18 @@ jobs:
           overwrite: true
       
   TestPackages-Linux:
+    needs: BuildNugetPackages-Linux
     strategy:
       matrix:
         include:
           - os: linux/amd64
             arch: x64
             actions-runner: ubuntu-latest
-          - os: linux/amd64
-            arch: x64
-            actions-runner: self-hosted-macos-x64
           - os: linux/arm64
             arch: arm64
             actions-runner: self-hosted-macos-arm64
 
-    needs: BuildNugetPackages-Linux
     runs-on: ${{ matrix.actions-runner }}
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: unix
@@ -183,9 +189,8 @@ jobs:
             -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest
 
   PushPackages-Linux:
-    needs: TestPackages-Linux
+    needs: TestPackages-Linux 
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[ci skip]') && !contains(github.event.head_commit.message, '[skip ci]')"
     defaults:
       run:
         working-directory: unix
@@ -204,23 +209,21 @@ jobs:
         with:
           pattern: packages-unix*
           merge-multiple: true
-          path: nuget/
+          path: "${{ github.workspace}}/nuget/"
 
       - name: Download artifact - metadata
         uses: actions/download-artifact@v4
         with:
           pattern: metadata-unix*
-          merge-multiple: true      
+          merge-multiple: true
 
-      - run: ls -la ../nuget/
-
-      - name: NuGet - Update credentials
-        run: | 
-          dotnet nuget update source github --store-password-in-clear-text -u ${{ secrets.API_USER_GITHUB }} -p ${{ secrets.API_KEY_GITHUB }}
-          dotnet nuget update source nuget.org --store-password-in-clear-text -u ${{ secrets.API_USER_NUGET }} -p ${{ secrets.API_KEY_NUGET }}
-          dotnet nuget remove source local || true
-          dotnet nuget remove source local.ci || true
-          dotnet nuget add source "${{ github.workspace}}/nuget/" --name local.ci --configfile ${{ github.workspace}}/nuget.config
+      - name: NuGet - set credentials
+        uses: ./.github/actions/set-credentials
+        with:
+          api-key-github: ${{ secrets.API_KEY_GITHUB }}
+          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
+          api-user-github: ${{ secrets.API_USER_GITHUB }}
+          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Build bundle
         run: |

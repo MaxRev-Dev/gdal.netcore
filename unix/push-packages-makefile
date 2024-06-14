@@ -3,6 +3,8 @@ include ../shared/GdalCore.opt
 
 TARGETS=$(wildcard $(NUGET_)/MaxRev.Gdal.*Runtime.Minimal*.nupkg)
 
+TARGETS+=$(wildcard $(NUGET_)/MaxRev.Gdal.Universal*.nupkg)
+
 ifneq ($(INCLUDE_CORE),)
 TARGETS+=$(wildcard $(NUGET_)/MaxRev.Gdal.Core.*.nupkg)
 endif
@@ -11,6 +13,6 @@ all: $(TARGETS)
 .PHONY: force
 $(TARGETS): force
 	@echo "Publishing package $@"
-	dotnet nuget push $@ -s nuget.org -k $(API_KEY_NUGET) --skip-duplicate || exit 1
+	dotnet nuget push $@ -s nuget -k $(API_KEY_NUGET) --skip-duplicate || exit 1
 	dotnet nuget push $@ -s github -k $(API_KEY_GITHUB) --skip-duplicate || exit 1
 	@echo "Successfully published package $@"

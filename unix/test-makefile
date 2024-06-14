@@ -21,9 +21,9 @@ test-restore:
 
 test-update:
 	cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
 	cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) $(PRERELEASE_ARG)
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
 
 test-only: test-restore
 	cd $(TEST_TARGET) && \

@@ -4,9 +4,10 @@
 #    Linux Runtime Identifier
 #
 BASE=$(PWD)
-BASE_RUNTIME_RID=unix
+BASE_RID=unix
 BUILD_ARCH=arm64
-VCPKG_RID=$(BUILD_ARCH)-linux
+TARGET_OS=linux
+VCPKG_RID=$(BUILD_ARCH)-$(TARGET_OS)
 
 # .NET RID
 RID=linux-$(BUILD_ARCH)

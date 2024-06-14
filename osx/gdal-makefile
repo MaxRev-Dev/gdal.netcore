@@ -97,11 +97,12 @@ configure_hdf:
 
 	-mkdir -p $(HDF_CMAKE_TMP)
 	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE) \
-		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build \
+		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_FLAGS="-Wno-dev" \
-		-DCMAKE_CXX_FLAGS="-fPIC -Wno-dev" \
-		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
+		-DCMAKE_C_FLAGS="-fPIC" \
+		-DCMAKE_CXX_FLAGS="-fPIC" \
+		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) \
+		-DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_DEPLOYMENT_TARGET) || exit 1
 
 	@echo "$(TO) HDF was configured!"
 
@@ -121,27 +122,36 @@ configure_gdal:
 
 	-mkdir -p $(GDAL_CMAKE_TMP)
 	@cd $(GDAL_CMAKE_TMP) && cmake $(GDAL_ROOT) \
-		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build \
+		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_FLAGS="-fPIC" \
 		-DCMAKE_CXX_FLAGS="-fPIC" \
 		-DGDAL_USE_DEFLATE=OFF \
 		-DGDAL_USE_ZLIB_INTERNAL=ON \
-		-DBUILD_APPS=ON \
-		-DBUILD_CSHARP_BINDINGS=ON \
-		-DBUILD_JAVA_BINDINGS=OFF \
+		-DGDAL_CSHARP_APPS=OFF \
+		-DCSHARP_MONO=ON \
+		-DGDAL_CSHARP_TESTS=OFF \
+		-DGDAL_CSHARP_BUILD_NUPKG=OFF \
 		-DBUILD_PYTHON_BINDINGS=OFF \
+		-DBUILD_CSHARP_BINDINGS=ON \
+		-DCSHARP_LIBRARY_VERSION=$(GDAL_CSHARP_VERSION) \
+		-DCSHARP_APPLICATION_VERSION=$(GDAL_CSHARP_VERSION) \
+		-DBUILD_JAVA_BINDINGS=OFF \
 		-DBUILD_SHARED_LIBS=ON \
-		-DMYSQL_LIBRARY=$(VCPKG_INSTALLED)/lib/libmysqlclient.a \
-		-DMYSQL_INCLUDE_DIR=$(VCPKG_INSTALLED)/include/mysql \
+		-DSQLite3_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include \
+		-DSQLite3_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libsqlite3.dylib \
 		-DHDF4_INCLUDE_DIR=$(BUILD_ROOT)/hdf-build/include \
 		-DHDF4_df_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libhdf.dylib \
 		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.dylib \
 		-DHDF4_xdr_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libxdr.dylib \
-		-DJXL_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include/jxl \
-		-DJXL_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libjxl.dylib \
+		-DOpenEXR_HALF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libImath-3_1.dylib \
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
 		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.dylib \
+		-DGDAL_FIND_PACKAGE_PROJ_MODE=MODULE \
+		-DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_DEPLOYMENT_TARGET) \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
+
+# openexr half was moved to imath
 
 	@echo "$(TO) GDAL was configured!"
 
@@ -152,7 +162,7 @@ configure_proj:
 	-mkdir -p $(PROJ_CMAKE_TMP)
 	@cd $(PROJ_CMAKE_TMP) && \
 		cmake $(PROJ_ROOT) \
-			-DCMAKE_BUILD_TYPE=Release \
+			-DCMAKE_BUILD_TYPE=Release -Wno-dev \
 			-DCMAKE_MAKE_PROGRAM=make \
 			-DCMAKE_C_FLAGS="-Wno-deprecated-declarations" \
 			-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" \
@@ -162,10 +172,11 @@ configure_proj:
 			-DENABLE_CURL=ON -DENABLE_TIFF=ON \
 			-DTIFF_INCLUDE_DIR="$(VCPKG_INSTALLED_DYNAMIC)/include" \
 			-DEXE_SQLITE3="$(VCPKG_INSTALLED)/tools/sqlite3" \
-			-DSQLITE3_INCLUDE_DIR="$(VCPKG_INSTALLED)/include" \
-			-DSQLITE3_LIBRARY="$(VCPKG_INSTALLED)/lib/libsqlite3.a" \
+			-DSQLite3_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include \
+			-DSQLite3_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libsqlite3.dylib \
 			-DTIFF_LIBRARY_RELEASE="$(VCPKG_INSTALLED_DYNAMIC)/lib/libtiff.dylib" \
 			-DCMAKE_PREFIX_PATH="$(VCPKG_INSTALLED_DYNAMIC)" \
+			-DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_DEPLOYMENT_TARGET) \
 			|| exit 1
 
 	@echo "$(TO) PROJ was configured!"
@@ -175,10 +186,21 @@ build_%:
 	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j4 --target install || exit 1
 	@echo "$(TO) $(LW) was built successfully!"
 
+__DYLIBS_GDAL=DYLD_LIBRARY_PATH=$(DYLD_LIBRARY_PATH):$(BUILD_ROOT)/gdal-build/lib
+formats-output:
+	@mkdir -p $(TEST_FORMATS_OUTPUT)
+	@(cd $(BUILD_ROOT)/gdal-build/bin && $(__DYLIBS_GDAL) \
+		./gdal-config --formats > $(TEST_FORMATS_OUTPUT)/gdal-formats-osx.txt)
+
+	@(cd $(BUILD_ROOT)/gdal-build/bin && $(__DYLIBS_GDAL) \
+		./gdalinfo --formats > $(TEST_FORMATS_OUTPUT)/gdal-formats-osx-raster.txt)
+
+	@(cd $(BUILD_ROOT)/gdal-build/bin && $(__DYLIBS_GDAL) \
+		./ogrinfo --formats > $(TEST_FORMATS_OUTPUT)/gdal-formats-osx-vector.txt)
+
 reset: reset_proj reset_gdal
 	@echo "$(TO) Reset ALL is complete"
 
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
-LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib:${PROJ_BUILD}/lib:${HDF_BUILD}/lib
 DYLD_LIBRARY_PATH=$$DYLD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib:${PROJ_BUILD}/lib:${HDF_BUILD}/lib
