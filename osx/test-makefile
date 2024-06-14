@@ -21,7 +21,7 @@ test-restore:
 		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests" && dotnet remove package $$v &> /dev/null;  \
 	done;
 	cd $(TEST_TARGET) && \
-		dotnet restore --ignore-failed-sources --no-cache
+		dotnet restore --ignore-failed-sources
 
 test-update:
 	cd $(TEST_TARGET) && \
