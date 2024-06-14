@@ -27,6 +27,8 @@ function Set-GdalVariables {
     $env:SDK_BIN = "$env:SDK_PREFIX\bin"
     $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
     $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows"
+    
+    $env:WEBP_ROOT = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
 }
 
 function Get-7ZipInstallation {   
@@ -201,10 +203,8 @@ function Build-Gdal {
     $env:PROJ_ROOT = "-DPROJ_ROOT=$env:PROJ_INSTALL_DIR"
     $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
     $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=$env:SDK_LIB\freetype.lib;$env:SDK_LIB\harfbuzz.lib"
-
-    $webpRoot = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
-    $env:WEBP_ROOT = "-DWEBP_INCLUDE_DIR=$webpRoot\include"
-    $env:WEBP_LIB = "-DWEBP_LIBRARY=$webpRoot\lib\libwebp.lib"
+    $env:WEBP_INCLUDE = "-DWEBP_INCLUDE_DIR=$env:WEBP_ROOT\include"
+    $env:WEBP_LIB = "-DWEBP_LIBRARY=$env:WEBP_ROOT\lib\libwebp.lib"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -265,7 +265,7 @@ function Build-Gdal {
         -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_INSTALLED" `
         -DGDAL_USE_OPENEXR=OFF `
         -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
-        $env:WEBP_ROOT  $env:WEBP_LIB `
+        $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:POPPLER_EXTRA_LIBRARIES `
         -DGDAL_USE_KEA=OFF `
@@ -334,7 +334,7 @@ function Write-GdalFormats {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin")
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
     $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
     $newPath = $originalPath + ";" + ($dllDirectories -join ";")
     [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
@@ -344,9 +344,8 @@ function Write-GdalFormats {
     
     Set-Location "$env:GDAL_INSTALL_DIR\bin" 
     try {
-        # Run the executable
-        Start-Process -NoNewWindow -Wait -RedirectStandardOutput "$formats_path\gdal-formats-win-raster.txt" -FilePath .\gdalinfo.exe -ArgumentList "--formats"
-        Start-Process -NoNewWindow -Wait -RedirectStandardOutput "$formats_path\gdal-formats-win-vector.txt" -FilePath .\ogrinfo.exe  -ArgumentList "--formats"
+        (& .\gdalinfo.exe --formats) | Set-Content .\gdal-formats-win-raster.txt -Force
+        (& .\ogrinfo.exe --formats) | Set-Content .\gdal-formats-win-vector.txt -Force
 
         # Fix windows style paths in gdal-config
         Write-FixShellScriptOnWindows -shellScriptPath "$env:GDAL_INSTALL_DIR\bin\gdal-config" -variableName "CONFIG_DEP_LIBS"
