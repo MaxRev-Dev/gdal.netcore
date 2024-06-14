@@ -28,7 +28,7 @@ foreach ($package in $packages) {
     $packagePath = "$PSScriptRoot/../nuget/$package"
     if (Test-Path -Path $packagePath -PathType Leaf) {
         Write-BuildInfo "[FOUND] Pushing $package"
-        dotnet nuget push $packagePath -s nuget.org -k $env:API_KEY_NUGET --skip-duplicate
+        dotnet nuget push $packagePath -s nuget -k $env:API_KEY_NUGET --skip-duplicate
         dotnet nuget push $packagePath -s github -k $env:API_KEY_GITHUB --skip-duplicate
         Write-BuildStep "Successfully pushed $package"
     }
