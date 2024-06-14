@@ -24,6 +24,7 @@ all: pack
 
 generate-projects:
 	$(MAKE) -f ../unix/generate-projects-makefile RUNTIME_PACKAGE_PARTIAL=${RUNTIME_PACKAGE_PARTIAL} CAT_NAME=$(CAT_NAME) GEOS_VERSION=$(GEOS_VERSION) PACKAGE_BUILD_NUMBER=$(PACKAGE_BUILD_NUMBER)
+	dotnet restore --no-cache
 
 update-targets-no-ver:
 	cd $(PACKAGE_BUILD_ROOT) && \
@@ -59,7 +60,7 @@ pack-bundle-final:
 	
 	cd $(PACKAGE_BUILD_ROOT) && \
 		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.Core -s $(NUGET_) --no-restore
-	
+	dotnet restore --no-cache
 	dotnet pack -c Release -o $(NUGET_) $(RUNTIME_PROJECT_BUNDLE_FINAL)
 
 pack: pack-core pack-runtime

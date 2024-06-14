@@ -77,7 +77,7 @@ jobs:
         run: |
           dotnet add ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Universal --source local.ci --no-restore
           dotnet remove ${{ env.TEST_PROJECT }} package MaxRev.Gdal.Core || echo "no packages to remove"
-          dotnet restore --ignore-failed-sources ${{ env.TEST_PROJECT }}
+          dotnet restore --ignore-failed-sources ${{ env.TEST_PROJECT }} --no-cache
           dotnet test --no-restore ${{ env.TEST_PROJECT }}
       
       - name: Store packages as artifact

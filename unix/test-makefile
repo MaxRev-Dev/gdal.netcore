@@ -17,7 +17,7 @@ all: test
 ###	Testing linux libraries (from nuget build output)
 test-restore:
 	cd $(TEST_TARGET) && \
-		dotnet restore --ignore-failed-sources
+		dotnet restore --ignore-failed-sources --no-cache
 
 test-update:
 	cd $(TEST_TARGET) && \

@@ -11,7 +11,7 @@ test-restore:
 	-cd $(TEST_DIR)
 	-cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests.AzureFunctions" && dotnet remove package MaxRev.Gdal.LinuxRuntime.Minimal 
 	-cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests" && dotnet remove package MaxRev.Gdal.LinuxRuntime.Minimal  
-	-dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_) --ignore-failed-sources
+	-dotnet restore -s "https://api.nuget.org/v3/index.json" -s $(NUGET_) --ignore-failed-sources --no-cache
 	-cd $(MAKEDIR)
 
 test-update:
