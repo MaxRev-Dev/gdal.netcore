@@ -54,6 +54,8 @@ jobs:
             .dotnet/
             vcpkg-archives/
           key: ${{ matrix.os }}-packages-${{ matrix.arch }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ matrix.os }}-packages-${{ matrix.arch }}-
 
       - name: Set up Homebrew
         id: set-up-homebrew

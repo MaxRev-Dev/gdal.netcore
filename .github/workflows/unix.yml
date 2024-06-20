@@ -60,6 +60,8 @@ jobs:
             .dotnet/
             ci/cache/
           key: ${{ matrix.os }}-buildx-${{ matrix.arch }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ matrix.os }}-buildx-${{ matrix.arch }}-
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3
