@@ -105,8 +105,8 @@ patch_vcpkg_triplets:
 	@echo "$$VCPKG_TRIPLET_LINUX_STATIC_RELEASE" > $(VCPKG_ROOT)/custom-triplets/$(VCPKG_RID).cmake
 
 install_packages:
-	@$(foreach pack,$(VCPKG_REQUIRE_UNIX),MAKELEVEL=0 $(VCPKG) install $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL);)
-	@$(foreach pack,$(VCPKG_REQUIRE_UNIX_DYNAMIC),MAKELEVEL=0 $(VCPKG) install $(pack):$(VCPKG_RID)-dynamic  $(VCPKG_PARAMS_INSTALL);)
+	@$(foreach pack,$(VCPKG_REQUIRE_UNIX),MAKELEVEL=0 $(VCPKG) install $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED);)
+	@$(foreach pack,$(VCPKG_REQUIRE_UNIX_DYNAMIC),MAKELEVEL=0 $(VCPKG) install $(pack):$(VCPKG_RID)-dynamic  $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED);)
 
 remove_packages:
 	@$(foreach pack,$(VCPKG_REQUIRE_UNIX),$(VCPKG) remove $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE);)

@@ -53,7 +53,7 @@ jobs:
           path: |
             .dotnet/
             vcpkg-archives/
-          key: ${{ matrix.os }}-packages-${{ matrix.arch }}
+          key: ${{ matrix.os }}-packages-${{ matrix.arch }}-${{ github.run_id }}
 
       - name: Set up Homebrew
         id: set-up-homebrew

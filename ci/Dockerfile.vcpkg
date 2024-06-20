@@ -17,13 +17,17 @@ RUN apt-get update && apt-get install -y \
 RUN pip install cmake --upgrade
 
 # vcpkg repo (change to your local clone of vcpkg)
-COPY build-unix/vcpkg /vcpkg
+COPY ci/cache*/vcpkg-archives* /vcpkg-archives/
+COPY ci/cache*/build*/vcpkg* /vcpkg/
+RUN ls -la /vcpkg-archives/
+RUN ls -la /vcpkg/
+ARG VCPKG_DEFAULT_BINARY_CACHE=/vcpkg-archives/
 
 WORKDIR /vcpkg
 
 # default build args
-ARG BUILD_ARCH=x64
-ARG LINKAGE=static
+ARG BUILD_ARCH=arm64
+ARG LINKAGE=dynamic
 
 ENV VCPKG_FORCE_SYSTEM_BINARIES=1
 RUN ./bootstrap-vcpkg.sh 
@@ -37,4 +41,4 @@ set(VCPKG_CMAKE_SYSTEM_NAME Linux)" > custom-triplets/${BUILD_ARCH}-linux.cmake
 
 RUN cat custom-triplets/${BUILD_ARCH}-linux.cmake
 
-RUN ./vcpkg install openssl:${BUILD_ARCH}-linux  --overlay-triplets=./custom-triplets --editable
+RUN ./vcpkg install hdf5:${BUILD_ARCH}-linux  --overlay-triplets=./custom-triplets --editable

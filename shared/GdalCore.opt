@@ -29,7 +29,7 @@ VCPKG_COMMIT_VER=2024.06.15
 
 # base requirements for both runtimes
 VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" curl
-VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio "openexr[tools]" unixodbc libwebp giflib "hdf5[cpp]" pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]" "sqlite3[tool,rtree]" cryptopp  blosc
+VCPKG_REQUIRE_DYNAMIC=openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio "openexr[tools]" unixodbc libwebp giflib hdf5 pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]" "sqlite3[tool,rtree]" cryptopp  blosc
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj
 VCPKG_REQUIRE_WIN=$(VCPKG_REQUIRE) "sqlite3[tool,rtree]" libiconv lz4 liblzma "libjxl[tools]" blosc cryptopp
@@ -127,4 +127,5 @@ RUNTIME_TARGET_BUNDLE_FINAL_CORE=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_CORE).targ
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx
 GIT_CLONE_DEPTH=--depth=1
+VCPKG_ENSURE_INSTALLED=|| exit 1
 # --------------------- !CONFIG! --------------------

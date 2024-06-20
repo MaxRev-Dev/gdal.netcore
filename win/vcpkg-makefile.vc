@@ -55,9 +55,9 @@ build_cleanup: $(VCPKG_CLEANUP)
 
 install_packages:
 	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
-	 do $(VCPKG) install %p:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL)
+	 do $(VCPKG) install %p:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED)
 	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
-	 do $(VCPKG) install %p:$(VCPKG_RID)-static $(VCPKG_PARAMS_INSTALL)
+	 do $(VCPKG) install %p:$(VCPKG_RID)-static $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED)
 remove:  
 	$(VCPKG) remove $(r):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE)
 remove_packages:
