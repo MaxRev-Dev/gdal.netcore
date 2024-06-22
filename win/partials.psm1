@@ -317,7 +317,7 @@ function Build-CsharpBindings {
 
     $outputPath = exec { & nmake -f collect-deps-makefile.vc get-output }
     
-    Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" $outputPath
+    Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
 
     exec { & nmake -f collect-deps-makefile.vc }
     
@@ -357,6 +357,7 @@ function Get-CollectDeps {
     Write-BuildInfo "Collecting dependent DLLs for $dllFile"
     Write-BuildInfo "LD_LIBRARY_PATH: $ldLibraryPath"
     
+    Write-BuildInfo "Destination directory: $destinationDir"
     if (-Not (Test-Path -Path $destinationDir)) {
         New-Item -ItemType Directory -Path $destinationDir
     }
