@@ -315,7 +315,7 @@ function Build-CsharpBindings {
 
     Set-Location $PSScriptRoot
 
-    $outputPath = exec { & nmake -f collect-deps-makefile.vc get-output }
+    $outputPath = & nmake -f collect-deps-makefile.vc get-output
     
     Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
 
