@@ -317,9 +317,9 @@ function Build-CsharpBindings {
 
     $outputPath = & nmake -f collect-deps-makefile.vc get-output
     
-    Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
-
     exec { & nmake -f collect-deps-makefile.vc }
+
+    Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
     
     Build-GenerateProjectFiles -packageVersion $packageVersion 
 
