@@ -380,7 +380,14 @@ function Get-CollectDeps {
         foreach ($line in $lddLines) {
             if ($line -match "=>\s+(\/[a-z]\/.+\.dll)") {
                 if ($matches.Count -gt 1) {
-                    $dllPath = $matches[1] -replace "/", "\"
+                    $dllPath = $matches[1]
+                    $dllName  = [System.IO.Path]::GetFileName($dllPath)
+                        # if dll name starts with api-, skip it
+                    if ($dllName -match "^api-") {
+                        continue
+                    } 
+
+                    $dllPath = $dllPath -replace "/", "\"
                     
                     # Skip system paths
                     if ($dllPath -notmatch "^\\c\\Windows") {
