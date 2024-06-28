@@ -342,7 +342,7 @@ function Get-CollectDeps {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin") 
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:SDK_PREFIX\bin") 
     Write-BuildInfo "Using DLL directories: $dllDirectories"
     
     # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
@@ -405,13 +405,15 @@ function Get-CollectDeps {
             $fileName = [System.IO.Path]::GetFileName($dllPath)
             $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
 
-            if (-Not (Test-Path -Path $destinationPath)) {
-                Copy-Item -Path $dllPath -Destination $destinationPath -Force
-                Write-Output "$targetDll > Copied: $dllPath to $destinationPath"
-
-                # Recursively find and copy dependent DLLs for the copied DLL
-                Copy-DependentDLLs -dllFile $dllPath -destinationDir $destinationDir
+            if (Test-Path -Path $destinationPath) {
+                Write-BuildWarn "$targetDll > Override: $destinationPath"
             }
+
+            Copy-Item -Path $dllPath -Destination $destinationPath -Force
+            Write-Output "$targetDll > Copied: $dllPath to $destinationPath"
+
+            # Recursively find and copy dependent DLLs for the copied DLL
+            Copy-DependentDLLs -dllFile $dllPath -destinationDir $destinationDir
         }
     }
 
