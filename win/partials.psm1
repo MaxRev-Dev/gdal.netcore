@@ -382,7 +382,8 @@ function Get-CollectDeps {
                 if ($matches.Count -gt 1) {
                     $dllPath = $matches[1]
                     $dllName  = [System.IO.Path]::GetFileName($dllPath)
-                        # if dll name starts with api-, skip it
+                    
+                    # if dll name starts with api-, skip it
                     if ($dllName -match "^api-") {
                         continue
                     } 
@@ -405,15 +406,13 @@ function Get-CollectDeps {
             $fileName = [System.IO.Path]::GetFileName($dllPath)
             $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
 
-            if (Test-Path -Path $destinationPath) {
-                Write-BuildWarn "$targetDll > Override: $destinationPath"
+            if (-Not (Test-Path -Path $destinationPath)) {
+                Copy-Item -Path $dllPath -Destination $destinationPath -Force
+                Write-Output "$targetDll > Copied: $dllPath to $destinationPath"
+
+                # Recursively find and copy dependent DLLs for the copied DLL
+                Copy-DependentDLLs -dllFile $dllPath -destinationDir $destinationDir
             }
-
-            Copy-Item -Path $dllPath -Destination $destinationPath -Force
-            Write-Output "$targetDll > Copied: $dllPath to $destinationPath"
-
-            # Recursively find and copy dependent DLLs for the copied DLL
-            Copy-DependentDLLs -dllFile $dllPath -destinationDir $destinationDir
         }
     }
 
