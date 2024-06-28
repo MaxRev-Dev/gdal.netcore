@@ -43,9 +43,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            .dotnet
+            .dotnet/
             vcpkg-archives/
-          key: ${{ runner.os }}-buildx-${{ matrix.os }}
+          key: ${{ runner.os }}-buildx-${{ matrix.os }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-buildx-
 

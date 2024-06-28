@@ -315,7 +315,11 @@ function Build-CsharpBindings {
 
     Set-Location $PSScriptRoot
 
+    $outputPath = & nmake -f collect-deps-makefile.vc get-output
+    
     exec { & nmake -f collect-deps-makefile.vc }
+
+    Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
     
     Build-GenerateProjectFiles -packageVersion $packageVersion 
 
@@ -326,6 +330,96 @@ function Build-CsharpBindings {
     else {
         exec { & nmake -f publish-makefile.vc pack PACKAGE_BUILD_NUMBER=$packageVersion }
     }
+}
+function Get-CollectDeps {
+    param (
+        [string] $dllFile,
+        [string] $destinationDir
+    ) 
+
+    Set-GdalVariables
+    $env:GDAL_DATA = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
+
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:SDK_PREFIX\bin") 
+    Write-BuildInfo "Using DLL directories: $dllDirectories"
+    
+    # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
+    $ldLibraryPath = ($dllDirectories | ForEach-Object { 
+        $unixPath = $_ -replace "\\", "/" 
+        if ($unixPath -match "^([a-zA-Z]):") {
+            $unixPath = $unixPath -replace "^([a-zA-Z]):", { "/$($matches[1].ToLower())" }
+        }  
+        return $unixPath
+    }) -join ":"
+
+    Write-BuildInfo "Collecting dependent DLLs for $dllFile"
+    Write-BuildInfo "LD_LIBRARY_PATH: $ldLibraryPath"
+    
+    Write-BuildInfo "Destination directory: $destinationDir"
+    if (-Not (Test-Path -Path $destinationDir)) {
+        New-Item -ItemType Directory -Path $destinationDir
+    }
+
+    #& "C:\Program Files\Git\bin\bash.exe" -c "LD_LIBRARY_PATH='$ldLibraryPath' ldd '$dllFile'" 
+
+    # Function to find and copy dependent DLLs recursively
+    function Copy-DependentDLLs {
+        param (
+            [string]$dllFile,
+            [string]$destinationDir
+        )
+        $targetDll = [System.IO.Path]::GetFileName($dllFile)
+        Write-BuildStep "Copying dependent DLLs for $dllFile"
+
+        $lddOutput = & "C:\Program Files\Git\bin\bash.exe" -c "LD_LIBRARY_PATH='$ldLibraryPath' ldd '$dllFile'"
+
+        $lddLines = $lddOutput -split "`n"
+        $dllPaths = @()
+        foreach ($line in $lddLines) {
+            if ($line -match "=>\s+(\/[a-z]\/.+\.dll)") {
+                if ($matches.Count -gt 1) {
+                    $dllPath = $matches[1]
+                    $dllName  = [System.IO.Path]::GetFileName($dllPath)
+                    
+                    # if dll name starts with api-, skip it
+                    if ($dllName -match "^api-") {
+                        continue
+                    } 
+
+                    $dllPath = $dllPath -replace "/", "\"
+                    
+                    # Skip system paths
+                    if ($dllPath -notmatch "^\\c\\Windows") {
+                        if ($dllPath -match "^\\([a-z])\\") {
+                            $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
+                        }  
+                        $dllPaths += $dllPath
+                    }
+                }
+            }
+        }
+
+        # Copy each dependent DLL to the destination directory
+        foreach ($dllPath in $dllPaths) {
+            $fileName = [System.IO.Path]::GetFileName($dllPath)
+            $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
+
+            if (-Not (Test-Path -Path $destinationPath)) {
+                Copy-Item -Path $dllPath -Destination $destinationPath -Force
+                Write-Output "$targetDll > Copied: $dllPath to $destinationPath"
+
+                # Recursively find and copy dependent DLLs for the copied DLL
+                Copy-DependentDLLs -dllFile $dllPath -destinationDir $destinationDir
+            }
+        }
+    }
+
+    # Start the recursive copying process
+    Copy-DependentDLLs -dllFile $dllFile -destinationDir $destinationDir
+
+    Write-BuildInfo "All dependent DLLs have been copied to $destinationDir"
 }
 
 function Write-GdalFormats {
