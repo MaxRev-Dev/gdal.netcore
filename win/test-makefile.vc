@@ -22,7 +22,11 @@ test-update:
 
 test-only: test-restore
 	-cd $(TEST_DIR)
-	dotnet test --no-restore
+!IF "$(ESSENTIAL_ONLY)" == "1"
+	-dotnet test --no-restore --filter GdalDoesNotFailOnMakeValid
+!ELSE
+	-dotnet test --no-restore
+!ENDIF
 	-cd $(MAKEDIR)
 
 test: test-restore test-update test-only

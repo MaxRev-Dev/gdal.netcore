@@ -21,6 +21,10 @@ function Set-GdalVariables {
     $env:DOWNLOADS_DIR = (Get-ForceResolvePath "$env:BUILD_ROOT\downloads") 
     $env:SDK_PREFIX = "$env:BUILD_ROOT\sdk\$env:SDK"
     $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
+    $env:PROJ_SOURCE = "$env:BUILD_ROOT\proj-source"
+    $env:GDAL_DATA = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
     $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"   
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
@@ -127,7 +131,6 @@ function Install-Proj {
             Remove-Item -Path "$env:BUILD_ROOT\proj-build" -Recurse -Force -ErrorAction SilentlyContinue
         }
     }    
-    $env:PROJ_SOURCE = "$env:BUILD_ROOT\proj-source"
     Write-BuildInfo "Checking out PROJ repo..."
 
     Set-Location "$PSScriptRoot"
@@ -308,7 +311,7 @@ function Build-CsharpBindings {
     )
     Set-GdalVariables
     Write-BuildStep "Building GDAL C# bindings"
-    
+    Import-VisualStudioVars
     Set-Location $PSScriptRoot
     
     Write-GdalFormats
@@ -316,7 +319,7 @@ function Build-CsharpBindings {
     Set-Location $PSScriptRoot
 
     $outputPath = & nmake -f collect-deps-makefile.vc get-output
-    
+    Write-BuildInfo "Output path: $outputPath"
     exec { & nmake -f collect-deps-makefile.vc }
 
     Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
@@ -351,7 +354,7 @@ function Get-CollectDeps {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:SDK_PREFIX\bin")
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin")
     Write-BuildInfo "Using DLL directories: $dllDirectories"
     
     $dllFileUnix = Convert-ToUnixPath $dllFile
@@ -370,19 +373,26 @@ function Get-CollectDeps {
 
     # Get the list of dependent DLLs using ldd
     Write-BuildInfo "Dry run ldd command: "
-    & "C:\Program Files\Git\bin\bash.exe" -c "PATH=`$PATH:$ldLibraryPath ldd $dllFileUnix"
-    
-    
+    & "C:\Program Files\Git\bin\bash.exe" -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
+
+    $copiedTracker = @{}
     # Function to find and copy dependent DLLs recursively
     function Copy-DependentDLLs {
         param (
-            [string]$dllFile,
-            [string]$destinationDir
+            [string]$dllFileInternal,
+            [string]$destinationDir,     
+            [string]$overridePath = $null # Optional parameter for path override
         )
-        $targetDll = [System.IO.Path]::GetFileName($dllFile)
-        Write-BuildStep "Copying dependent DLLs for $dllFile"
+        $targetDll = [System.IO.Path]::GetFileName($dllFileInternal)
+        Write-BuildStep "Copying dependent DLLs for $dllFileInternal"
 
-        $lddOutput = & 'C:\Program Files\Git\bin\bash.exe' -c "PATH=`$PATH:$ldLibraryPath ldd $dllFileUnix"
+        # Use overridePath if provided, otherwise use an empty string
+        $combinedPath = if ($overridePath) { $overridePath } else { $ldLibraryPath }
+
+        # Construct the command string
+        $bashCommand = if ($combinedPath) { "PATH=${combinedPath}:`$PATH ldd $dllFileUnix" } else { "ldd $dllFileUnix" }
+
+        $lddOutput = & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCommand"
 
         $lddLines = $lddOutput -split "`n"
         $dllPaths = @()
@@ -390,12 +400,15 @@ function Get-CollectDeps {
             if ($line -match "=>\s+(\/[a-z]\/.+\.dll)") {
                 if ($matches.Count -gt 1) {
                     $dllPath = $matches[1]
-                    $dllName  = [System.IO.Path]::GetFileName($dllPath)
+                    $dllName = [System.IO.Path]::GetFileName($dllPath)
                     
                     # if dll name starts with api-, skip it
                     if ($dllName -match "^api-") {
                         continue
-                    } 
+                    }
+                    if ($dllPath -match "^\/usr\/" -or $dllPath -match "^\/lib\/" -or $dllPath -match "^\/mingw64\/") {
+                        continue
+                    }
 
                     $dllPath = $dllPath -replace "/", "\"
                     
@@ -410,22 +423,30 @@ function Get-CollectDeps {
             }
         }
 
+        $fileName = [System.IO.Path]::GetFileName($dllFileInternal)
+        $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
+        Copy-Item -Path $dllFileInternal -Destination $destinationPath -Force
+        $copiedTracker[$fileName] = $true
+
+        Write-BuildInfo "$dllFileInternal => $dllPaths"
+
         # Copy each dependent DLL to the destination directory
-        foreach ($dllPath in $dllPaths) {
-            $fileName = [System.IO.Path]::GetFileName($dllPath)
+        foreach ($dllPathLocal in $dllPaths) {
+            $fileName = [System.IO.Path]::GetFileName($dllPathLocal)
             $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
-
-            if (-Not (Test-Path -Path $destinationPath)) {
-                Copy-Item -Path $dllPath -Destination $destinationPath -Force
-                Write-Output "$targetDll > Copied: $dllPath to $destinationPath"
-
-                # Recursively find and copy dependent DLLs for the copied DLL
-                Copy-DependentDLLs -dllFile $dllPath -destinationDir $destinationDir
-            }
+            
+            if (-Not (Test-Path -Path $destinationPath) -or (-not $copiedTracker.ContainsKey($fileName))) {
+                Copy-Item -Path $dllPathLocal -Destination $destinationPath -Force
+                Write-Output "$targetDll > Copied: $dllPathLocal to $destinationPath"
+                
+                $copiedTracker[$fileName] = $true
+            }        
         }
     }
 
     # Start the recursive copying process
+    
+    $copiedTracker = @{}
     Copy-DependentDLLs -dllFile $dllFile -destinationDir $destinationDir
 
     Write-BuildInfo "All dependent DLLs have been copied to $destinationDir"
@@ -433,9 +454,6 @@ function Get-CollectDeps {
 
 function Write-GdalFormats {
     Set-GdalVariables
-    $env:GDAL_DATA = "$env:GDAL_INSTALL_DIR\share\gdal"
-    $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
-    $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
     $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
     $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)

@@ -1,6 +1,7 @@
 param (
-    [bool] $preRelease = $true ,
-    [int] $buildNumberTail = 0 
+    [bool] $preRelease = $true,
+    [int] $buildNumberTail = 0,
+    [bool] $essentialOnly = $true
 )
 # reset previous imports
 Remove-Module *
@@ -20,7 +21,7 @@ try {
     Install-PwshModuleRequirements
     
     if (!(Get-Command "nmake" -ErrorAction SilentlyContinue)) {
-        Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
+        Import-VisualStudioVars
     }
 
     $preReleaseArg = ""
@@ -33,7 +34,8 @@ try {
     $buildNumber = $buildNumberTail + 100
     $env:GDAL_PACKAGE_VERSION = "$env:GDAL_VERSION.$buildNumber"
     Write-BuildStep "Executing tests for $env:GDAL_PACKAGE_VERSION"
-    exec { nmake -f "$PSScriptRoot/test-makefile.vc" $preReleaseArg GDAL_VERSION=$env:GDAL_VERSION PACKAGE_BUILD_NUMBER=$buildNumber }
+    $essentialOnlyVal = $essentialOnly ? "1" : "0"
+    exec { nmake -f "$PSScriptRoot/test-makefile.vc" $preReleaseArg GDAL_VERSION=$env:GDAL_VERSION PACKAGE_BUILD_NUMBER=$buildNumber ESSENTIAL_ONLY=$essentialOnlyVal }
 }
 finally {
     Pop-Location -StackName "gdal.netcore|root"
