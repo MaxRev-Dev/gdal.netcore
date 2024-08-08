@@ -331,6 +331,15 @@ function Build-CsharpBindings {
         exec { & nmake -f publish-makefile.vc pack PACKAGE_BUILD_NUMBER=$packageVersion }
     }
 }
+
+function Convert-ToUnixPath($path) {
+    $unixPath = $path -replace "\\", "/" 
+    if ($unixPath -match "^([a-zA-Z]):") {
+        $unixPath = $unixPath -replace "^([a-zA-Z]):", { "/$($matches[1].ToLower())" }
+    }  
+    return $unixPath
+}
+
 function Get-CollectDeps {
     param (
         [string] $dllFile,
@@ -342,28 +351,28 @@ function Get-CollectDeps {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin") 
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:SDK_PREFIX\bin")
     Write-BuildInfo "Using DLL directories: $dllDirectories"
     
+    $dllFileUnix = Convert-ToUnixPath $dllFile
     # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
-    $ldLibraryPath = ($dllDirectories | ForEach-Object { 
-        $unixPath = $_ -replace "\\", "/" 
-        if ($unixPath -match "^([a-zA-Z]):") {
-            $unixPath = $unixPath -replace "^([a-zA-Z]):", { "/$($matches[1].ToLower())" }
-        }  
-        return $unixPath
-    }) -join ":"
+    $ldLibraryPath = ($dllDirectories | ForEach-Object { Convert-ToUnixPath $_ }) -join ":"
 
     Write-BuildInfo "Collecting dependent DLLs for $dllFile"
     Write-BuildInfo "LD_LIBRARY_PATH: $ldLibraryPath"
     
     Write-BuildInfo "Destination directory: $destinationDir"
+    Write-BuildInfo "DLL file unix: $dllFileUnix"
+
     if (-Not (Test-Path -Path $destinationDir)) {
         New-Item -ItemType Directory -Path $destinationDir
     }
 
-    #& "C:\Program Files\Git\bin\bash.exe" -c "LD_LIBRARY_PATH='$ldLibraryPath' ldd '$dllFile'" 
-
+    # Get the list of dependent DLLs using ldd
+    Write-BuildInfo "Dry run ldd command: "
+    & "C:\Program Files\Git\bin\bash.exe" -c "PATH=`$PATH:$ldLibraryPath ldd $dllFileUnix"
+    
+    
     # Function to find and copy dependent DLLs recursively
     function Copy-DependentDLLs {
         param (
@@ -373,7 +382,7 @@ function Get-CollectDeps {
         $targetDll = [System.IO.Path]::GetFileName($dllFile)
         Write-BuildStep "Copying dependent DLLs for $dllFile"
 
-        $lddOutput = & "C:\Program Files\Git\bin\bash.exe" -c "LD_LIBRARY_PATH='$ldLibraryPath' ldd '$dllFile'"
+        $lddOutput = & 'C:\Program Files\Git\bin\bash.exe' -c "PATH=`$PATH:$ldLibraryPath ldd $dllFileUnix"
 
         $lddLines = $lddOutput -split "`n"
         $dllPaths = @()
@@ -382,7 +391,8 @@ function Get-CollectDeps {
                 if ($matches.Count -gt 1) {
                     $dllPath = $matches[1]
                     $dllName  = [System.IO.Path]::GetFileName($dllPath)
-                        # if dll name starts with api-, skip it
+                    
+                    # if dll name starts with api-, skip it
                     if ($dllName -match "^api-") {
                         continue
                     } 
