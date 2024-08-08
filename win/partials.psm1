@@ -362,7 +362,6 @@ function Get-CollectDeps {
     $ldLibraryPath = ($dllDirectories | ForEach-Object { Convert-ToUnixPath $_ }) -join ":"
 
     Write-BuildInfo "Collecting dependent DLLs for $dllFile"
-    Write-BuildInfo "LD_LIBRARY_PATH: $ldLibraryPath"
     
     Write-BuildInfo "Destination directory: $destinationDir"
     Write-BuildInfo "DLL file unix: $dllFileUnix"
@@ -375,7 +374,7 @@ function Get-CollectDeps {
     Write-BuildInfo "Dry run ldd command: "
     & "C:\Program Files\Git\bin\bash.exe" -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
 
-    $copiedTracker = @{}
+    $dllProcessed = @{}
     # Function to find and copy dependent DLLs recursively
     function Copy-DependentDLLs {
         param (
@@ -426,27 +425,24 @@ function Get-CollectDeps {
         $fileName = [System.IO.Path]::GetFileName($dllFileInternal)
         $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
         Copy-Item -Path $dllFileInternal -Destination $destinationPath -Force
-        $copiedTracker[$fileName] = $true
-
-        Write-BuildInfo "$dllFileInternal => $dllPaths"
+        $dllProcessed[$fileName] = $true
+        Write-BuildInfo "Copied main DLL: $dllFileInternal => $dllPaths"
 
         # Copy each dependent DLL to the destination directory
         foreach ($dllPathLocal in $dllPaths) {
             $fileName = [System.IO.Path]::GetFileName($dllPathLocal)
             $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
             
-            if (-Not (Test-Path -Path $destinationPath) -or (-not $copiedTracker.ContainsKey($fileName))) {
+            if (-Not (Test-Path -Path $destinationPath) -or (-not $dllProcessed.ContainsKey($fileName))) {
                 Copy-Item -Path $dllPathLocal -Destination $destinationPath -Force
                 Write-Output "$targetDll > Copied: $dllPathLocal to $destinationPath"
                 
-                $copiedTracker[$fileName] = $true
+                $dllProcessed[$fileName] = $true
             }        
         }
     }
 
     # Start the recursive copying process
-    
-    $copiedTracker = @{}
     Copy-DependentDLLs -dllFile $dllFile -destinationDir $destinationDir
 
     Write-BuildInfo "All dependent DLLs have been copied to $destinationDir"
@@ -457,16 +453,16 @@ function Write-GdalFormats {
 
     $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
     $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
-    $newPath = $originalPath + ";" + ($dllDirectories -join ";")
+    $newPath = ($dllDirectories -join ";") + ";" + $originalPath 
     [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
 
-    $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats") 
+    $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats\formats-win") 
     New-FolderIfNotExists $formats_path
     
     Set-Location "$env:GDAL_INSTALL_DIR\bin" 
     try {
-        (& .\gdalinfo.exe --formats) | Set-Content .\gdal-formats-win-raster.txt -Force
-        (& .\ogrinfo.exe --formats) | Set-Content .\gdal-formats-win-vector.txt -Force
+        (& .\gdalinfo.exe --formats) | Set-Content $formats_path\gdal-formats-win-raster.txt -Force
+        (& .\ogrinfo.exe --formats) | Set-Content $formats_path\gdal-formats-win-vector.txt -Force
 
         # Fix windows style paths in gdal-config
         Write-FixShellScriptOnWindows -shellScriptPath "$env:GDAL_INSTALL_DIR\bin\gdal-config" -variableName "CONFIG_DEP_LIBS"
