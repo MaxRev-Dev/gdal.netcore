@@ -411,8 +411,8 @@ function Get-CollectDeps {
 
                     $dllPath = $dllPath -replace "/", "\"
                     
-                    # Skip system paths
-                    if ($dllPath -notmatch "^\\c\\Windows") {
+                    # Skip system paths and include msodbcsql17.dll
+                    if ($dllPath -notmatch "^\\c\\Windows" -or $dllPath -contains "^msodbcsql17.dll") {
                         if ($dllPath -match "^\\([a-z])\\") {
                             $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
                         }  
