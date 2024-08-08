@@ -1,7 +1,7 @@
 param (
     [bool] $preRelease = $true,
     [int] $buildNumberTail = 0,
-    [bool] $essentialOnly = $true
+    [bool] $essentialOnly = $false
 )
 # reset previous imports
 Remove-Module *
