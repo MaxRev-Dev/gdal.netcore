@@ -113,8 +113,7 @@ install_packages:
 			echo "Error occurred while installing $$pack"; \
 			cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log; \
 			cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log; \
-			exit 1; \
-		fi;) \
+		fi; exit 1) \
 	}; \
 	done
 	@for pack in $(VCPKG_REQUIRE_OSX_DYNAMIC); do \
@@ -123,8 +122,7 @@ install_packages:
 			echo "Error occurred while installing $$pack"; \
 			cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log; \
 			cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log; \
-			exit 1; \
-		fi;) \
+		fi; exit 1) \
 	}; \
 	done
 
