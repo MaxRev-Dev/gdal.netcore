@@ -265,7 +265,7 @@ function Build-Gdal {
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
-        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_INSTALLED" `
+        -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
         -DGDAL_USE_OPENEXR=OFF `
         -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
