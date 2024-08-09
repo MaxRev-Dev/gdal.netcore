@@ -17,13 +17,24 @@ namespace MaxRev.Gdal.Core
         public static bool IsConfigured { get; private set; }
 
         /// <summary>
+        /// Enable or disable assembly validation. Set it before calling <see cref="ConfigureGdalDrivers"/>, which checks for required native libraries are available.
+        /// Can be useful for some cases when you want to load third-party plugins.
+        /// Default is true.
+        /// </summary>
+        public static bool EnableRuntimeValidation { get; set; } = true;
+
+        /// <summary>
         /// Performs search for gdalplugins and calls
         /// <see cref="OSGeo.GDAL.Gdal.AllRegister"/> and <see cref="OSGeo.OGR.Ogr.RegisterAll"/>
         /// <param name="gdalDataFolder">path to set as GDAL_DATA option</param>
         /// </summary>
         public static void ConfigureGdalDrivers(string? gdalDataFolder = null)
         {
-            if (IsConfigured) return;
+            if (IsConfigured) 
+                return;
+
+            if (EnableRuntimeValidation) 
+                AssemblyValidator.AssertRuntimeAvailable();
 
             OSGeo.GDAL.Gdal.AllRegister();
             OSGeo.OGR.Ogr.RegisterAll();

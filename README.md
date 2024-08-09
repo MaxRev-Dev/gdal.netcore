@@ -1,4 +1,4 @@
-# gdal.netcore [![Mentioned in Awesome Geospatial](https://raw.githubusercontent.com/sindresorhus/awesome/main/media/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) 
+# gdal.netcore [![Mentioned in Awesome Geospatial](https://raw.githubusercontent.com/sindresorhus/awesome/main/media/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) [![Made in Ukraine](https://img.shields.io/badge/made_in-Ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua)
 
 [![Linux Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/unix.yml?label=Linux%20Build)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/unix.yml)
 [![MacOS Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/macos.yml?label=MacOS%20Build)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/macos.yml)
@@ -148,6 +148,9 @@ GdalBase.ConfigureAll();
 - Linux x64/arm64 (.NET Framework 4.6.1+, .NET Standard 2.0+, .NET 6/7/8+)
 - MacOS x64/arm64 (.NET Framework 4.6.1+, .NET Standard 2.0+, .NET 6/7/8+)
 
+This means you can **build** .NET Framework applications on Linux/MacOS using Mono.
+Also, any project based on NET Standard 2.0 or higher can utilize this library. 
+
 ## **Using GDAL functions**
 If you're struggling using GDAL functions.
 Here's a good place to start:
@@ -174,7 +177,9 @@ Detailed guide is here - [osx](osx/).
 The package configuration is marked as **minimal**. That means you don't have to install [GDAL binaries](https://gdal.org/download.html#binaries). Also, some uncommon drivers are not available (were not built).
 
 Drivers included PROJ, GEOS, and more than 200 other drivers.
-To view full list of drivers, To view the complete list of drivers, you can view the full list with GDAL's API or see property `DriversInCurrentVersion` [here](tests/MaxRev.Gdal.Core.Tests.XUnit/CommonTests.cs).
+
+To view the complete list of drivers, see: [tests/gdal-formats/supported_drivers.md](tests/gdal-formats/supported_drivers.md).
+
 
 **NOTE**: Runtime drivers availability may differ. Ask me about a specific driver for runtime. Please issue if I need to mention any packages.
 
