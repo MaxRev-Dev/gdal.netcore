@@ -52,7 +52,7 @@ def main(directory):
 
 def save_table_as_markdown(table, output_path):
     note = """
-**Note:**
+**Abbreviations:**
 
 - `r`: Read support
 - `w`: Write support
@@ -72,9 +72,10 @@ Combining these abbreviations, you get:
 
     with open(output_path, "w") as file:
         file.write("# Supported GDAL Drivers\n")
-        file.write(table.to_markdown())
         file.write("\n\n")
         file.write(note)
+        file.write("\n\n")
+        file.write(table.to_markdown())
 
 
 if __name__ == "__main__":
