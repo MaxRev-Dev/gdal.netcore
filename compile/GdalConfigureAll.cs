@@ -25,6 +25,7 @@ namespace MaxRev.Gdal.Core
         {
             if (IsConfigured) return;
 
+            AssemblyValidator.AssertRuntimeAvailable();
             OSGeo.GDAL.Gdal.AllRegister();
             OSGeo.OGR.Ogr.RegisterAll();
 
