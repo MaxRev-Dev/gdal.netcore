@@ -38,9 +38,7 @@ try {
 
     Set-GdalVariables
 
-    Write-BuildStep "Setting Visual Studio Environment"
-    Import-VisualStudioVars -VisualStudioVersion $env:VS_VER -Architecture $env:ARCHITECTURE
-    Write-BuildStep "Visual Studio Environment was initialized"
+    Get-VisualStudioVars
 
     Install-VcpkgPackagesSharedConfig $installVcpkgPackages
 

@@ -21,6 +21,10 @@ function Set-GdalVariables {
     $env:DOWNLOADS_DIR = (Get-ForceResolvePath "$env:BUILD_ROOT\downloads") 
     $env:SDK_PREFIX = "$env:BUILD_ROOT\sdk\$env:SDK"
     $env:GDAL_SOURCE = "$env:BUILD_ROOT\gdal-source"
+    $env:PROJ_SOURCE = "$env:BUILD_ROOT\proj-source"
+    $env:GDAL_DATA = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
+    $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
     $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"   
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
@@ -127,7 +131,6 @@ function Install-Proj {
             Remove-Item -Path "$env:BUILD_ROOT\proj-build" -Recurse -Force -ErrorAction SilentlyContinue
         }
     }    
-    $env:PROJ_SOURCE = "$env:BUILD_ROOT\proj-source"
     Write-BuildInfo "Checking out PROJ repo..."
 
     Set-Location "$PSScriptRoot"
@@ -151,7 +154,7 @@ function Install-Proj {
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
         -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_ROOT\installed\x64-windows" `
+        -DCMAKE_PREFIX_PATH="$env:VCPKG_ROOT\installed\x64-windows;$env:SDK_PREFIX" `
         -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
@@ -262,7 +265,7 @@ function Build-Gdal {
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
-        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_INSTALLED" `
+        -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
         -DGDAL_USE_OPENEXR=OFF `
         -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
@@ -309,13 +312,19 @@ function Build-CsharpBindings {
     Set-GdalVariables
     Write-BuildStep "Building GDAL C# bindings"
     
+    Get-VisualStudioVars
+
     Set-Location $PSScriptRoot
     
     Write-GdalFormats
 
     Set-Location $PSScriptRoot
 
+    $outputPath = & nmake -f collect-deps-makefile.vc get-output
+    Write-BuildInfo "Output path: $outputPath"
     exec { & nmake -f collect-deps-makefile.vc }
+
+    Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
     
     Build-GenerateProjectFiles -packageVersion $packageVersion 
 
@@ -328,24 +337,134 @@ function Build-CsharpBindings {
     }
 }
 
-function Write-GdalFormats {
+function Convert-ToUnixPath($path) {
+    $unixPath = $path -replace "\\", "/" 
+    if ($unixPath -match "^([a-zA-Z]):") {
+        $unixPath = $unixPath -replace "^([a-zA-Z]):", { "/$($matches[1].ToLower())" }
+    }  
+    return $unixPath
+}
+
+# Function to find and copy dependent DLLs recursively
+function Copy-DependentDLLs {
+    param (
+        [string]$dllFileInternal,
+        [string[]]$dllDirectories,
+        [string]$destinationDir,     
+        [string]$overridePath = $null # Optional parameter for path override
+    )
+    $dllProcessed = @{}
+    $targetDll = [System.IO.Path]::GetFileName($dllFileInternal)
+    Write-BuildStep "Copying dependent DLLs for $dllFileInternal"
+    Write-BuildInfo "DLL file unix: $dllFileUnix"
+    # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
+    $ldLibraryPath = ($dllDirectories | ForEach-Object { Convert-ToUnixPath $_ }) -join ":"
+    # Use overridePath if provided, otherwise use an empty string
+    $combinedPath = if ($overridePath) { "${overridePath}:${ldLibraryPath}" } else { $ldLibraryPath }
+
+    $dllFileUnix = Convert-ToUnixPath $dllFile
+    # Construct the LDD string
+    $bashCommand = if ($combinedPath) { "PATH=${combinedPath}:`$PATH ldd $dllFileUnix" } else { "ldd $dllFileUnix" }
+
+    $lddOutput = & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCommand"
+
+    $lddLines = $lddOutput -split "`n"
+    $dllPaths = @()
+    foreach ($line in $lddLines) {
+        if ($line -match "=>\s+(\/[a-z]\/.+\.dll)") {
+            if ($matches.Count -gt 1) {
+                $dllPath = $matches[1]
+                $dllName = [System.IO.Path]::GetFileName($dllPath)
+                    
+                # we don't need system DLLs, so drop 'em if name starts with api-
+                if ($dllName -match "^api-") {
+                    continue
+                }
+                # mingw64, lib, usr are also system paths, so skip them
+                if ($dllPath -match "^\/usr\/" -or $dllPath -match "^\/lib\/" -or $dllPath -match "^\/mingw64\/") {
+                    continue
+                }
+
+                $dllPath = $dllPath -replace "/", "\"
+                    
+                # Skip system paths and include msodbcsql17.dll
+                if ($dllPath -notmatch "^\\c\\Windows" -or $dllPath -contains "^msodbcsql17.dll") {
+                    if ($dllPath -match "^\\([a-z])\\") {
+                        $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
+                    }  
+                    $dllPaths += $dllPath
+                }
+            }
+        }
+    }
+
+    $fileName = [System.IO.Path]::GetFileName($dllFileInternal)
+    $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
+    Copy-Item -Path $dllFileInternal -Destination $destinationPath -Force
+    $dllProcessed[$fileName] = $true
+    Write-BuildInfo "Copied main DLL: $dllFileInternal => $dllPaths"
+
+    # Copy each dependent DLL to the destination directory
+    foreach ($dllPathLocal in $dllPaths) {
+        $fileName = [System.IO.Path]::GetFileName($dllPathLocal)
+        $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
+            
+        if (-Not (Test-Path -Path $destinationPath) -or (-not $dllProcessed.ContainsKey($fileName))) {
+            Copy-Item -Path $dllPathLocal -Destination $destinationPath -Force
+            Write-Output "$targetDll > Copied: $dllPathLocal to $destinationPath"
+                
+            $dllProcessed[$fileName] = $true
+        }        
+    }
+}
+
+function Get-CollectDeps {
+    param (
+        [string] $dllFile,
+        [string] $destinationDir
+    ) 
+
     Set-GdalVariables
     $env:GDAL_DATA = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin")
+    Write-BuildInfo "Using DLL directories: $dllDirectories"
+
+    Write-BuildInfo "Collecting dependent DLLs for $dllFile"
+    
+    Write-BuildInfo "Destination directory: $destinationDir"
+
+    if (-Not (Test-Path -Path $destinationDir)) {
+        New-Item -ItemType Directory -Path $destinationDir
+    }
+
+    # Get the list of dependent DLLs using ldd
+    Write-BuildInfo "Dry run ldd command: "
+    & "C:\Program Files\Git\bin\bash.exe" -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
+
+    # Start the recursive copying process
+    Copy-DependentDLLs -dllFileInternal $dllFile -destinationDir $destinationDir -dllDirectories $dllDirectories
+
+    Write-BuildInfo "All dependent DLLs have been copied to $destinationDir"
+}
+
+function Write-GdalFormats {
+    Set-GdalVariables
+
     $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
     $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
-    $newPath = $originalPath + ";" + ($dllDirectories -join ";")
+    $newPath = ($dllDirectories -join ";") + ";" + $originalPath 
     [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
 
-    $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats") 
+    $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats\formats-win") 
     New-FolderIfNotExists $formats_path
     
     Set-Location "$env:GDAL_INSTALL_DIR\bin" 
     try {
-        (& .\gdalinfo.exe --formats) | Set-Content .\gdal-formats-win-raster.txt -Force
-        (& .\ogrinfo.exe --formats) | Set-Content .\gdal-formats-win-vector.txt -Force
+        (& .\gdalinfo.exe --formats) | Set-Content $formats_path\gdal-formats-win-raster.txt -Force
+        (& .\ogrinfo.exe --formats) | Set-Content $formats_path\gdal-formats-win-vector.txt -Force
 
         # Fix windows style paths in gdal-config
         Write-FixShellScriptOnWindows -shellScriptPath "$env:GDAL_INSTALL_DIR\bin\gdal-config" -variableName "CONFIG_DEP_LIBS"
