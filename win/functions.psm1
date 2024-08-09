@@ -116,6 +116,14 @@ function Set-ReplaceContentInFilesByRegex {
     }
 }
 
+function Get-VisualStudioVars {
+    if (!(Get-Command "nmake" -ErrorAction SilentlyContinue)) {
+        Write-BuildStep "Setting Visual Studio Environment"
+        Import-VisualStudioVars
+        Write-BuildStep "Visual Studio Environment was initialized"
+    }
+}
+
 function Reset-PsSession { 
     # clear current session as i'm testing this on a windows 11 machine. 
     Remove-Variable * -ErrorAction SilentlyContinue; 

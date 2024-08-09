@@ -19,10 +19,8 @@ try {
     Set-GdalVariables
 
     Install-PwshModuleRequirements
-    
-    if (!(Get-Command "nmake" -ErrorAction SilentlyContinue)) {
-        Import-VisualStudioVars
-    }
+
+    Get-VisualStudioVars
 
     $preReleaseArg = ""
     if ($preRelease){

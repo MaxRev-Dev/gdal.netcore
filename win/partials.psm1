@@ -154,7 +154,7 @@ function Install-Proj {
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
         -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-        -DCMAKE_PREFIX_PATH="$env:SDK_PREFIX;$env:VCPKG_ROOT\installed\x64-windows" `
+        -DCMAKE_PREFIX_PATH="$env:VCPKG_ROOT\installed\x64-windows;$env:SDK_PREFIX" `
         -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
@@ -311,7 +311,9 @@ function Build-CsharpBindings {
     )
     Set-GdalVariables
     Write-BuildStep "Building GDAL C# bindings"
-    Import-VisualStudioVars
+    
+    Get-VisualStudioVars
+
     Set-Location $PSScriptRoot
     
     Write-GdalFormats
@@ -343,6 +345,79 @@ function Convert-ToUnixPath($path) {
     return $unixPath
 }
 
+# Function to find and copy dependent DLLs recursively
+function Copy-DependentDLLs {
+    param (
+        [string]$dllFileInternal,
+        [string[]]$dllDirectories,
+        [string]$destinationDir,     
+        [string]$overridePath = $null # Optional parameter for path override
+    )
+    $dllProcessed = @{}
+    $targetDll = [System.IO.Path]::GetFileName($dllFileInternal)
+    Write-BuildStep "Copying dependent DLLs for $dllFileInternal"
+    Write-BuildInfo "DLL file unix: $dllFileUnix"
+    # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
+    $ldLibraryPath = ($dllDirectories | ForEach-Object { Convert-ToUnixPath $_ }) -join ":"
+    # Use overridePath if provided, otherwise use an empty string
+    $combinedPath = if ($overridePath) { "${overridePath}:${ldLibraryPath}" } else { $ldLibraryPath }
+
+    $dllFileUnix = Convert-ToUnixPath $dllFile
+    # Construct the LDD string
+    $bashCommand = if ($combinedPath) { "PATH=${combinedPath}:`$PATH ldd $dllFileUnix" } else { "ldd $dllFileUnix" }
+
+    $lddOutput = & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCommand"
+
+    $lddLines = $lddOutput -split "`n"
+    $dllPaths = @()
+    foreach ($line in $lddLines) {
+        if ($line -match "=>\s+(\/[a-z]\/.+\.dll)") {
+            if ($matches.Count -gt 1) {
+                $dllPath = $matches[1]
+                $dllName = [System.IO.Path]::GetFileName($dllPath)
+                    
+                # we don't need system DLLs, so drop 'em if name starts with api-
+                if ($dllName -match "^api-") {
+                    continue
+                }
+                # mingw64, lib, usr are also system paths, so skip them
+                if ($dllPath -match "^\/usr\/" -or $dllPath -match "^\/lib\/" -or $dllPath -match "^\/mingw64\/") {
+                    continue
+                }
+
+                $dllPath = $dllPath -replace "/", "\"
+                    
+                # Skip system paths and include msodbcsql17.dll
+                if ($dllPath -notmatch "^\\c\\Windows" -or $dllPath -contains "^msodbcsql17.dll") {
+                    if ($dllPath -match "^\\([a-z])\\") {
+                        $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
+                    }  
+                    $dllPaths += $dllPath
+                }
+            }
+        }
+    }
+
+    $fileName = [System.IO.Path]::GetFileName($dllFileInternal)
+    $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
+    Copy-Item -Path $dllFileInternal -Destination $destinationPath -Force
+    $dllProcessed[$fileName] = $true
+    Write-BuildInfo "Copied main DLL: $dllFileInternal => $dllPaths"
+
+    # Copy each dependent DLL to the destination directory
+    foreach ($dllPathLocal in $dllPaths) {
+        $fileName = [System.IO.Path]::GetFileName($dllPathLocal)
+        $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
+            
+        if (-Not (Test-Path -Path $destinationPath) -or (-not $dllProcessed.ContainsKey($fileName))) {
+            Copy-Item -Path $dllPathLocal -Destination $destinationPath -Force
+            Write-Output "$targetDll > Copied: $dllPathLocal to $destinationPath"
+                
+            $dllProcessed[$fileName] = $true
+        }        
+    }
+}
+
 function Get-CollectDeps {
     param (
         [string] $dllFile,
@@ -354,17 +429,12 @@ function Get-CollectDeps {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin")
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:SDK_PREFIX\bin")
     Write-BuildInfo "Using DLL directories: $dllDirectories"
-    
-    $dllFileUnix = Convert-ToUnixPath $dllFile
-    # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
-    $ldLibraryPath = ($dllDirectories | ForEach-Object { Convert-ToUnixPath $_ }) -join ":"
 
     Write-BuildInfo "Collecting dependent DLLs for $dllFile"
     
     Write-BuildInfo "Destination directory: $destinationDir"
-    Write-BuildInfo "DLL file unix: $dllFileUnix"
 
     if (-Not (Test-Path -Path $destinationDir)) {
         New-Item -ItemType Directory -Path $destinationDir
@@ -374,76 +444,8 @@ function Get-CollectDeps {
     Write-BuildInfo "Dry run ldd command: "
     & "C:\Program Files\Git\bin\bash.exe" -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
 
-    $dllProcessed = @{}
-    # Function to find and copy dependent DLLs recursively
-    function Copy-DependentDLLs {
-        param (
-            [string]$dllFileInternal,
-            [string]$destinationDir,     
-            [string]$overridePath = $null # Optional parameter for path override
-        )
-        $targetDll = [System.IO.Path]::GetFileName($dllFileInternal)
-        Write-BuildStep "Copying dependent DLLs for $dllFileInternal"
-
-        # Use overridePath if provided, otherwise use an empty string
-        $combinedPath = if ($overridePath) { $overridePath } else { $ldLibraryPath }
-
-        # Construct the command string
-        $bashCommand = if ($combinedPath) { "PATH=${combinedPath}:`$PATH ldd $dllFileUnix" } else { "ldd $dllFileUnix" }
-
-        $lddOutput = & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCommand"
-
-        $lddLines = $lddOutput -split "`n"
-        $dllPaths = @()
-        foreach ($line in $lddLines) {
-            if ($line -match "=>\s+(\/[a-z]\/.+\.dll)") {
-                if ($matches.Count -gt 1) {
-                    $dllPath = $matches[1]
-                    $dllName = [System.IO.Path]::GetFileName($dllPath)
-                    
-                    # if dll name starts with api-, skip it
-                    if ($dllName -match "^api-") {
-                        continue
-                    }
-                    if ($dllPath -match "^\/usr\/" -or $dllPath -match "^\/lib\/" -or $dllPath -match "^\/mingw64\/") {
-                        continue
-                    }
-
-                    $dllPath = $dllPath -replace "/", "\"
-                    
-                    # Skip system paths and include msodbcsql17.dll
-                    if ($dllPath -notmatch "^\\c\\Windows" -or $dllPath -contains "^msodbcsql17.dll") {
-                        if ($dllPath -match "^\\([a-z])\\") {
-                            $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
-                        }  
-                        $dllPaths += $dllPath
-                    }
-                }
-            }
-        }
-
-        $fileName = [System.IO.Path]::GetFileName($dllFileInternal)
-        $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
-        Copy-Item -Path $dllFileInternal -Destination $destinationPath -Force
-        $dllProcessed[$fileName] = $true
-        Write-BuildInfo "Copied main DLL: $dllFileInternal => $dllPaths"
-
-        # Copy each dependent DLL to the destination directory
-        foreach ($dllPathLocal in $dllPaths) {
-            $fileName = [System.IO.Path]::GetFileName($dllPathLocal)
-            $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
-            
-            if (-Not (Test-Path -Path $destinationPath) -or (-not $dllProcessed.ContainsKey($fileName))) {
-                Copy-Item -Path $dllPathLocal -Destination $destinationPath -Force
-                Write-Output "$targetDll > Copied: $dllPathLocal to $destinationPath"
-                
-                $dllProcessed[$fileName] = $true
-            }        
-        }
-    }
-
     # Start the recursive copying process
-    Copy-DependentDLLs -dllFile $dllFile -destinationDir $destinationDir
+    Copy-DependentDLLs -dllFileInternal $dllFile -destinationDir $destinationDir -dllDirectories $dllDirectories
 
     Write-BuildInfo "All dependent DLLs have been copied to $destinationDir"
 }
