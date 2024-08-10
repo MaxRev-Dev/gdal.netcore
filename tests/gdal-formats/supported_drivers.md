@@ -1,4 +1,25 @@
 # Supported GDAL Drivers
+
+
+
+**Abbreviations:**
+
+- `r`: Read support
+- `w`: Write support
+- `+`: Update (read/write) support
+- `v`: Supports virtual IO operations (like reading from `/vsimem`, `/vsicurl`, etc.)
+- `s`: Supports subdatasets
+- `o`: Optional features
+
+Combining these abbreviations, you get:
+
+- `ro`: Read-only support
+- `rw`: Read and write support
+- `rw+`: Read, write, and update support
+- `rovs`: Read-only support with virtual IO and subdataset support
+- `rw+v`: Read, write, update support with virtual IO
+
+
 |                 | osx (raster)   | unix (raster)   | win (raster)   | osx (vector)   | unix (vector)   | win (vector)   |
 |:----------------|:---------------|:----------------|:---------------|:---------------|:----------------|:---------------|
 | AAIGrid         | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
@@ -212,21 +233,3 @@
 | ZMap            | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | Zarr            | rw+vs          | rw+vs           | rw+vs          | ✗              | ✗               | ✗              |
 | netCDF          | rw+s           | rw+s            | rw+s           | rw+s           | rw+s            | rw+s           |
-
-
-**Note:**
-
-- `r`: Read support
-- `w`: Write support
-- `+`: Update (read/write) support
-- `v`: Supports virtual IO operations (like reading from `/vsimem`, `/vsicurl`, etc.)
-- `s`: Supports subdatasets
-- `o`: Optional features
-
-Combining these abbreviations, you get:
-
-- `ro`: Read-only support
-- `rw`: Read and write support
-- `rw+`: Read, write, and update support
-- `rovs`: Read-only support with virtual IO and subdataset support
-- `rw+v`: Read, write, update support with virtual IO
