@@ -34,9 +34,6 @@ update-targets:
 	cd $(PACKAGE_BUILD_ROOT) && \
 		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal$(BUILD_ARCH_SUFFIX) \
 			--no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
-	cd $(PACKAGE_BUILD_ROOT) && \
-		dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.Core \
-			--no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
 
 pack-core: generate-projects
 	dotnet pack -c Release -o $(NUGET_) $(GDALCORE_PROJECT_FINAL)
