@@ -356,13 +356,13 @@ function Copy-DependentDLLs {
     $dllProcessed = @{}
     $targetDll = [System.IO.Path]::GetFileName($dllFileInternal)
     Write-BuildStep "Copying dependent DLLs for $dllFileInternal"
-    Write-BuildInfo "DLL file unix: $dllFileUnix"
     # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
     $ldLibraryPath = ($dllDirectories | ForEach-Object { Convert-ToUnixPath $_ }) -join ":"
     # Use overridePath if provided, otherwise use an empty string
     $combinedPath = if ($overridePath) { "${overridePath}:${ldLibraryPath}" } else { $ldLibraryPath }
 
     $dllFileUnix = Convert-ToUnixPath $dllFile
+    Write-BuildInfo "DLL file unix: $dllFileUnix"
     
     # Get the list of dependent DLLs using ldd
     Write-BuildInfo "Dry run ldd command: "
@@ -392,11 +392,13 @@ function Copy-DependentDLLs {
 
                 $dllPath = $dllPath -replace "/", "\"
                     
-                # Skip system paths and include msodbcsql17.dll
-                if ($dllPath -notmatch "^\\c\\Windows" -or $dllPath -contains "^msodbcsql17.dll") {
+                # Skip system paths and include msodbcsql17.dll and other specific DLLs
+                $dllsToRestore = ("msodbcsql17.dll", "OpenCL.dll")
+                if ($dllPath -notmatch "^\\c\\Windows" -or $dllsToRestore.Contains($dllName)) {
                     if ($dllPath -match "^\\([a-z])\\") {
                         $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
                     }  
+                    Write-BuildInfo "Found candidate for copy: $dllPath"
                     $dllPaths += $dllPath
                 }
             }
