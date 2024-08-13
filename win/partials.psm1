@@ -363,10 +363,15 @@ function Copy-DependentDLLs {
     $combinedPath = if ($overridePath) { "${overridePath}:${ldLibraryPath}" } else { $ldLibraryPath }
 
     $dllFileUnix = Convert-ToUnixPath $dllFile
+    
+    # Get the list of dependent DLLs using ldd
+    Write-BuildInfo "Dry run ldd command: "
+    & $env:GitBash -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
+    
     # Construct the LDD string
     $bashCommand = if ($combinedPath) { "PATH=${combinedPath}:`$PATH ldd $dllFileUnix" } else { "ldd $dllFileUnix" }
 
-    $lddOutput = & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCommand"
+    $lddOutput = & $env:GitBash -c "$bashCommand"
 
     $lddLines = $lddOutput -split "`n"
     $dllPaths = @()
@@ -439,10 +444,6 @@ function Get-CollectDeps {
     if (-Not (Test-Path -Path $destinationDir)) {
         New-Item -ItemType Directory -Path $destinationDir
     }
-
-    # Get the list of dependent DLLs using ldd
-    Write-BuildInfo "Dry run ldd command: "
-    & "C:\Program Files\Git\bin\bash.exe" -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
 
     # Start the recursive copying process
     Copy-DependentDLLs -dllFileInternal $dllFile -destinationDir $destinationDir -dllDirectories $dllDirectories
