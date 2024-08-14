@@ -356,17 +356,22 @@ function Copy-DependentDLLs {
     $dllProcessed = @{}
     $targetDll = [System.IO.Path]::GetFileName($dllFileInternal)
     Write-BuildStep "Copying dependent DLLs for $dllFileInternal"
-    Write-BuildInfo "DLL file unix: $dllFileUnix"
     # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
     $ldLibraryPath = ($dllDirectories | ForEach-Object { Convert-ToUnixPath $_ }) -join ":"
     # Use overridePath if provided, otherwise use an empty string
     $combinedPath = if ($overridePath) { "${overridePath}:${ldLibraryPath}" } else { $ldLibraryPath }
 
     $dllFileUnix = Convert-ToUnixPath $dllFile
+    Write-BuildInfo "DLL file unix: $dllFileUnix"
+    
+    # Get the list of dependent DLLs using ldd
+    Write-BuildInfo "Dry run ldd command: "
+    & $env:GitBash -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
+    
     # Construct the LDD string
     $bashCommand = if ($combinedPath) { "PATH=${combinedPath}:`$PATH ldd $dllFileUnix" } else { "ldd $dllFileUnix" }
 
-    $lddOutput = & 'C:\Program Files\Git\bin\bash.exe' -c "$bashCommand"
+    $lddOutput = & $env:GitBash -c "$bashCommand"
 
     $lddLines = $lddOutput -split "`n"
     $dllPaths = @()
@@ -387,11 +392,13 @@ function Copy-DependentDLLs {
 
                 $dllPath = $dllPath -replace "/", "\"
                     
-                # Skip system paths and include msodbcsql17.dll
-                if ($dllPath -notmatch "^\\c\\Windows" -or $dllPath -contains "^msodbcsql17.dll") {
+                # Skip system paths and include msodbcsql17.dll and other specific DLLs
+                $dllsToRestore = ("msodbcsql17.dll", "OpenCL.dll")
+                if ($dllPath -notmatch "^\\c\\Windows" -or $dllsToRestore.Contains($dllName)) {
                     if ($dllPath -match "^\\([a-z])\\") {
                         $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
                     }  
+                    Write-BuildInfo "Found candidate for copy: $dllPath"
                     $dllPaths += $dllPath
                 }
             }
@@ -439,10 +446,6 @@ function Get-CollectDeps {
     if (-Not (Test-Path -Path $destinationDir)) {
         New-Item -ItemType Directory -Path $destinationDir
     }
-
-    # Get the list of dependent DLLs using ldd
-    Write-BuildInfo "Dry run ldd command: "
-    & "C:\Program Files\Git\bin\bash.exe" -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
 
     # Start the recursive copying process
     Copy-DependentDLLs -dllFileInternal $dllFile -destinationDir $destinationDir -dllDirectories $dllDirectories
