@@ -436,7 +436,7 @@ function Get-CollectDeps {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", $env:VCToolsRedistDir + "x64\")
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin")
     Write-BuildInfo "Using DLL directories: $dllDirectories"
 
     Write-BuildInfo "Collecting dependent DLLs for $dllFile"
