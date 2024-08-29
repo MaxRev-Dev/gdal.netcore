@@ -37,6 +37,6 @@ collect: collect_bindings copyprojdb
 # 	remove SDK dlls that are not needed
 	$(DEL_FILE) "$(OUTPUT)\gdal*.dll"
 	$(COPY) "$(abspath $(BUILD_ROOT)\gdal-build\share\csharp)\*_wrap.dll" "$(OUTPUT)\"
-	$(COPY_I) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).CRT\*.dll" "$(OUTPUT)\"
-	
 	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" )
+	
+#	$(COPY_I) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).CRT\*.dll" "$(OUTPUT)\"
