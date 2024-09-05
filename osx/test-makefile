@@ -10,7 +10,7 @@ TEST_TARGET=$(TEST_DIR_APP)
 CMD_TYPE=dotnet run
 endif
 
-MISSING_PACKAGES=MaxRev.Gdal.LinuxRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal
+MISSING_PACKAGES=MaxRev.Gdal.LinuxRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal MaxRev.Gdal.Universal
 
 any: test
 
@@ -20,13 +20,13 @@ test-restore:
 		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests.AzureFunctions" && dotnet remove package $$v &> /dev/null; \
 		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests" && dotnet remove package $$v &> /dev/null;  \
 	done;
-	cd $(TEST_TARGET) && \
+	-cd $(TEST_TARGET) && \
 		dotnet restore --ignore-failed-sources
 
 test-update:
-	cd $(TEST_TARGET) && \
+	-cd $(TEST_TARGET) && \
 		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) --no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_)
-	cd $(TEST_TARGET) && \
+	-cd $(TEST_TARGET) && \
 		dotnet add package MaxRev.Gdal.Core  --no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_)
 
 test-only: test-restore
