@@ -78,11 +78,11 @@ reset_%:
 init_hdf: check_hdf_sources
 	@echo "$(TO) HDF sources restore complete"
 
-HDF_zip=CMake-hdf-$(HDF_VERSION).zip
+HDF_zip=hdf$(HDF_VERSION).zip
 HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)/hdf-$(HDF_VERSION)
 
 download_hdf:
-	curl -o "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/hdf$(HDF_VERSION).zip"
+	curl -OL "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/$(HDF_zip)"
 	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d .
 
 check_hdf_sources:
