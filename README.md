@@ -1,8 +1,5 @@
-# gdal.netcore [![Mentioned in Awesome Geospatial](https://raw.githubusercontent.com/sindresorhus/awesome/main/media/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) [![Made in Ukraine](https://img.shields.io/badge/made_in-Ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua)
+# gdal.netcore [![Mentioned in Awesome Geospatial](https://raw.githubusercontent.com/sindresorhus/awesome/main/media/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) [![Made in Ukraine](https://img.shields.io/badge/made_in-Ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua) ![Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/main.yml?branch=main)
 
-[![Linux Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/unix.yml?label=Linux%20Build)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/unix.yml)
-[![MacOS Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/macos.yml?label=MacOS%20Build)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/macos.yml)
-[![Windows Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/windows.yml?label=Windows%20Build)](https://github.com/MaxRev-Dev/gdal.netcore/actions/workflows/windows.yml)
 
 A simple (as is) build engine of [GDAL](https://gdal.org/) library for [.NET](https://dotnet.microsoft.com/download). 
 
