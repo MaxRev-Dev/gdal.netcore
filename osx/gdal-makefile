@@ -78,12 +78,12 @@ reset_%:
 init_hdf: check_hdf_sources
 	@echo "$(TO) HDF sources restore complete"
 
-HDF_zip=CMake-hdf-$(HDF_VERSION).zip
-HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)/hdf-$(HDF_VERSION)
+HDF_zip=hdf$(HDF_VERSION).zip
+HDF_SOURCE=$(BUILD_ROOT)/hdf-$(HDF_VERSION)/hdfsrc
 
 download_hdf:
-	curl -o "$(BUILD_ROOT)/$(HDF_zip)" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF$(HDF_VERSION)/src/$(HDF_zip)"
-	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d .
+	curl -L -o "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/$(HDF_zip)"
+	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d "$(BUILD_ROOT)/hdf-$(HDF_VERSION)"
 
 check_hdf_sources:
 	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
@@ -143,7 +143,7 @@ configure_gdal:
 		-DHDF4_INCLUDE_DIR=$(BUILD_ROOT)/hdf-build/include \
 		-DHDF4_df_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libhdf.dylib \
 		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.dylib \
-		-DHDF4_xdr_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libxdr.dylib \
+		-DHDF4_COMPONENTS="df;mfhdf;szip" \
 		-DOpenEXR_HALF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libImath-3_1.dylib \
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
 		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.dylib \
