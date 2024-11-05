@@ -79,11 +79,11 @@ init_hdf: check_hdf_sources
 	@echo "$(TO) HDF sources restore complete"
 
 HDF_zip=hdf$(HDF_VERSION).zip
-HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)/hdf-$(HDF_VERSION)
+HDF_SOURCE=$(BUILD_ROOT)/hdf-$(HDF_VERSION)/hdfsrc
 
 download_hdf:
 	curl -L -o "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/$(HDF_zip)"
-	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d .
+	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d "$(BUILD_ROOT)/hdf-$(HDF_VERSION)"
 
 check_hdf_sources:
 	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
