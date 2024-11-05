@@ -82,7 +82,7 @@ HDF_zip=hdf$(HDF_VERSION).zip
 HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)/hdf-$(HDF_VERSION)
 
 download_hdf:
-	curl -OL "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/$(HDF_zip)"
+	curl -o -L "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/$(HDF_zip)"
 	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d .
 
 check_hdf_sources:
