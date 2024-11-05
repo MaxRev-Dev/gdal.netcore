@@ -19,6 +19,7 @@ test-restore:
 	-@for v in $(MISSING_PACKAGES); do \
 		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests.AzureFunctions" && dotnet remove package $$v &> /dev/null; \
 		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests" && dotnet remove package $$v &> /dev/null;  \
+		cd "$(TEST_DIR)/../MaxRev.Gdal.Core.Tests.XUnit" && dotnet remove package $$v &> /dev/null;  \
 	done;
 	-cd $(TEST_TARGET) && \
 		dotnet restore --ignore-failed-sources
