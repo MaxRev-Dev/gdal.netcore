@@ -38,5 +38,5 @@ test-only: test-restore
 	cd $(TEST_TARGET) && \
 		$(CMD_TYPE) --no-restore $(TEST_DIR)/*.csproj
 
-test: test-update test-restore test-only
+test: test-restore test-update test-only
 	@exit 0
