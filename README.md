@@ -1,4 +1,4 @@
-# gdal.netcore [![Mentioned in Awesome Geospatial](https://raw.githubusercontent.com/sindresorhus/awesome/main/media/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) [![Made in Ukraine](https://img.shields.io/badge/made_in-Ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua) ![Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/main.yml?branch=main)
+# gdal.netcore [![Mentioned in Awesome Geospatial](https://raw.githubusercontent.com/sindresorhus/awesome/main/media/mentioned-badge.svg)](https://github.com/sacridini/Awesome-Geospatial) [![Made in Ukraine](https://img.shields.io/badge/made_in-Ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua) ![Build](https://img.shields.io/github/actions/workflow/status/MaxRev-Dev/gdal.netcore/main.yml?branch=main&link=https%3A%2F%2Fgithub.com%2FMaxRev-Dev%2Fgdal.netcore%2Factions%2Fworkflows%2Fmain.yml)
 
 
 A simple (as is) build engine of [GDAL](https://gdal.org/) library for [.NET](https://dotnet.microsoft.com/download). 
