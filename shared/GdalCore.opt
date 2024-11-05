@@ -97,6 +97,7 @@ NUGET_=$(ROOTDIR_)/nuget
 ### Shared .NET Core Tests
 TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.XUnit
 TEST_DIR_APP=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests
+TEST_TARGET_AZ=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.AzureFunctions
 TEST_FORMATS_OUTPUT=$(ROOTDIR_)/tests/gdal-formats
 
 # Templates for project files
