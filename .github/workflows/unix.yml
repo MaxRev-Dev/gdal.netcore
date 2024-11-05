@@ -184,7 +184,7 @@ jobs:
 
       - name: Test packages
         run: |
-          docker run \
+          docker run --rm \
             --env BUILD_NUMBER_TAIL=${{ github.run_number }} \
             --env BUILD_ARCH=${{ matrix.arch }} \
             --env PRERELEASE=${{ env.IS_PRE_RELEASE }} \
