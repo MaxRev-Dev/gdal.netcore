@@ -2,9 +2,12 @@ name: Bundle packages
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: 
+      - main
+      - v*.*.*
   push:
-    branches: [ main ]
+    branches: 
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,7 +16,7 @@ concurrency:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   DOTNET_VERSION: '8.0.x'
-  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
+  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || !contains(github.ref, 'hotfix/') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 jobs:
   LinuxBuild:
@@ -108,7 +111,7 @@ jobs:
           tag: 'v${{ env.PACKAGES_VERSION }} --force'
 
       - name: Push packages
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{  github.event.pull_request.merged == true && (github.ref == 'refs/heads/main' || contains(github.ref, 'hotfix/')) }}
         run: |
           make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
             BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
