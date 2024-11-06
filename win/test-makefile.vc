@@ -15,6 +15,10 @@ test-restore:
 	-cd $(MAKEDIR)
 
 test-update:
+	-cd $(TEST_TARGET_AZ)
+	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
+	-cd $(TEST_DIR_APP)
+	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
 	-cd $(TEST_DIR)
 	-dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) 
 	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_)
