@@ -4,11 +4,10 @@ on:
   pull_request:
     branches: 
       - main
-      - hotfix/*
+      - v*.*.*
   push:
     branches: 
       - main
-      - hotfix/*
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
