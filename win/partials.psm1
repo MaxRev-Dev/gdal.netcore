@@ -338,10 +338,13 @@ function Build-CsharpBindings {
 }
 
 function Convert-ToUnixPath($path) {
-    $unixPath = $path -replace "\\", "/" 
+    $unixPath = $path -replace "\\", "/"
     if ($unixPath -match "^([a-zA-Z]):") {
         $unixPath = $unixPath -replace "^([a-zA-Z]):", { "/$($matches[1].ToLower())" }
-    }  
+    }
+    if ($unixPath -match "\s") {
+        $unixPath = "`"$unixPath`""
+    }
     return $unixPath
 }
 
