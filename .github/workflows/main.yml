@@ -111,7 +111,7 @@ jobs:
           tag: 'v${{ env.PACKAGES_VERSION }} --force'
 
       - name: Push packages
-        if: ${{  github.event.pull_request.merged == true && (github.ref == 'refs/heads/main' || contains(github.ref, 'hotfix/')) }}
+        if: ${{  github.event.pull_request.merged == true || github.ref == 'refs/heads/main' }}
         run: |
           make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
             BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
