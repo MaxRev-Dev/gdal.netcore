@@ -1,11 +1,8 @@
 name: Bundle packages
 
 on:
+  workflow_dispatch:
   pull_request:
-    branches:
-      - main
-      - v*.*.*
-  push:
     branches:
       - main
       - v*.*.*
