@@ -28,6 +28,7 @@ Combining these abbreviations, you get:
 | AIG             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | AVCBin          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
 | AVCE00          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
+| AVIF            | ✗              | ✗               | ✗              | ✗              | ✗               | ✗              |
 | AirSAR          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | AmigoCloud      | ✗              | ✗               | ✗              | rw+            | rw+             | rw+            |
 | BAG             | rw+v           | rw+v            | rw+v           | rw+v           | rw+v            | rw+v           |
@@ -200,6 +201,7 @@ Combining these abbreviations, you get:
 | SENTINEL2       | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
 | SGI             | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | SIGDEM          | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
+| SNAP_TIFF       | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | SNODAS          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | SQLite          | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
 | SRP             | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |

@@ -1,7 +1,8 @@
-Supported Formats:
+Supported Formats: (ro:read-only, rw:read-write, +:update, v:virtual-I/O s:subdatasets)
   VRT -raster,multidimensional raster- (rw+v): Virtual Raster (*.vrt)
-  GTI -raster- (rov): GDAL Raster Tile Index (*.gti.gpkg, *.gti.fgb, *.gti)
   DERIVED -raster- (ro): Derived datasets using VRT pixel functions
+  GTI -raster- (rov): GDAL Raster Tile Index (*.gti.gpkg, *.gti.fgb, *.gti)
+  SNAP_TIFF -raster- (rov): Sentinel Application Processing GeoTIFF
   GTiff -raster- (rw+vs): GeoTIFF (*.tif, *.tiff)
   COG -raster- (wv): Cloud optimized GeoTIFF generator (*.tif, *.tiff)
   NITF -raster- (rw+vs): National Imagery Transmission Format (*.ntf)
@@ -134,6 +135,7 @@ Supported Formats:
   DAAS -raster- (ro): Airbus DS Intelligence Data As A Service driver
   SIGDEM -raster- (rwv): Scaled Integer Gridded DEM .sigdem (*.sigdem)
   EXR -raster- (rw+vs): Extended Dynamic Range Image File Format (*.exr)
+  AVIF -raster- (rwvs): AV1 Image File Format (*.avif)
   TGA -raster- (rov): TGA/TARGA Image File Format (*.tga)
   OGCAPI -raster,vector- (rov): OGCAPI
   STACTA -raster- (rovs): Spatio-Temporal Asset Catalog Tiled Assets (*.json)
