@@ -2,18 +2,20 @@ name: MacOS Build
 
 on:
   workflow_call:
-  # push:
-  #   branches:
-  #     - main
-  # pull_request:
-  #   branches:
-  #     - main
+    inputs:
+      is-pre-release:
+        type: boolean
+        required: true
+      dotnet-version:
+        type: string
+        required: true
+      is-version-branch:
+        type: boolean
+        required: true
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet/
-  DOTNET_VERSION: '8.0.x'
   VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
-  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 jobs:
   BuildNugetPackages-MacOS:
@@ -25,7 +27,7 @@ jobs:
             arch: arm64
           - os: macos-13
             arch: x64
-          
+
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -33,7 +35,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4     
+        uses: actions/checkout@v4
 
       - name: NuGet - set credentials
         uses: ./.github/actions/set-credentials
@@ -68,7 +70,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Install deps
         run: |
@@ -114,7 +116,7 @@ jobs:
           name: formats-osx-${{ matrix.arch }}
           path: |
             tests/gdal-formats/*.txt
-          overwrite: true    
+          overwrite: true
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
@@ -152,7 +154,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: NuGet - set credentials
         uses: ./.github/actions/set-credentials
@@ -182,7 +184,7 @@ jobs:
           pattern: packages-osx*
           merge-multiple: true
           path: nuget/
-      
+
       - name: Download artifact - metadata
         uses: actions/download-artifact@v4
         with:
@@ -196,19 +198,19 @@ jobs:
           api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
-        
+
       - name: Build bundle
         run: |
-          make -f publish-makefile pack-bundle-only CAT_NAME=osx PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
-  
+          make -f publish-makefile pack-bundle-only CAT_NAME=osx PRERELEASE=${{ inputs.is-pre-release }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
         with:
           name: packages-osx-final
           path: nuget/*.nupkg
-          overwrite: true        
-          
+          overwrite: true
+
       - name: Push packages
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{  github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || fromJson(inputs.is-version-branch) }}
         run: |
           make -f ../unix/push-packages-makefile BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}

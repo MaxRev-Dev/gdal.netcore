@@ -2,18 +2,20 @@ name: Windows Build
 
 on:
   workflow_call:
-  # push:
-  #   branches:
-  #     - main
-  # pull_request:
-  #   branches:
-  #     - main
+    inputs:
+      is-pre-release:
+        type: boolean
+        required: true
+      dotnet-version:
+        type: string
+        required: true
+      is-version-branch:
+        type: boolean
+        required: true
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
-  DOTNET_VERSION: '8.0.x'
   VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
-  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 jobs:
   BuildNugetPackages-Windows:
@@ -28,7 +30,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.0
         with:
-          fetch-depth: 0      
+          fetch-depth: 0
 
       - name: NuGet - set credentials
         uses: ./.github/actions/set-credentials
@@ -52,15 +54,15 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Compile GDAL and create packages
         id: compile-source
         run: |
           git config --system core.longpaths true
-          ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ env.IS_PRE_RELEASE }}
+          ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ inputs.is-pre-release }}
           echo "GDAL_VERSION=$env:GDAL_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          
+
       - name: Store metadata as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -84,7 +86,7 @@ jobs:
           name: packages-win-x64
           path: nuget/*.nupkg
           overwrite: true
-          
+
     outputs:
       gdal-version: ${{ steps.compile-source.outputs.GDAL_VERSION }}
 
@@ -113,7 +115,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: NuGet - set credentials
         uses: ./.github/actions/set-credentials
@@ -125,7 +127,7 @@ jobs:
           shell: pwsh
 
       - name: Test packages
-        run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ env.IS_PRE_RELEASE }}
+        run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ inputs.is-pre-release }}
         shell: pwsh
 
   PushPackages-Windows:
@@ -134,7 +136,7 @@ jobs:
     defaults:
       run:
         working-directory: unix
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -142,7 +144,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Download artifact
         uses: actions/download-artifact@v4
@@ -161,6 +163,6 @@ jobs:
           shell: pwsh
 
       - name: Push packages
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{  github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || fromJson(inputs.is-version-branch) }}
         run: |
           make -f push-packages-makefile BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
