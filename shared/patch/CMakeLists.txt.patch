@@ -1,5 +1,5 @@
 diff --git a/swig/csharp/CMakeLists.txt b/swig/csharp/CMakeLists.txt
-index 9e3e91a243..b327dc97f6 100644
+index ea9c5bb985..856bfa2ee4 100644
 --- a/swig/csharp/CMakeLists.txt
 +++ b/swig/csharp/CMakeLists.txt
 @@ -1,4 +1,7 @@
@@ -45,207 +45,29 @@ index 9e3e91a243..b327dc97f6 100644
  function (gdal_build_csharp_sample)
  
    # setup arguments
-@@ -736,6 +741,7 @@ gdal_build_csharp_sample(
-   osr_csharp
-   SYSTEM_DEPENDS
-   OSGeo.OGR)
-+endif()
+@@ -501,7 +506,7 @@ function (gdal_build_csharp_sample)
+     DESTINATION ${GDAL_CSHARP_INSTALL_DIR})
  
+ endfunction ()
+-
++endif()
  # Custom Target to make the C# wrap Libraries and use SWIG to build the .cs files
  add_custom_target(csharp_interface DEPENDS gdalconst_wrap osr_wrap ogr_wrap gdal_wrap)
-@@ -743,6 +749,7 @@ add_custom_target(csharp_interface DEPENDS gdalconst_wrap osr_wrap ogr_wrap gdal
- # Custom Target to make the c# bindings - will be run as part of ALL but can also be built separately
+ 
+@@ -509,7 +514,7 @@ add_custom_target(csharp_interface DEPENDS gdalconst_wrap osr_wrap ogr_wrap gdal
  add_custom_target(csharp_binding ALL DEPENDS csharp_interface OSGeo.GDAL.CONST OSGeo.GDAL OSGeo.OGR OSGeo.OSR)
  
-+if (GDAL_BUILD_CSHARP_APPS)
- # Custom Target to build the C# bindings and the sample binaries
- add_custom_target(
-   csharp_samples ALL
-@@ -769,95 +776,97 @@ add_custom_target(
-           OSGeo.GDAL.Samples.GDALWarp
-           OSGeo.GDAL.Samples.OGRFeatureEdit
-           OSGeo.GDAL.Samples.GetCRSInfo.exe)
-+endif()
- 
- # set up the tests
-+if (GDAL_CSHARP_TESTS)
-+  include(GdalSetRuntimeEnv)
-+  gdal_set_runtime_env(TEST_ENV)
-+
-+  set(_ex)
-+  if (CSHARP_INTERPRETER)
-+    if(WIN32)
-+        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR} _MONO_PATH)
-+    else()
-+        set(_MONO_PATH "${CMAKE_CURRENT_BINARY_DIR}")
+ if (BUILD_TESTING)
+-
++  if (GDAL_CSHARP_APPS)
+     # Build the samples
+     gdal_build_csharp_sample(
+       OUTPUT
+@@ -771,6 +776,7 @@ if (BUILD_TESTING)
+               OSGeo.GDAL.Samples.GDALWarp
+               OSGeo.GDAL.Samples.OGRFeatureEdit
+               OSGeo.GDAL.Samples.GetCRSInfo.exe)
 +    endif()
-+    list(APPEND TEST_ENV "MONO_PATH=${_MONO_PATH}")
-+    set(_ex ".exe")
-+  endif ()
  
--include(GdalSetRuntimeEnv)
--gdal_set_runtime_env(TEST_ENV)
--
--set(_ex)
--if (CSHARP_INTERPRETER)
--  if(WIN32)
--      file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR} _MONO_PATH)
--  else()
--      set(_MONO_PATH "${CMAKE_CURRENT_BINARY_DIR}")
--  endif()
--  list(APPEND TEST_ENV "MONO_PATH=${_MONO_PATH}")
--  set(_ex ".exe")
--endif ()
--
--add_test(
--  NAME csharp_createdata
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} CreateData/CreateData${_ex} Data pointlayer)
--set_property(TEST csharp_createdata PROPERTY ENVIRONMENT "${TEST_ENV}")
--add_test(
--  NAME csharp_ogrinfo
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} OgrInfo/OgrInfo${_ex} Data/pointlayer.shp)
--set_property(TEST csharp_ogrinfo PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_ogrinfo PROPERTY DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_osrtransform
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} OSRTransform/OSRTransform${_ex})
--set_property(TEST csharp_osrtransform PROPERTY ENVIRONMENT "${TEST_ENV}")
--add_test(
--  NAME csharp_gdalwrite
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} GDALWrite/GDALWrite${_ex} Data/sample.tif)
--set_property(TEST csharp_gdalwrite PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_gdalwrite PROPERTY DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_gdaldatasetwrite
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} GDALDatasetWrite/GDALDatasetWrite${_ex} Data/sample1.tif)
--set_property(TEST csharp_gdaldatasetwrite PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_gdaldatasetwrite PROPERTY DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_gdalcreatecopy
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} GDALCreateCopy/GDALCreateCopy${_ex} Data/sample.tif Data/sample2.tif)
--set_property(TEST csharp_gdalcreatecopy PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_gdalcreatecopy PROPERTY DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_gdalreaddirect
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} GDALReadDirect/GDALReadDirect${_ex} Data/sample.tif Data/sample.png)
--set_property(TEST csharp_gdalreaddirect PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_gdalreaddirect PROPERTY DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_gdaloverviews
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} GDALOverviews/GDALOverviews${_ex} Data/sample.tif NEAREST 2 4)
--set_property(TEST csharp_gdaloverviews PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_gdaloverviews PROPERTY DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_gdalinfo
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} GDALInfo/GDALInfo${_ex} Data/sample.tif)
--set_property(TEST csharp_gdalinfo PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_gdalinfo PROPERTY DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_ogrlayeralg
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} OGRLayerAlg/OGRLayerAlg${_ex} Intersection Data/pointlayer.shp pointlayer
--          Data/pointlayer.shp pointlayer Data intersectionresult)
--set_property(TEST csharp_ogrlayeralg PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_ogrlayeralg PROPERTY DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_ogrlayeralgresult
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} OgrInfo/OgrInfo${_ex} Data/intersectionresult.shp)
--set_property(TEST csharp_ogrlayeralgresult PROPERTY ENVIRONMENT "${TEST_ENV}")
--set_property(TEST csharp_ogrlayeralgresult PROPERTY DEPENDS csharp_ogrlayeralg)
--# GDALWarp test disabled until updated and the dependency on autotest is removed dur to possible clash with a standalone
--# build add_test( NAME csharp_gdalwarp WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND ${CSHARP_INTERPRETER}
--# GDALWarp/GDALWarp Data/testwarp.tif "-of GTiff -t_srs EPSG:32645 -overwrite" "../../autotest/gcore/data/byte.tif")
--# set_property(TEST csharp_gdalwarp PROPERTY ENVIRONMENT "${TEST_ENV}") set_property(TEST csharp_gdalwarp PROPERTY
--# DEPENDS csharp_createdata)
--add_test(
--  NAME csharp_getcrsinfo
--  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
--  COMMAND ${CSHARP_INTERPRETER} GetCRSInfo/GetCRSInfo${_ex} "EPSG" 20)
--set_property(TEST csharp_getcrsinfo PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  add_test(
-+    NAME csharp_createdata
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} CreateData/CreateData${_ex} Data pointlayer)
-+  set_property(TEST csharp_createdata PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  add_test(
-+    NAME csharp_ogrinfo
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} OgrInfo/OgrInfo${_ex} Data/pointlayer.shp)
-+  set_property(TEST csharp_ogrinfo PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_ogrinfo PROPERTY DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_osrtransform
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} OSRTransform/OSRTransform${_ex})
-+  set_property(TEST csharp_osrtransform PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  add_test(
-+    NAME csharp_gdalwrite
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} GDALWrite/GDALWrite${_ex} Data/sample.tif)
-+  set_property(TEST csharp_gdalwrite PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_gdalwrite PROPERTY DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_gdaldatasetwrite
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} GDALDatasetWrite/GDALDatasetWrite${_ex} Data/sample1.tif)
-+  set_property(TEST csharp_gdaldatasetwrite PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_gdaldatasetwrite PROPERTY DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_gdalcreatecopy
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} GDALCreateCopy/GDALCreateCopy${_ex} Data/sample.tif Data/sample2.tif)
-+  set_property(TEST csharp_gdalcreatecopy PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_gdalcreatecopy PROPERTY DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_gdalreaddirect
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} GDALReadDirect/GDALReadDirect${_ex} Data/sample.tif Data/sample.png)
-+  set_property(TEST csharp_gdalreaddirect PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_gdalreaddirect PROPERTY DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_gdaloverviews
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} GDALOverviews/GDALOverviews${_ex} Data/sample.tif NEAREST 2 4)
-+  set_property(TEST csharp_gdaloverviews PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_gdaloverviews PROPERTY DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_gdalinfo
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} GDALInfo/GDALInfo${_ex} Data/sample.tif)
-+  set_property(TEST csharp_gdalinfo PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_gdalinfo PROPERTY DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_ogrlayeralg
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} OGRLayerAlg/OGRLayerAlg${_ex} Intersection Data/pointlayer.shp pointlayer
-+            Data/pointlayer.shp pointlayer Data intersectionresult)
-+  set_property(TEST csharp_ogrlayeralg PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_ogrlayeralg PROPERTY DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_ogrlayeralgresult
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} OgrInfo/OgrInfo${_ex} Data/intersectionresult.shp)
-+  set_property(TEST csharp_ogrlayeralgresult PROPERTY ENVIRONMENT "${TEST_ENV}")
-+  set_property(TEST csharp_ogrlayeralgresult PROPERTY DEPENDS csharp_ogrlayeralg)
-+  # GDALWarp test disabled until updated and the dependency on autotest is removed dur to possible clash with a standalone
-+  # build add_test( NAME csharp_gdalwarp WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND ${CSHARP_INTERPRETER}
-+  # GDALWarp/GDALWarp Data/testwarp.tif "-of GTiff -t_srs EPSG:32645 -overwrite" "../../autotest/gcore/data/byte.tif")
-+  # set_property(TEST csharp_gdalwarp PROPERTY ENVIRONMENT "${TEST_ENV}") set_property(TEST csharp_gdalwarp PROPERTY
-+  # DEPENDS csharp_createdata)
-+  add_test(
-+    NAME csharp_getcrsinfo
-+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-+    COMMAND ${CSHARP_INTERPRETER} GetCRSInfo/GetCRSInfo${_ex} "EPSG" 20)
-+  set_property(TEST csharp_getcrsinfo PROPERTY ENVIRONMENT "${TEST_ENV}")
-+endif()
-\ No newline at end of file
+     # set up the tests
+ 
