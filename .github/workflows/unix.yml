@@ -2,17 +2,19 @@ name: Linux Build
 
 on:
   workflow_call:
-  # push:
-  #   branches:
-  #     - main
-  # pull_request:
-  #   branches:
-  #     - main
+    inputs:
+      is-pre-release:
+        type: boolean
+        required: true
+      dotnet-version:
+        type: string
+        required: true
+      is-version-branch:
+        type: boolean
+        required: true
 
 env:
   DOCKER_REGISTRY: ghcr.io/maxrev-dev
-  DOTNET_VERSION: '8.0.x'
-  IS_PRE_RELEASE: ${{ !contains(github.ref, 'main') || contains(github.event.head_commit.message, '[prerelease]') }}
 
 permissions:
   packages: write
@@ -49,10 +51,10 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
+
       - name: Cache restore
         uses: actions/cache@v4
         with:
@@ -93,7 +95,7 @@ jobs:
           platforms: ${{ matrix.os }}
           build-args: |
             BUILD_NUMBER_TAIL=${{ github.run_number }}
-            PRERELEASE=${{ env.IS_PRE_RELEASE }}
+            PRERELEASE=${{ inputs.is-pre-release }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
@@ -109,7 +111,7 @@ jobs:
           platforms: ${{ matrix.os }}
           build-args: |
             BUILD_NUMBER_TAIL=${{ github.run_number }}
-            PRERELEASE=${{ env.IS_PRE_RELEASE }}
+            PRERELEASE=${{ inputs.is-pre-release }}
             DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
             VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
 
@@ -141,7 +143,7 @@ jobs:
           name: packages-unix-${{ matrix.arch }}
           path: nuget/*.nupkg
           overwrite: true
-      
+
   TestPackages-Linux:
     needs: BuildNugetPackages-Linux
     strategy:
@@ -178,7 +180,7 @@ jobs:
             --progress=plain -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest \
             --build-arg BUILD_NUMBER_TAIL=${{ github.run_number }} \
             --build-arg BUILD_ARCH=${{ matrix.arch }} \
-            --build-arg PRERELEASE=${{ env.IS_PRE_RELEASE }} \
+            --build-arg PRERELEASE=${{ inputs.is-pre-release }} \
             -f '${{ github.workspace }}/ci/Dockerfile.unix.test' \
             ${{ github.workspace }}
 
@@ -187,16 +189,16 @@ jobs:
           docker run --rm \
             --env BUILD_NUMBER_TAIL=${{ github.run_number }} \
             --env BUILD_ARCH=${{ matrix.arch }} \
-            --env PRERELEASE=${{ env.IS_PRE_RELEASE }} \
+            --env PRERELEASE=${{ inputs.is-pre-release }} \
             -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest
 
   PushPackages-Linux:
-    needs: TestPackages-Linux 
+    needs: TestPackages-Linux
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: unix
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -204,7 +206,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Download artifact - packages
         uses: actions/download-artifact@v4
@@ -229,7 +231,7 @@ jobs:
 
       - name: Build bundle
         run: |
-          make -f publish-makefile pack-bundle-only CAT_NAME=unix PRERELEASE=${{ env.IS_PRE_RELEASE }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          make -f publish-makefile pack-bundle-only CAT_NAME=unix PRERELEASE=${{ inputs.is-pre-release }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Store packages as artifact
         uses: actions/upload-artifact@v4
@@ -239,7 +241,7 @@ jobs:
           overwrite: true
 
       - name: Push packages
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{  github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || fromJson(inputs.is-version-branch) }}
         run: |
-          make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
+          make -f push-packages-makefile PRERELEASE=${{ inputs.is-pre-release }} INCLUDE_CORE=1 \
             BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
