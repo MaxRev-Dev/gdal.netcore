@@ -2,8 +2,6 @@ function Set-GdalVariables {
     $env:VS_VERSION = "Visual Studio 17 2022"
     $env:SDK = "release-1930-x64" #2022 x64
     $env:SDK_ZIP = "$env:SDK" + "-dev.zip"
-    $env:PROJ_DATUM = "proj-datumgrid-1.8.zip"
-    $env:PROJ_DATUM_URL = "http://download.osgeo.org/proj/$env:PROJ_DATUM"
     $env:SDK_URL = "http://download.gisinternals.com/sdk/downloads/$env:SDK_ZIP"
     $env:LIBWEBP_URL = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-windows-x64.zip"
     $env:LIBZSTD_URL = "https://github.com/facebook/zstd/releases/download/v1.5.5/zstd-v1.5.5-win64.zip"
@@ -11,7 +9,6 @@ function Set-GdalVariables {
     $env:VS_VER = "2022"
     $env:ARCHITECTURE = "amd64"
     $env:WIN64_ARG = "WIN64=YES"
-    $env:platform = "x64"
     $env:CMAKE_ARCHITECTURE = "x64"
     $env:CMAKE_PARALLEL_JOBS = 4
 
@@ -161,19 +158,6 @@ function Install-Proj {
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
     Write-BuildStep "Done building PROJ"
-}
-
-function Get-ProjDatum {   
-    Write-BuildStep "Checking for PROJ datum grid"
-    Set-Location "$env:BUILD_ROOT\proj-build\share\proj"
-    if (-Not (Test-Path -Path $env:PROJ_DATUM -PathType Leaf)) { 
-        Write-BuildInfo "Downloading PROJ datum grid"
-        Invoke-WebRequest $env:PROJ_DATUM_URL -OutFile $env:PROJ_DATUM
-        Write-BuildStep "PROJ datum grid was downloaded"
-    }
-    else {
-        Write-BuildStep "PROJ datum grid already exists"
-    }
 }
 
 function Get-GdalVersion {
