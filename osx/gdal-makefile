@@ -99,8 +99,7 @@ configure_hdf:
 	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_FLAGS="-fPIC" \
-		-DCMAKE_CXX_FLAGS="-fPIC" \
+		-DCMAKE_C_FLAGS="-fPIC -w" \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) \
 		-DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_DEPLOYMENT_TARGET) || exit 1
 
@@ -124,8 +123,8 @@ configure_gdal:
 	@cd $(GDAL_CMAKE_TMP) && cmake $(GDAL_ROOT) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_FLAGS="-fPIC" \
-		-DCMAKE_CXX_FLAGS="-fPIC" \
+		-DCMAKE_C_FLAGS="-fPIC -w" \
+		-DCMAKE_CXX_FLAGS="-fPIC -w" \
 		-DGDAL_USE_DEFLATE=OFF \
 		-DGDAL_USE_ZLIB_INTERNAL=ON \
 		-DGDAL_CSHARP_APPS=OFF \
@@ -164,8 +163,8 @@ configure_proj:
 		cmake $(PROJ_ROOT) \
 			-DCMAKE_BUILD_TYPE=Release -Wno-dev \
 			-DCMAKE_MAKE_PROGRAM=make \
-			-DCMAKE_C_FLAGS="-Wno-deprecated-declarations" \
-			-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" \
+			-DCMAKE_C_FLAGS="-w" \
+			-DCMAKE_CXX_FLAGS="-w" \
 			-DCMAKE_INSTALL_PREFIX=$(PROJ_BUILD) \
 			-DBUILD_TESTING=OFF \
 			-DBUILD_SHARED_LIBS=ON \

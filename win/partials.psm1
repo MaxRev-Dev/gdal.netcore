@@ -152,6 +152,8 @@ function Install-Proj {
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE $env:PROJ_SOURCE `
         -DCMAKE_INSTALL_PREFIX="$env:PROJ_INSTALL_DIR" `
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
+        -DCMAKE_C_FLAGS="/w" `
+        -DCMAKE_CXX_FLAGS="/w" `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
         -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
         -DCMAKE_PREFIX_PATH="$env:VCPKG_ROOT\installed\x64-windows;$env:SDK_PREFIX" `
@@ -251,7 +253,7 @@ function Build-Gdal {
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild
     New-FolderIfNotExists "$PSScriptRoot\..\nuget"
     
-    $env:ARCH_FLAGS = "/arch:AVX2  /Ob2 /Oi /Os /Oy"
+    $env:ARCH_FLAGS = "/arch:AVX2 /Ob2 /Oi /Os /Oy /w"
     $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows" 
     # disabling KEA driver as it causes build issues on Windows
     # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
@@ -265,9 +267,9 @@ function Build-Gdal {
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
+        -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
         -DGDAL_USE_OPENEXR=OFF `
-        -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:POPPLER_EXTRA_LIBRARIES `
