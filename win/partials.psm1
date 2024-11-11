@@ -23,11 +23,11 @@ function Set-GdalVariables {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
-    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"   
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
     $env:SDK_BIN = "$env:SDK_PREFIX\bin"
     $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
     $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows"
+    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:VCPKG_INSTALLED\lib\pkgconfig"   
     
     $env:WEBP_ROOT = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
 }
@@ -153,7 +153,7 @@ function Install-Proj {
         -DCMAKE_CXX_FLAGS="/w" `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
         -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-        -DCMAKE_PREFIX_PATH="$env:VCPKG_ROOT\installed\x64-windows;$env:SDK_PREFIX" `
+        -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
         -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
@@ -238,7 +238,6 @@ function Build-Gdal {
     New-FolderIfNotExists "$PSScriptRoot\..\nuget"
     
     $env:ARCH_FLAGS = "/arch:AVX2 /Ob2 /Oi /Os /Oy /w"
-    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows" 
     # disabling KEA driver as it causes build issues on Windows
     # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
 
