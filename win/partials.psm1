@@ -205,9 +205,11 @@ function Build-Gdal {
     $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=$env:GDAL_INSTALL_DIR"
     $env:PROJ_ROOT = "-DPROJ_ROOT=$env:PROJ_INSTALL_DIR"
     $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
-    $env:POPPLER_EXTRA_LIBRARIES = "-DPOPPLER_EXTRA_LIBRARIES=$env:SDK_LIB\freetype.lib;$env:SDK_LIB\harfbuzz.lib"
     $env:WEBP_INCLUDE = "-DWEBP_INCLUDE_DIR=$env:WEBP_ROOT\include"
     $env:WEBP_LIB = "-DWEBP_LIBRARY=$env:WEBP_ROOT\lib\libwebp.lib"
+
+    $env:Poppler_INCLUDE_DIR = "-DPoppler_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\poppler"
+    $env:Poppler_LIBRARY = "-DPoppler_LIBRARY=$env:VCPKG_INSTALLED\lib\poppler.lib"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -270,7 +272,7 @@ function Build-Gdal {
         -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
-        $env:POPPLER_EXTRA_LIBRARIES `
+        $env:Poppler_INCLUDE_DIR $env:Poppler_LIBRARY `
         -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
         -DGDAL_CSHARP_APPS=ON `
