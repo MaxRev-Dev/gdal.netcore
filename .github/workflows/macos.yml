@@ -12,6 +12,9 @@ on:
       is-version-branch:
         type: boolean
         required: true
+      skip:
+        type: boolean
+        required: true
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet/
@@ -19,6 +22,7 @@ env:
 
 jobs:
   BuildNugetPackages-MacOS:
+    if: ${{ ! inputs.skip }}
     strategy:
       matrix:
         os: [macos-14, macos-13]

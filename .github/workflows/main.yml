@@ -26,6 +26,9 @@ jobs:
       is-pre-release: ${{ steps.set.outputs.is_pre_release }}
       dotnet-version: ${{ steps.set.outputs.dotnet_version }}
       is-version-branch: ${{ steps.set.outputs.is_version_branch }}
+      skip-unix: ${{ steps.set.outputs.skip_unix }}
+      skip-windows: ${{ steps.set.outputs.skip_windows }}
+      skip-osx: ${{ steps.set.outputs.skip_osx }}
     steps:
       - name: Set env for the reusable workflows
         id: set
@@ -37,6 +40,13 @@ jobs:
           else
               echo "is_version_branch=false" >> $GITHUB_OUTPUT
           fi
+            for os in unix windows osx; do
+            if git log -1 --format=%B ${{ github.sha }} | grep -Eq "\[(skip|no) $os\]|\[$os skip\]"; then
+              echo "skip_$os=true" >> $GITHUB_OUTPUT
+            else
+              echo "skip_$os=false" >> $GITHUB_OUTPUT
+            fi
+            done
 
   LinuxBuild:
     needs: env-context
@@ -46,6 +56,7 @@ jobs:
       is-pre-release: ${{ fromJSON(needs.env-context.outputs.is-pre-release) }}
       dotnet-version: ${{ needs.env-context.outputs.dotnet-version }}
       is-version-branch: ${{ fromJSON(needs.env-context.outputs.is-version-branch) }}
+      skip: ${{ fromJSON(needs.env-context.outputs.skip-unix) }}
 
   WindowsBuild:
     needs: env-context
@@ -55,6 +66,7 @@ jobs:
       is-pre-release: ${{ fromJSON(needs.env-context.outputs.is-pre-release) }}
       dotnet-version: ${{ needs.env-context.outputs.dotnet-version }}
       is-version-branch: ${{ fromJSON(needs.env-context.outputs.is-version-branch) }}
+      skip: ${{ fromJSON(needs.env-context.outputs.skip-windows) }}
 
   MacOSBuild:
     needs: env-context
@@ -64,6 +76,7 @@ jobs:
       is-pre-release: ${{ fromJSON(needs.env-context.outputs.is-pre-release) }}
       dotnet-version: ${{ needs.env-context.outputs.dotnet-version }}
       is-version-branch: ${{ fromJSON(needs.env-context.outputs.is-version-branch) }}
+      skip: ${{ fromJSON(needs.env-context.outputs.skip-osx) }}
 
   TestAndPushPackages:
     needs: [env-context, LinuxBuild, WindowsBuild, MacOSBuild]
