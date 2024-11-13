@@ -168,7 +168,7 @@ Combining these abbreviations, you get:
 | PAux            | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | PCIDSK          | rw+v           | rw+v            | rw+v           | rw+v           | rw+v            | rw+v           |
 | PCRaster        | rw+            | rw+             | rw+            | ✗              | ✗               | ✗              |
-| PDF             | w+             | w+              | rw+vs          | w+             | w+              | rw+vs          |
+| PDF             | rw+vs          | rw+vs           | rw+vs          | rw+vs          | rw+vs           | rw+vs          |
 | PDS             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | PDS4            | rw+vs          | rw+vs           | rw+vs          | rw+vs          | rw+vs           | rw+vs          |
 | PGDUMP          | ✗              | ✗               | ✗              | w+v            | w+v             | w+v            |

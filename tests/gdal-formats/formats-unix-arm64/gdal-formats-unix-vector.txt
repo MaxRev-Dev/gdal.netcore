@@ -5,7 +5,7 @@ Supported Formats: (ro:read-only, rw:read-write, +:update, v:virtual-I/O s:subda
   PDS4 -raster,vector- (rw+vs): NASA Planetary Data System 4 (*.xml)
   VICAR -raster,vector- (rw+v): MIPL VICAR file
   JP2OpenJPEG -raster,vector- (rwv): JPEG-2000 driver based on JP2OpenJPEG library (*.jp2, *.j2k)
-  PDF -raster,vector- (w+): Geospatial PDF (*.pdf)
+  PDF -raster,vector- (rw+vs): Geospatial PDF (*.pdf)
   MBTiles -raster,vector- (rw+v): MBTiles (*.mbtiles)
   BAG -raster,multidimensional raster,vector- (rw+v): Bathymetry Attributed Grid (*.bag)
   EEDA -vector- (ro): Earth Engine Data API
