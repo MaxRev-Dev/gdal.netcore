@@ -30,6 +30,8 @@ jobs:
       skip-windows: ${{ steps.set.outputs.skip_windows }}
       skip-osx: ${{ steps.set.outputs.skip_osx }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Set env for the reusable workflows
         id: set
         run: |
