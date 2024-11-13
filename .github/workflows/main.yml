@@ -47,7 +47,7 @@ jobs:
           fi
           # Skip build for specific OS
           for os in unix windows osx; do
-            if git log -1 --pretty=format:"%s" | grep -Eq "\[(skip|no) $os\]|\[$os skip\]"; then
+            if git log -1 --pretty=format:"%B" | grep -Eq "\[(skip|no) $os\]|\[$os skip\]"; then
               echo "skip_$os=true" >> $GITHUB_OUTPUT
             else
               echo "skip_$os=false" >> $GITHUB_OUTPUT
