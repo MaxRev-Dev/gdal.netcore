@@ -209,7 +209,7 @@ function Build-Gdal {
     $env:WEBP_LIB = "-DWEBP_LIBRARY=$env:WEBP_ROOT\lib\libwebp.lib"
 
     $env:Poppler_INCLUDE_DIR = "-DPoppler_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\poppler"
-    $env:Poppler_LIBRARY = "-DPoppler_LIBRARY=$env:VCPKG_INSTALLED\lib\poppler.lib"
+    $env:Poppler_LIBRARY = "-DPoppler_LIBRARY=$env:VCPKG_INSTALLED\lib\libpoppler.lib"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"

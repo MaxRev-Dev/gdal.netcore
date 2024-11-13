@@ -139,7 +139,7 @@ configure_gdal:
 		-DBUILD_JAVA_BINDINGS=OFF \
 		-DBUILD_SHARED_LIBS=ON \
 		-DPoppler_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include/poppler \
-		-DPoppler_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/poppler.dylib \
+		-DPoppler_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libpoppler.dylib \
 		-DSQLite3_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include \
 		-DSQLite3_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libsqlite3.dylib \
 		-DHDF4_INCLUDE_DIR=$(BUILD_ROOT)/hdf-build/include \
