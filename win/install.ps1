@@ -47,8 +47,6 @@ try {
 
     Install-Proj -cleanProjBuild $cleanProjBuild -cleanProjIntermediate $cleanProjIntermediate
 
-    Get-ProjDatum
-
     Reset-GdalSourceBindings
     $env:INCLUDE = Add-EnvVar $env:INCLUDE "$env:SDK_PREFIX\include"
     $env:LIB = Add-EnvVar $env:LIB "$env:SDK_PREFIX\lib"

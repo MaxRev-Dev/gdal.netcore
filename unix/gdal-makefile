@@ -115,8 +115,8 @@ configure_gdal:
 	
 	@cd $(GDAL_CMAKE_TMP) && cmake $(GDAL_ROOT) \
 		-DCMAKE_BUILD_TYPE=Release -Wno-dev \
-		-DCMAKE_C_FLAGS="-fPIC" \
-		-DCMAKE_CXX_FLAGS="-fPIC" \
+		-DCMAKE_C_FLAGS="-fPIC -w" \
+		-DCMAKE_CXX_FLAGS="-fPIC -w" \
 		-DGDAL_USE_DEFLATE=OFF \
 		-DGDAL_USE_ZLIB_INTERNAL=ON \
 		-DGDAL_CSHARP_APPS=ON \
@@ -147,8 +147,8 @@ configure_proj:
 		cmake $(PROJ_ROOT) \
 			-DCMAKE_BUILD_TYPE=Release -Wno-dev\
 			-DCMAKE_MAKE_PROGRAM=make \
-			-DCMAKE_C_FLAGS="-Wno-deprecated-declarations" \
-			-DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" \
+			-DCMAKE_C_FLAGS="-w" \
+			-DCMAKE_CXX_FLAGS="-w" \
 			-DCMAKE_INSTALL_PREFIX=$(PROJ_BUILD) \
 			-DBUILD_TESTING=OFF \
 			-DBUILD_SHARED_LIBS=ON \

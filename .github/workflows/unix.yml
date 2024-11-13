@@ -12,6 +12,9 @@ on:
       is-version-branch:
         type: boolean
         required: true
+      skip:
+        type: boolean
+        required: true
 
 env:
   DOCKER_REGISTRY: ghcr.io/maxrev-dev
@@ -22,6 +25,7 @@ permissions:
 
 jobs:
   BuildNugetPackages-Linux:
+    if: ${{ ! inputs.skip }}
     strategy:
       matrix:
         include:
