@@ -38,13 +38,13 @@ jobs:
       - name: Set env for the reusable workflows
         id: set
         run: |
-          echo "is_pre_release=$IS_PRE_RELEASE" >> $GITHUB_OUTPUT 
+          echo "is_pre_release=$IS_PRE_RELEASE" >> $GITHUB_OUTPUT
           echo "dotnet_version=$DOTNET_VERSION" >> $GITHUB_OUTPUT
           if [[ ${{ github.ref }} =~ ^refs/heads/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               echo "is_version_branch=true" >> $GITHUB_OUTPUT
           else
               echo "is_version_branch=false" >> $GITHUB_OUTPUT
-          fi
+          fi;
           # Skip build for specific OS
           for os in unix windows osx; do
             if git log -1 --pretty=format:"%B" | grep -Eq "\[(skip|no) $os\]|\[$os skip\]"; then
