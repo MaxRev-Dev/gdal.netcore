@@ -4,5 +4,6 @@
         "*makefile": "makefile",
         "*.opt": "makefile",
     },
-    "files.trimTrailingWhitespace": false
+    "files.trimTrailingWhitespace": false,
+    "csharp.preview.improvedLaunchExperience": true
 }
