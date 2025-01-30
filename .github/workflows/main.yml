@@ -26,17 +26,36 @@ jobs:
       is-pre-release: ${{ steps.set.outputs.is_pre_release }}
       dotnet-version: ${{ steps.set.outputs.dotnet_version }}
       is-version-branch: ${{ steps.set.outputs.is_version_branch }}
+      skip-unix: ${{ steps.set.outputs.skip_unix }}
+      skip-windows: ${{ steps.set.outputs.skip_windows }}
+      skip-osx: ${{ steps.set.outputs.skip_osx }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+            ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
       - name: Set env for the reusable workflows
         id: set
         run: |
-          echo "is_pre_release=$IS_PRE_RELEASE" >> $GITHUB_OUTPUT 
+          echo "is_pre_release=$IS_PRE_RELEASE" >> $GITHUB_OUTPUT
           echo "dotnet_version=$DOTNET_VERSION" >> $GITHUB_OUTPUT
           if [[ ${{ github.ref }} =~ ^refs/heads/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               echo "is_version_branch=true" >> $GITHUB_OUTPUT
           else
               echo "is_version_branch=false" >> $GITHUB_OUTPUT
-          fi
+          fi;
+          # Skip build for specific OS
+          git log -1 --pretty=format:"%B" | cat
+          for os in unix windows osx; do
+            if git log -1 --pretty=format:"%B" | grep -Eq "\[(skip|no) $os\]|\[$os skip\]"; then
+              echo "skip_$os=true" >> $GITHUB_OUTPUT
+              echo "Skip build for $os"
+            else
+              echo "skip_$os=false" >> $GITHUB_OUTPUT
+              echo "Building for $os"
+            fi
+          done
 
   LinuxBuild:
     needs: env-context
@@ -46,6 +65,7 @@ jobs:
       is-pre-release: ${{ fromJSON(needs.env-context.outputs.is-pre-release) }}
       dotnet-version: ${{ needs.env-context.outputs.dotnet-version }}
       is-version-branch: ${{ fromJSON(needs.env-context.outputs.is-version-branch) }}
+      skip: ${{ fromJSON(needs.env-context.outputs.skip-unix) }}
 
   WindowsBuild:
     needs: env-context
@@ -55,6 +75,7 @@ jobs:
       is-pre-release: ${{ fromJSON(needs.env-context.outputs.is-pre-release) }}
       dotnet-version: ${{ needs.env-context.outputs.dotnet-version }}
       is-version-branch: ${{ fromJSON(needs.env-context.outputs.is-version-branch) }}
+      skip: ${{ fromJSON(needs.env-context.outputs.skip-windows) }}
 
   MacOSBuild:
     needs: env-context
@@ -64,6 +85,7 @@ jobs:
       is-pre-release: ${{ fromJSON(needs.env-context.outputs.is-pre-release) }}
       dotnet-version: ${{ needs.env-context.outputs.dotnet-version }}
       is-version-branch: ${{ fromJSON(needs.env-context.outputs.is-version-branch) }}
+      skip: ${{ fromJSON(needs.env-context.outputs.skip-osx) }}
 
   TestAndPushPackages:
     needs: [env-context, LinuxBuild, WindowsBuild, MacOSBuild]

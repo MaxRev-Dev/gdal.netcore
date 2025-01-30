@@ -2,8 +2,6 @@ function Set-GdalVariables {
     $env:VS_VERSION = "Visual Studio 17 2022"
     $env:SDK = "release-1930-x64" #2022 x64
     $env:SDK_ZIP = "$env:SDK" + "-dev.zip"
-    $env:PROJ_DATUM = "proj-datumgrid-1.8.zip"
-    $env:PROJ_DATUM_URL = "http://download.osgeo.org/proj/$env:PROJ_DATUM"
     $env:SDK_URL = "http://download.gisinternals.com/sdk/downloads/$env:SDK_ZIP"
     $env:LIBWEBP_URL = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-windows-x64.zip"
     $env:LIBZSTD_URL = "https://github.com/facebook/zstd/releases/download/v1.5.5/zstd-v1.5.5-win64.zip"
@@ -11,7 +9,6 @@ function Set-GdalVariables {
     $env:VS_VER = "2022"
     $env:ARCHITECTURE = "amd64"
     $env:WIN64_ARG = "WIN64=YES"
-    $env:platform = "x64"
     $env:CMAKE_ARCHITECTURE = "x64"
     $env:CMAKE_PARALLEL_JOBS = 4
 
@@ -26,11 +23,11 @@ function Set-GdalVariables {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
     $env:GdalCmakeBuild = "$env:BUILD_ROOT\gdal-cmake-temp"
-    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:BUILD_ROOT\vcpkg\installed\x64-windows\lib\pkgconfig"   
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
     $env:SDK_BIN = "$env:SDK_PREFIX\bin"
     $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
     $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows"
+    $env:VCPKG_INSTALLED_PKGCONFIG = "$env:VCPKG_INSTALLED\lib\pkgconfig"   
     
     $env:WEBP_ROOT = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
 }
@@ -152,26 +149,15 @@ function Install-Proj {
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE $env:PROJ_SOURCE `
         -DCMAKE_INSTALL_PREFIX="$env:PROJ_INSTALL_DIR" `
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
+        -DCMAKE_C_FLAGS="/w" `
+        -DCMAKE_CXX_FLAGS="/w" `
         -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
         -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-        -DCMAKE_PREFIX_PATH="$env:VCPKG_ROOT\installed\x64-windows;$env:SDK_PREFIX" `
+        -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
         -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
     Write-BuildStep "Done building PROJ"
-}
-
-function Get-ProjDatum {   
-    Write-BuildStep "Checking for PROJ datum grid"
-    Set-Location "$env:BUILD_ROOT\proj-build\share\proj"
-    if (-Not (Test-Path -Path $env:PROJ_DATUM -PathType Leaf)) { 
-        Write-BuildInfo "Downloading PROJ datum grid"
-        Invoke-WebRequest $env:PROJ_DATUM_URL -OutFile $env:PROJ_DATUM
-        Write-BuildStep "PROJ datum grid was downloaded"
-    }
-    else {
-        Write-BuildStep "PROJ datum grid already exists"
-    }
 }
 
 function Get-GdalVersion {
@@ -253,8 +239,7 @@ function Build-Gdal {
     New-FolderIfNotExistsAndSetCurrentLocation $env:GdalCmakeBuild
     New-FolderIfNotExists "$PSScriptRoot\..\nuget"
     
-    $env:ARCH_FLAGS = "/arch:AVX2  /Ob2 /Oi /Os /Oy"
-    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows" 
+    $env:ARCH_FLAGS = "/arch:AVX2 /Ob2 /Oi /Os /Oy /w"
     # disabling KEA driver as it causes build issues on Windows
     # https://github.com/OSGeo/gdal/blob/3b232ee17d8f3d93bf3535b77fbb436cb9a9c2e0/.github/workflows/windows_build.yml#L178
 
@@ -267,9 +252,9 @@ function Build-Gdal {
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
+        -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
         -DGDAL_USE_OPENEXR=OFF `
-        -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:Poppler_INCLUDE_DIR $env:Poppler_LIBRARY `
