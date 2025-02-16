@@ -9,8 +9,8 @@ BUILD_NUMBER_TAIL=100
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RID)
 
-# Jan 13, 2025
-GDAL_VERSION=3.10.1
+# Feb 14, 2025
+GDAL_VERSION=3.10.2
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
 GDAL_COMMIT_VER=v$(GDAL_VERSION)
