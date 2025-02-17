@@ -85,6 +85,7 @@ download_hdf:
 	@echo "$(TO) Downloading HDF sources..."
 	curl -L -o "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/$(HDF_zip)"
 	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d "$(BUILD_ROOT)/hdf-$(HDF_VERSION)"
+	@echo "$(TO) HDF sources downloaded!"
 
 check_hdf_sources:
 	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
