@@ -34,7 +34,7 @@ jobs:
             actions-runner: ubuntu-latest
           - os: linux/arm64
             arch: arm64
-            actions-runner: self-hosted-macos-arm64
+            actions-runner: ubuntu-24.04-arm
 
     runs-on: ${{ matrix.actions-runner }}
     defaults:
@@ -158,7 +158,7 @@ jobs:
             actions-runner: ubuntu-latest
           - os: linux/arm64
             arch: arm64
-            actions-runner: self-hosted-macos-arm64
+            actions-runner: ubuntu-24.04-arm
 
     runs-on: ${{ matrix.actions-runner }}
     defaults:

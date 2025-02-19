@@ -82,8 +82,10 @@ HDF_zip=hdf$(HDF_VERSION).zip
 HDF_SOURCE=$(BUILD_ROOT)/hdf-$(HDF_VERSION)/hdfsrc
 
 download_hdf:
+	@echo "$(TO) Downloading HDF sources..."
 	curl -L -o "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/$(HDF_zip)"
 	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d "$(BUILD_ROOT)/hdf-$(HDF_VERSION)"
+	@echo "$(TO) HDF sources downloaded!"
 
 check_hdf_sources:
 	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
@@ -187,7 +189,7 @@ build_%:
 	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j4 --target install || exit 1
 	@echo "$(TO) $(LW) was built successfully!"
 
-__DYLIBS_GDAL=DYLD_LIBRARY_PATH=$(DYLD_LIBRARY_PATH):$(BUILD_ROOT)/gdal-build/lib
+__DYLIBS_GDAL=DYLD_FALLBACK_LIBRARY_PATH=$(DYLD_FALLBACK_LIBRARY_PATH):$(BUILD_ROOT)/gdal-build/lib
 formats-output:
 	@mkdir -p $(TEST_FORMATS_OUTPUT)
 	@(cd $(BUILD_ROOT)/gdal-build/bin && $(__DYLIBS_GDAL) \
@@ -204,4 +206,4 @@ reset: reset_proj reset_gdal
 
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
-DYLD_LIBRARY_PATH=$$DYLD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib:${PROJ_BUILD}/lib:${HDF_BUILD}/lib
+DYLD_FALLBACK_LIBRARY_PATH=$$DYLD_FALLBACK_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib:${PROJ_BUILD}/lib:${HDF_BUILD}/lib

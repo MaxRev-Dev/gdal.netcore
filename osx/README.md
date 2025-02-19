@@ -14,7 +14,7 @@
 
 ### **1. Environment**
 There two types of builds **arm64** (Apple Silicon M1 & M2 chipsets) and **x86_64** (Intel chipsets). GH Actions runner is using a x64 3-core instances.
-This build was built using a self-hosted runner on a 10 CPU M2 Mac (arm64).
+This build was compiled using a `ubuntu-24.04-arm` runner (arm64).
  
 ### **2. Check for required libraries**
  **VPKG** will install all requirements defined in `shared/GdalCore.opt` file. Latest versions, no collisions with other dynamic libraries.
