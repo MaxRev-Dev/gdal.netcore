@@ -28,7 +28,7 @@ Combining these abbreviations, you get:
 | AIG             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | AVCBin          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
 | AVCE00          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
-| AVIF            | ✗              | ✗               | ✗              | ✗              | ✗               | ✗              |
+| AVIF            | rwvs           | ✗               | ✗              | ✗              | ✗               | ✗              |
 | AirSAR          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | AmigoCloud      | ✗              | ✗               | ✗              | rw+            | rw+             | rw+            |
 | BAG             | rw+v           | rw+v            | rw+v           | rw+v           | rw+v            | rw+v           |
