@@ -23,7 +23,7 @@ RUN pip install cmake --upgrade
 # load cache from previous build
 COPY ci/cache*/dotnet* /usr/share/dotnet/ 
 
-ARG DOTNET_VERSION=8.0
+ARG DOTNET_VERSION=9.0
 ARG DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
 
 ENV PATH="${PATH}:/usr/share/dotnet"

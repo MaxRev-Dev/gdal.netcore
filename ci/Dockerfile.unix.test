@@ -1,5 +1,5 @@
 # Runs tests from GDAL.NETCORE on Linux
-ARG DOTNET_VERSION=8.0
+ARG DOTNET_VERSION=9.0
 FROM --platform=$TARGETPLATFORM mcr.microsoft.com/dotnet/sdk:$DOTNET_VERSION as base
 RUN apt-get update && apt-get install -y \
     build-essential
