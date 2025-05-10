@@ -1,9 +1,11 @@
 using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
 using OSGeo.OGR;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -94,42 +96,49 @@ namespace GdalCore_XUnit
             }
         }
 
+        internal static string GetEnvRID()
+        {
+            var isArm = RuntimeInformation.ProcessArchitecture is Architecture.Arm64;
+            if (File.Exists(@"/System/Library/CoreServices/SystemVersion.plist"))
+            {
+                return isArm ? "osx-arm64" : "osx-x64";
+            }
+
+            return Environment.OSVersion.Platform switch
+            {
+                PlatformID.Unix => isArm ? "unix-arm64" : "unix-x64",
+                PlatformID.Win32NT => "win",
+                _ => throw new PlatformNotSupportedException(),
+            };
+        }
+
         public static IEnumerable<object[]> DriversInCurrentVersion
         {
-            get
-            {
-                return new[]
-                {
-                    "AAIGrid","ACE2","ADRG","AIG","AirSAR","AmigoCloud",
-                    "AVCBin","AVCE00","BAG","BIGGIF","BLX","BMP","BSB","BT",
-                    "BYN","CAD","CALS","Carto","CEOS","COASP","COG","COSAR",
-                    "CPG","CSV","CSW","CTable2","CTG","DAAS","DERIVED","DGN",
-                    "DIMAP","DIPEx","DOQ1","DOQ2","DTED","DXF","ECRGTOC","EDIGEO",
-                    "EEDA","EEDAI","EHdr","EIR","ELAS","Elasticsearch","ENVI","ERS",
-                    "ESAT","ESRI Shapefile","ESRIC","ESRIJSON", "FAST","FIT","FITS",
-                    "FlatGeobuf","GenBin","Geoconcept","GeoJSON","GeoJSONSeq","GeoRSS",
-                    "GFF","GIF","GML","GMLAS","GNMDatabase","GNMFile","GPKG","GPSBabel",
-                    "GPX","GRASSASCIIGrid","GRIB","GS7BG","GSAG","GSBG","GSC","GTFS","GTI","GTiff",
-                    "GTX","GXF","HDF4","HDF4Image","HDF5","HDF5Image","HF2","HFA",
-                    "HTTP","Idrisi","ILWIS","Interlis 1","Interlis 2","IRIS","ISCE",
-                    "ISG","ISIS2","ISIS3","JAXAPALSAR","JDEM","JML","JP2OpenJPEG",
-                    "JPEG","JSONFG","KML","KMLSUPEROVERLAY","KRO","L1B","LAN","LCP","Leveller",
-                    "LIBKML","LOSLAS","LVBAG","MAP","MapInfo File","MapML","MBTiles",
-                    "MEM","Memory","MFF","MFF2","MiraMonVector","MRF","MSGN","MSSQLSpatial","MVT",
-                    "MySQL","NAS","NDF","netCDF","NGSGEOID","NGW","NITF","NOAA_B","NSIDCbin","NTv2",
-                    "NWT_GRC","NWT_GRD","OAPIF","ODBC","ODS","OGCAPI","OGR_GMT",
-                    "OGR_PDS","OGR_SDTS","OGR_VRT","OpenFileGDB","OSM","OZI","PAux",
-                    "PCIDSK","PCRaster","PDF","PDS","PDS4","PGDUMP","PGeo","PLMOSAIC",
-                    "PLSCENES","PMTiles","PNG","PNM","PostGISRaster","PostgreSQL","PRF","R",
-                    "Rasterlite","RIK","RMF","ROI_PAC","RPFTOC","RRASTER","RS2","RST",
-                    "S102","S104","S111","S57","SAFE","SAGA","SAR_CEOS","SDTS","Selafin","SENTINEL2","SGI",
-                    "SIGDEM","SNODAS","SQLite","SRP","SRTMHGT","STACIT","STACTA","SVG",
-                    "SXF","Terragen","TGA","TIGER","TIL","TopoJSON","TSX","UK .NTF",
-                    "USGSDEM","VDV","VFK","VICAR","VRT","WAsP","WCS","WEBP","WFS",
-                    "WMS","WMTS","XLS","XLSX","XPM","XYZ","Zarr","ZMap"
-                }.Select(x => new[] { x });
-            }
+            get => GetDriversInCurrentVersion();
         }
+        
+        private static IEnumerable<object[]> GetDriversInCurrentVersion()
+        {
+            var folder = Extensions.GetTestDataFolder("../gdal-formats");
+            var rid = GetEnvRID();
+            var ridTrimmed = rid.Substring(0, rid.IndexOf('-'));
+            var formats = new List<string>();
+            foreach (var type in new[] { "raster", "vector" })
+            {
+                var file = Path.Combine(folder, $"formats-{rid}/gdal-formats-{ridTrimmed}-{type}.txt");
+                if (!File.Exists(file))
+                {
+                    throw new FileNotFoundException($"File not found: {file}");
+                }
+                formats.AddRange(File.ReadAllLines(file)
+                   .Where(x => x.Contains(type))
+                   .Select(x => x[..x.IndexOf('-')].Trim())
+                   .Where(x => !string.IsNullOrWhiteSpace(x))
+                   .ToArray());
+            }
+            return formats.Distinct().Select(x => new[] { x });
+        }
+
         public static IEnumerable<object[]> ValidTestDataVector
         {
             get
