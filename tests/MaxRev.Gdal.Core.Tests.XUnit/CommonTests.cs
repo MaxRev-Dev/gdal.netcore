@@ -129,7 +129,7 @@ namespace GdalCore_XUnit
                 // check if the folder exists in CI environment
                 if (!Directory.Exists(ciFolder))
                 {
-                    ciFolder = folder; // fallback to the default folder
+                    ciFolder = folder; // fallback to the default path
                 }
                 var file = Path.Combine(ciFolder, $"gdal-formats-{ridTrimmed}-{type}.txt");
                 if (!File.Exists(file))
