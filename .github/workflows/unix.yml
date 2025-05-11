@@ -184,6 +184,8 @@ jobs:
           name: formats-unix-${{ matrix.arch }}
           path: "tests/gdal-formats"
           merge-multiple: true
+      - run: |
+          ls -la ${{ github.workspace }}/tests/gdal-formats
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
