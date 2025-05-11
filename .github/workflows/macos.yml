@@ -169,9 +169,11 @@ jobs:
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - uses: actions/download-artifact@v4
+        name: Download artifact - formats
         with:
           name: formats-osx-${{ matrix.arch }}
           path: "tests/gdal-formats"
+          merge-multiple: true
 
       - name: Test packages
         run: |
