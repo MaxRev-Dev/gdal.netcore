@@ -120,7 +120,9 @@ jobs:
         with:
           pattern: packages-*
           path: nuget
-
+      - name: Remove old formats
+        run: |
+          rm -rf ${{ github.workspace }}/tests/gdal-formats
       - uses: actions/download-artifact@v4
         with:
           pattern: formats-*

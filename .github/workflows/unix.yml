@@ -174,6 +174,9 @@ jobs:
         with:
           name: packages-unix-${{ matrix.arch }}
           path: nuget/
+      - name: Remove old formats
+        run: |
+          rm -rf ${{ github.workspace }}/tests/gdal-formats
 
       - uses: actions/download-artifact@v4
         name: Download artifact - formats

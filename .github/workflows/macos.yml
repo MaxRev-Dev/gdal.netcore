@@ -167,7 +167,9 @@ jobs:
           api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
-
+      - name: Remove old formats
+        run: |
+          rm -rf ${{ github.workspace }}/tests/gdal-formats
       - uses: actions/download-artifact@v4
         name: Download artifact - formats
         with:
