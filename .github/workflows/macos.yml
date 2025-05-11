@@ -168,6 +168,11 @@ jobs:
           api-user-github: ${{ secrets.API_USER_GITHUB }}
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: formats-osx-${{ matrix.arch }}
+          path: "tests/gdal-formats"
+
       - name: Test packages
         run: |
           make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}

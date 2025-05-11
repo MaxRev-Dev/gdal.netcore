@@ -130,6 +130,11 @@ jobs:
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
           shell: pwsh
 
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: formats-win
+          path: "tests/gdal-formats"
+      
       - name: Test packages
         run: ./test.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ inputs.is-pre-release }}
         shell: pwsh
