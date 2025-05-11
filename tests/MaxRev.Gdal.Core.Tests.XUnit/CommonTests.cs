@@ -116,7 +116,7 @@ namespace GdalCore_XUnit
         {
             get => GetDriversInCurrentVersion();
         }
-        
+
         private static IEnumerable<object[]> GetDriversInCurrentVersion()
         {
             var folder = Extensions.GetTestDataFolder("../gdal-formats");
@@ -125,7 +125,13 @@ namespace GdalCore_XUnit
             var formats = new List<string>();
             foreach (var type in new[] { "raster", "vector" })
             {
-                var file = Path.Combine(folder, $"formats-{rid}/gdal-formats-{ridTrimmed}-{type}.txt");
+                var ciFolder = Path.Combine(folder, $"formats-{rid}");
+                // check if the folder exists in CI environment
+                if (!Directory.Exists(ciFolder))
+                {
+                    ciFolder = folder; // fallback to the default folder
+                }
+                var file = Path.Combine(ciFolder, $"gdal-formats-{ridTrimmed}-{type}.txt");
                 if (!File.Exists(file))
                 {
                     throw new FileNotFoundException($"File not found: {file}");
