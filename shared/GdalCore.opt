@@ -9,8 +9,8 @@ BUILD_NUMBER_TAIL=100
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RID)
 
-# Feb 14, 2025
-GDAL_VERSION=3.10.3
+# May 9, 2025
+GDAL_VERSION=3.11.0
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
 GDAL_COMMIT_VER=v$(GDAL_VERSION)
@@ -70,8 +70,8 @@ LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(__libshared)/$(RID)/$(__libshared)
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 ##### Dotnet version for GDAL
-DOTNET_VERSION=8.0
-GDAL_CSHARP_VERSION=net8.0
+DOTNET_VERSION=9.0
+GDAL_CSHARP_VERSION=net9.0
 
 ##### SWIG executable and interface
 BASE_SWIG_=$(GDAL_ROOT)/swig
