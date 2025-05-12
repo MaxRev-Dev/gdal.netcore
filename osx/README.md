@@ -5,6 +5,7 @@
     + [**2. Check for required libraries**](#2-check-for-required-libraries)
     + [**3. Compiling**](#3-compiling)
     + [**How to check dependencies:**](#6-how-to-check-dependencies)
+    + [**macOS signing](#macos-signing)
 
 ## Prerequisites
 
@@ -52,3 +53,38 @@ Don't forget to set **DYLD_LIBRARY_PATH**. See **copy-deps** target in **collect
 ```bash
 otool -L "/root/gdal.netcore/build-osx/gdal-build/lib/libgdal.dylib"
 ```
+
+### **macOS code signing**
+To sign the binaries, you need to have a valid Apple Developer ID certificate. You can create a self-signed certificate for testing purposes, but for distribution, you will need a valid certificate from Apple.
+
+Usage of this library in newer macOS versions with enabled Gatekeeper requires addressing this security warning. Here are some approaches to handle this:
+
+1. **For development environments:**
+   ```shell
+   # Remove quarantine attributes from the libraries
+   xattr -d com.apple.quarantine /path/to/your/project/bin/Debug/net*/runtimes/osx*/native/*.dylib
+   ```
+
+2. **For production apps:**
+   - If you have an Apple Developer account, sign the libraries as part of your build process:
+     ```shell
+     # Add to your post-build script
+     codesign --force --deep --sign "Your Developer ID" --options runtime /path/to/your/app/runtimes/osx*/native/*.dylib
+     ```
+   - Without a Developer account, you can add a build step that removes quarantine attributes:
+     ```xml
+     <!-- In your .csproj file -->
+     <Target Name="RemoveQuarantineAttributes" AfterTargets="Build" Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+       <Exec Command="xattr -d com.apple.quarantine &quot;$(OutputPath)runtimes/osx*/native/*.dylib&quot; 2>/dev/null || true" ContinueOnError="true" />
+     </Target>
+     ```
+
+3. **For end users:**
+   - Instruct users to right-click on the app and select "Open" the first time (this creates an exception)
+   - Or provide instructions to run: `sudo xattr -rd com.apple.quarantine /Applications/YourApp.app`
+
+4. **Try to build this library and codesign the packages yourself.**
+   - You can build the library and sign it with your own Apple Developer ID. This way, you can ensure that the libraries are trusted by macOS.
+   - To do this, clone the repository and follow the build instructions. After building, but before creating a nuget package, use the `codesign` command to sign the libraries with your Developer ID.
+
+Note: The manual approach in your build script is generally safer than advising end users to bypass security measures.

@@ -238,6 +238,10 @@ Currently, linker tries to find all shared libraries in the `@loader_path/`. It 
 
 A: Ensure that you are using the same architecture for your project and the runtime package. If you are using AnyCPU, you should use only the x64 runtime package. See the sample project for details in [tests/MaxRev.Gdal.Core.Tests.NetFramework](tests/MaxRev.Gdal.Core.Tests.NetFramework/).
 
+#### Q: macOS shows an error Apple couldn't verify xxx.dylib
+
+A: The packages were not signed during build in CI. Why? Because it requires to have a paid developer account which does not fall under this repo maintenance. For the workarounds see [osx/README.md](osx/README.md#macos-signing). 
+
 #### Q: Publishing the project with runtime packages
 
 A: There are several ways to publish. One important thing to keep in mind, that you have to ensure the output folder contains either `runtimes/<os>-<arch>/native` path, `gdal-data` folder and `maxrev.gdal.core.libshared/proj.db`. In most cases this should be handled automatically by dotnet. Usually, we release a runtime-dependent binary. The end user will have to install the .NET runtime, but the size of the app will be small and the build time is faster. Otherwise, you can publish a self-contained app which will include all required .NET runtime libraries. More details on publishing can be found [here](https://learn.microsoft.com/en-us/dotnet/core/deploying/). Also, see the sample dockerized project for details in [tests/MaxRev.Gdal.Core.Tests/Dockerfile](tests/MaxRev.Gdal.Core.Tests/Dockerfile).
