@@ -84,6 +84,7 @@ Combining these abbreviations, you get:
 | GRASSASCIIGrid  | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | GRIB            | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | GS7BG           | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
+| GSBG            | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | GSC             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | GTFS            | ✗              | ✗               | ✗              | rov            | rov             | rov            |
 | GTI             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
