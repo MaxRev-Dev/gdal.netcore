@@ -30,7 +30,7 @@ Combining these abbreviations, you get:
 | AIVector        | ✗              | ✗               | ✗              | ro             | ro              | ro             |
 | AVCBin          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
 | AVCE00          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
-| AVIF            | ✗              | ✗               | ✗              | ✗              | ✗               | ✗              |
+| AVIF            | rwvs           | ✗               | ✗              | ✗              | ✗               | ✗              |
 | AirSAR          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | AmigoCloud      | ✗              | ✗               | ✗              | rw+            | rw+             | rw+            |
 | BAG             | rw+v           | rw+v            | rw+v           | rw+v           | rw+v            | rw+v           |
@@ -84,6 +84,7 @@ Combining these abbreviations, you get:
 | GRASSASCIIGrid  | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | GRIB            | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | GS7BG           | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
+| GSAG            | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | GSBG            | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | GSC             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | GTFS            | ✗              | ✗               | ✗              | rov            | rov             | rov            |
