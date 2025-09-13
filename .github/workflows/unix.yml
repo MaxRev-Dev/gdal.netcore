@@ -119,6 +119,26 @@ jobs:
             DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
             VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
 
+      - name: Collect vcpkg logs on failure
+        if: failure()
+        run: |
+          # Create a temporary container to extract logs
+          docker create --name temp-logs ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest || true
+          # Extract vcpkg buildtrees logs
+          docker cp temp-logs:/build/build-unix/vcpkg/buildtrees ./vcpkg-logs/ || true
+          # Clean up container
+          docker rm temp-logs || true
+          # Create a tarball for easier download
+          tar -czf vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C vcpkg-logs . || true
+
+      - name: Upload vcpkg logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vcpkg-logs-${{ matrix.arch }}
+          path: vcpkg-buildtrees-${{ matrix.arch }}.tar.gz
+          retention-days: 3
+
       - name: Extract artifacts
         run: |
           chmod +x '${{ github.workspace }}/ci/extract-container-artifacts.sh'

@@ -247,7 +247,7 @@ function Build-Gdal {
     # -DOpenEXR_LIBRARY="$env:VCPKG_INSTALLED\lib\OpenEXR-3_2.lib" `
     # -DOpenEXR_INCLUDE_DIR="$env:VCPKG_INSTALLED\include\OpenEXR" `
     # -DOpenEXR_UTIL_LIBRARY="$env:VCPKG_INSTALLED\lib\OpenEXRUtil-3_2.lib" `
-    # -DOpenEXR_HALF_LIBRARY="$env:VCPKG_INSTALLED\lib\Imath-3_1.lib" `
+    # -DOpenEXR_HALF_LIBRARY="$env:VCPKG_INSTALLED\lib\Imath-3_2.lib" `
     # -DOpenEXR_IEX_LIBRARY="$env:VCPKG_INSTALLED\lib\Iex-3_2.lib" `
     cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `

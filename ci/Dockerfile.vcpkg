@@ -1,6 +1,6 @@
 # GDAL.NETCORE Builder - A lightweight test image for vcpkg package installations
 
-FROM --platform=$TARGETPLATFORM debian:11 as base
+FROM --platform=$TARGETPLATFORM debian:11 AS base
 
 RUN apt-get update && apt-get install -y \
     build-essential gnupg \
@@ -41,4 +41,4 @@ set(VCPKG_CMAKE_SYSTEM_NAME Linux)" > custom-triplets/${BUILD_ARCH}-linux.cmake
 
 RUN cat custom-triplets/${BUILD_ARCH}-linux.cmake
 
-RUN ./vcpkg install hdf5:${BUILD_ARCH}-linux  --overlay-triplets=./custom-triplets --editable
+RUN ./vcpkg install "tiff[core,cxx,jpeg,lzma,tools,webp,zip,zstd]:${BUILD_ARCH}-linux-dynamic"  --overlay-triplets=./custom-triplets --editable
