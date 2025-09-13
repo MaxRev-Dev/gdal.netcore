@@ -131,12 +131,12 @@ jobs:
           # Try to build again with output to extract logs directory
           docker buildx build \
             --platform=${{ matrix.os }} \
-            --file=ci/Dockerfile.unix \
+            --file=${{ github.workspace }}/ci/Dockerfile.unix \
             --target=build \
             --output=type=local,dest=./build-output \
             --build-arg BUILD_NUMBER_TAIL=${{ github.run_number }} \
             --build-arg PRERELEASE=${{ inputs.is-pre-release }} \
-            . || echo "Unable to extract build output"
+            ${{ github.workspace }} || echo "Unable to extract build output"
           
           # Look for vcpkg logs in the extracted output
           if [ -d "./build-output/build/build-unix/vcpkg/buildtrees" ]; then
@@ -144,6 +144,10 @@ jobs:
             cp -r "./build-output/build/build-unix/vcpkg/buildtrees" ./vcpkg-logs/
           else
             echo "No vcpkg buildtrees found in build output"
+            # List what we actually got to help debug
+            echo "Contents of build-output:"
+            find ./build-output -type d -name "*vcpkg*" 2>/dev/null || echo "No vcpkg directories found"
+            find ./build-output -type d -name "*buildtrees*" 2>/dev/null || echo "No buildtrees directories found"
             mkdir -p empty-logs
             echo "Build failed before vcpkg logs could be generated" > empty-logs/README.txt
             cp -r empty-logs ./vcpkg-logs/
