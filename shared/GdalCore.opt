@@ -9,8 +9,8 @@ BUILD_NUMBER_TAIL=100
 ### build (drivers) root
 BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RID)
 
-# Jul 12, 2025
-GDAL_VERSION=3.11.3
+# Sep 11, 2025
+GDAL_VERSION=3.11.4
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
 GDAL_COMMIT_VER=v$(GDAL_VERSION)
@@ -25,7 +25,7 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=2025.06.13
+VCPKG_COMMIT_VER=2025.08.27
 
 # base requirements for all runtimes
 VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" curl "poppler[cairo,cms,zlib,glib,curl,private-api]"
