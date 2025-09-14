@@ -132,7 +132,7 @@ jobs:
           docker buildx build \
             --platform=${{ matrix.os }} \
             --file=${{ github.workspace }}/ci/Dockerfile.unix \
-            --target=gdalbuild \
+            --target=logextract \
             --output=type=local,dest=./build-output \
             --build-arg BUILD_NUMBER_TAIL=${{ github.run_number }} \
             --build-arg PRERELEASE=${{ inputs.is-pre-release }} \
@@ -141,8 +141,11 @@ jobs:
             ${{ github.workspace }} || echo "Unable to extract build output"
           
           # Look for vcpkg logs in the extracted output
-          if [ -d "./build-output/build/build-unix/vcpkg/buildtrees" ]; then
+          if [ -d "./build-output/logs/buildtrees" ]; then
             echo "Found vcpkg logs in build output"
+            cp -r "./build-output/logs/buildtrees" ./vcpkg-logs/
+          elif [ -d "./build-output/build/build-unix/vcpkg/buildtrees" ]; then
+            echo "Found vcpkg logs in alternate location"
             cp -r "./build-output/build/build-unix/vcpkg/buildtrees" ./vcpkg-logs/
           else
             echo "No vcpkg buildtrees found in build output"

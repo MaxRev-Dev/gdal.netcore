@@ -77,8 +77,18 @@ RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) install_vcpkg
 COPY shared /build/shared
 COPY unix /build/unix
+
+# Create a separate stage for log extraction that doesn't fail
+FROM gdalbuild AS logextract
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) || true
+# Always copy logs, even if build failed
+RUN mkdir -p /logs && (cp -r /build/build-unix/vcpkg/buildtrees /logs/ 2>/dev/null || echo "No buildtrees to copy")
+
+# Continue with the original build
+FROM gdalbuild AS gdalbuildcont
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) || (cp -r /build/build-unix/vcpkg/buildtrees /tmp/vcpkg-logs 2>/dev/null || true; exit 1)
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f gdal-makefile proj $(cat /tmp/gdal-netcore-arch)
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
@@ -100,11 +110,11 @@ RUN set -a && . /tmp/gdal-netcore-env && set +a; \
 FROM --platform=$TARGETPLATFORM alpine AS final
 COPY --from=base /usr/share/dotnet /usr/share/dotnet
 # copy cache from build
-COPY --from=gdalbuild /build/build-unix /build/build-unix
-COPY --from=gdalbuild /build/shared /build/shared
-COPY --from=gdalbuild /build/ci/cache/vcpkg-archives/ /build/ci/cache/vcpkg-archives/
-COPY --from=gdalbuild /build/package-build/ /build/package-build/
-COPY --from=gdalbuild /build/tests/gdal-formats /build/tests/gdal-formats
+COPY --from=gdalbuildcont /build/build-unix /build/build-unix
+COPY --from=gdalbuildcont /build/shared /build/shared
+COPY --from=gdalbuildcont /build/ci/cache/vcpkg-archives/ /build/ci/cache/vcpkg-archives/
+COPY --from=gdalbuildcont /build/package-build/ /build/package-build/
+COPY --from=gdalbuildcont /build/tests/gdal-formats /build/tests/gdal-formats
 # copy nuget packages from build
-COPY --from=gdalbuild /build/nuget /build/nuget
+COPY --from=gdalbuildcont /build/nuget /build/nuget
 ENTRYPOINT ["bash"]
