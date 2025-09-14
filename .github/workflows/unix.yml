@@ -144,25 +144,18 @@ jobs:
           if [ -d "./build-output/logs" ]; then
             echo "Found vcpkg logs in build output"
             cp -r "./build-output/logs" ./vcpkg-logs/
-          elif [ -d "./build-output/logs/buildtrees" ]; then
-            echo "Found vcpkg logs in build output"
-            cp -r "./build-output/logs/buildtrees" ./vcpkg-logs/
-          elif [ -d "./build-output/build/build-unix/vcpkg/buildtrees" ]; then
-            echo "Found vcpkg logs in alternate location"
-            cp -r "./build-output/build/build-unix/vcpkg/buildtrees" ./vcpkg-logs/
           else
-            echo "No vcpkg buildtrees found in build output"
+            echo "No vcpkg logs found in build output"
             # List what we actually got to help debug
             echo "Contents of build-output:"
-            find ./build-output -type d -name "*vcpkg*" 2>/dev/null || echo "No vcpkg directories found"
-            find ./build-output -type d -name "*buildtrees*" 2>/dev/null || echo "No buildtrees directories found"
-            mkdir -p empty-logs
-            echo "Build failed before vcpkg logs could be generated" > empty-logs/README.txt
-            cp -r empty-logs ./vcpkg-logs/
+            find ./build-output -type f -name "*.log" 2>/dev/null | head -10 || echo "No log files found"
+            ls -la ./build-output/ 2>/dev/null || echo "No build-output directory"
+            mkdir -p vcpkg-logs
+            echo "Build failed before vcpkg logs could be generated" > vcpkg-logs/README.txt
           fi
           
           # Create tarball
-          tar -czf vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C vcpkg-logs . || true
+          tar -czf vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C vcpkg-logs . 2>/dev/null || echo "Failed to create tarball"
 
       - name: Fail job if build failed
         if: ${{ (steps.build-gh.outcome == 'failure') || (steps.build-local.outcome == 'failure') }}
