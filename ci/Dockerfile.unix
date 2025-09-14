@@ -82,18 +82,26 @@ COPY unix /build/unix
 FROM gdalbuild AS logextract
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) || true
-# Extract only error logs
+# Extract only the most critical error logs to minimize size
 RUN mkdir -p /logs && \
     if [ -d /build/build-unix/vcpkg/buildtrees ]; then \
-        find /build/build-unix/vcpkg/buildtrees -name "*-err.log" -o -name "*-out.log" -o -name "*.log" | \
+        # Only copy install error logs and build error logs, skip large intermediate files
+        find /build/build-unix/vcpkg/buildtrees -path "*/install-*-err.log" -o -path "*/build-*-err.log" -o -path "*/install-*-out.log" | head -20 | \
         while read logfile; do \
             relpath=$(echo "$logfile" | sed 's|/build/build-unix/vcpkg/buildtrees/||'); \
             mkdir -p "/logs/$(dirname "$relpath")"; \
-            cp "$logfile" "/logs/$relpath"; \
+            # Only copy last 1000 lines of each log to reduce size
+            tail -n 1000 "$logfile" > "/logs/$relpath"; \
         done; \
+        # Also create a summary of all failed packages
+        find /build/build-unix/vcpkg/buildtrees -name "*-err.log" | sed 's|.*/buildtrees/\([^/]*\)/.*|\1|' | sort -u > /logs/failed-packages.txt; \
     else \
         echo "No buildtrees directory found" > /logs/no-buildtrees.txt; \
     fi
+
+# Create minimal stage with only logs
+FROM alpine:latest AS logsonly
+COPY --from=logextract /logs /logs
 
 # Continue with the original build
 FROM gdalbuild AS gdalbuildcont
