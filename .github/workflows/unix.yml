@@ -154,8 +154,18 @@ jobs:
             echo "Build failed before vcpkg logs could be generated" > vcpkg-logs/README.txt
           fi
           
-          # Create tarball
-          tar -czf vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C vcpkg-logs . 2>/dev/null || echo "Failed to create tarball"
+          # Create tarball (always create one, even if empty)
+          if [ -d "vcpkg-logs" ] && [ "$(ls -A vcpkg-logs)" ]; then
+            tar -czf ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C vcpkg-logs .
+          else
+            # Create empty tarball if no logs found
+            mkdir -p empty-vcpkg-logs
+            echo "No vcpkg logs were extracted" > empty-vcpkg-logs/README.txt
+            tar -czf ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C empty-vcpkg-logs .
+          fi
+          
+          # Debug: Check if tarball was created
+          ls -la ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz || echo "Tarball not found"
 
       - name: Fail job if build failed
         if: ${{ (steps.build-gh.outcome == 'failure') || (steps.build-local.outcome == 'failure') }}
@@ -168,7 +178,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: vcpkg-logs-${{ matrix.arch }}
-          path: vcpkg-buildtrees-${{ matrix.arch }}.tar.gz
+          path: ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz
           retention-days: 3
 
       - name: Extract artifacts
