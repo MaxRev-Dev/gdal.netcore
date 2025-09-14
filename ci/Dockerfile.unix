@@ -97,6 +97,10 @@ RUN mkdir -p /logs && \
         find /build/build-unix/vcpkg/buildtrees -name "*-err.log" | sed 's|.*/buildtrees/\([^/]*\)/.*|\1|' | sort -u > /logs/failed-packages.txt; \
     else \
         echo "No buildtrees directory found" > /logs/no-buildtrees.txt; \
+    fi && \
+    # Copy vcpkg issue body if it exists (contains vcpkg debugging info)
+    if [ -f /build/build-unix/vcpkg/installed/vcpkg/issue_body.md ]; then \
+        cp /build/build-unix/vcpkg/installed/vcpkg/issue_body.md /logs/vcpkg-issue-body.md; \
     fi
 
 # Create minimal stage with only logs
