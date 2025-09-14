@@ -132,10 +132,12 @@ jobs:
           docker buildx build \
             --platform=${{ matrix.os }} \
             --file=${{ github.workspace }}/ci/Dockerfile.unix \
-            --target=build \
+            --target=gdalbuild \
             --output=type=local,dest=./build-output \
             --build-arg BUILD_NUMBER_TAIL=${{ github.run_number }} \
             --build-arg PRERELEASE=${{ inputs.is-pre-release }} \
+            --build-arg DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet \
+            --build-arg VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/ \
             ${{ github.workspace }} || echo "Unable to extract build output"
           
           # Look for vcpkg logs in the extracted output
