@@ -82,8 +82,18 @@ COPY unix /build/unix
 FROM gdalbuild AS logextract
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) || true
-# Always copy logs, even if build failed
-RUN mkdir -p /logs && (cp -r /build/build-unix/vcpkg/buildtrees /logs/ 2>/dev/null || echo "No buildtrees to copy")
+# Extract only error logs
+RUN mkdir -p /logs && \
+    if [ -d /build/build-unix/vcpkg/buildtrees ]; then \
+        find /build/build-unix/vcpkg/buildtrees -name "*-err.log" -o -name "*-out.log" -o -name "*.log" | \
+        while read logfile; do \
+            relpath=$(echo "$logfile" | sed 's|/build/build-unix/vcpkg/buildtrees/||'); \
+            mkdir -p "/logs/$(dirname "$relpath")"; \
+            cp "$logfile" "/logs/$relpath"; \
+        done; \
+    else \
+        echo "No buildtrees directory found" > /logs/no-buildtrees.txt; \
+    fi
 
 # Continue with the original build
 FROM gdalbuild AS gdalbuildcont
