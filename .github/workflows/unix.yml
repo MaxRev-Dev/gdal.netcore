@@ -126,9 +126,9 @@ jobs:
       - name: Extract logs on build failure
         if: ${{ (steps.build-gh.outcome == 'failure') || (steps.build-local.outcome == 'failure') }}
         run: |
-          echo "Build failed, attempting to extract logs using buildx output..."
+          echo "Build failed, extracting vcpkg logs..."
           
-          # Try to build again with output to extract logs directory
+          # Extract logs using logsonly stage
           docker buildx build \
             --platform=${{ matrix.os }} \
             --file=${{ github.workspace }}/ci/Dockerfile.unix \
@@ -138,34 +138,15 @@ jobs:
             --build-arg PRERELEASE=${{ inputs.is-pre-release }} \
             --build-arg DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet \
             --build-arg VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/ \
-            ${{ github.workspace }} || echo "Unable to extract build output"
+            ${{ github.workspace }} || echo "Unable to extract logs"
           
-          # Look for vcpkg logs in the extracted output
+          # Package logs for upload
           if [ -d "./build-output/logs" ]; then
-            echo "Found vcpkg logs in build output"
-            cp -r "./build-output/logs" ./vcpkg-logs/
+            tar -czf ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C ./build-output/logs .
           else
-            echo "No vcpkg logs found in build output"
-            # List what we actually got to help debug
-            echo "Contents of build-output:"
-            find ./build-output -type f -name "*.log" 2>/dev/null | head -10 || echo "No log files found"
-            ls -la ./build-output/ 2>/dev/null || echo "No build-output directory"
-            mkdir -p vcpkg-logs
-            echo "Build failed before vcpkg logs could be generated" > vcpkg-logs/README.txt
+            mkdir -p empty && echo "No vcpkg logs extracted" > empty/README.txt
+            tar -czf ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C empty .
           fi
-          
-          # Create tarball (always create one, even if empty)
-          if [ -d "vcpkg-logs" ] && [ "$(ls -A vcpkg-logs)" ]; then
-            tar -czf ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C vcpkg-logs .
-          else
-            # Create empty tarball if no logs found
-            mkdir -p empty-vcpkg-logs
-            echo "No vcpkg logs were extracted" > empty-vcpkg-logs/README.txt
-            tar -czf ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz -C empty-vcpkg-logs .
-          fi
-          
-          # Debug: Check if tarball was created
-          ls -la ${{ github.workspace }}/vcpkg-buildtrees-${{ matrix.arch }}.tar.gz || echo "Tarball not found"
 
       - name: Fail job if build failed
         if: ${{ (steps.build-gh.outcome == 'failure') || (steps.build-local.outcome == 'failure') }}
