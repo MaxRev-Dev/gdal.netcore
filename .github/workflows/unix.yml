@@ -63,8 +63,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            .dotnet/
-            ci/cache/
+            ${{ github.workspace }}/.dotnet/
+            ${{ github.workspace }}/ci/cache/
           key: ${{ matrix.os }}-buildx-${{ matrix.arch }}-${{ github.run_id }}
           restore-keys: |
             ${{ matrix.os }}-buildx-${{ matrix.arch }}-
