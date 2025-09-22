@@ -81,8 +81,13 @@ COPY unix /build/unix
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) || { \
         mkdir -p /logs; \
-        [ -f /build/build-unix/vcpkg/installed/vcpkg/issue_body.md ] && \
-        cp /build/build-unix/vcpkg/installed/vcpkg/issue_body.md /logs/vcpkg-issue-body.md; \
+        # Copy vcpkg issue body if it exists, otherwise create a basic error log
+        if [ -f /build/build-unix/vcpkg/installed/vcpkg/issue_body.md ]; then \
+            cp /build/build-unix/vcpkg/installed/vcpkg/issue_body.md /logs/vcpkg-issue-body.md; \
+        else \
+            echo "vcpkg build failed but no issue_body.md found" > /logs/vcpkg-build-failed.txt; \
+            find /build/build-unix/vcpkg -name "issue_body.md" > /logs/issue-body-search.txt 2>/dev/null || true; \
+        fi; \
         exit 1; \
     }
 
