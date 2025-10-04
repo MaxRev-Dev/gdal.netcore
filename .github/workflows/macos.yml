@@ -29,9 +29,11 @@ jobs:
         include:
           - os: macos-14
             arch: arm64
+            xcode-version: 15.2
           - os: macos-15-intel
             arch: x64
-
+            xcode-version: 16.0
+            
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -50,7 +52,7 @@ jobs:
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Select Xcode version
-        run: sudo xcode-select -s '/Applications/Xcode_15.2.app/Contents/Developer'
+        run: sudo xcode-select -s '/Applications/Xcode_${{ matrix.xcode-version }}.app'
 
       - name: Restore cached packages
         id: build-packages-cache-restore
