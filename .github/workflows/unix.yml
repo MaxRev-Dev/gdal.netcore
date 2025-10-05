@@ -99,7 +99,7 @@ jobs:
         id: build-gh
         with:
           push: true
-          context: .
+          context: ${{ github.workspace }}
           file: ci/Dockerfile.unix
           platforms: ${{ matrix.os }}
           build-args: |
@@ -117,7 +117,7 @@ jobs:
           load: true
           push: false
           tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
-          context: ${{ github.workspace }}
+          context: .
           file: ci/Dockerfile.unix
           platforms: ${{ matrix.os }}
           build-args: |
