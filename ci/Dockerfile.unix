@@ -1,5 +1,5 @@
 # Builds GDAL.NETCORE on Linux
-FROM --platform=$TARGETPLATFORM debian:11 AS base
+FROM debian:11 AS base
 LABEL org.opencontainers.image.source=https://github.com/MaxRev-Dev/gdal.netcore
 LABEL org.opencontainers.image.description="GDAL.NETCORE unix build image"
 LABEL org.opencontainers.image.licenses=MIT
@@ -55,7 +55,7 @@ RUN if [ $BUILDPLATFORM = "linux/arm64" ]; \
 
 RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
 
-FROM --platform=$TARGETPLATFORM base AS gdalbuild
+FROM base AS gdalbuild
 WORKDIR /build/unix
 ARG VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
 RUN mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
@@ -97,7 +97,7 @@ RUN rm -rf /build/nuget && mkdir -p /build/nuget
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL PRERELEASE=$PRERELEASE
 
-FROM --platform=$TARGETPLATFORM alpine AS final
+FROM alpine AS final
 COPY --from=base /usr/share/dotnet /usr/share/dotnet
 # copy cache from build
 COPY --from=gdalbuild /build/build-unix /build/build-unix
