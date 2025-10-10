@@ -220,7 +220,7 @@ jobs:
         uses: actions/checkout@v5.0.0
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 

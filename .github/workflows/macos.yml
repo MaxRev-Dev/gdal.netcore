@@ -74,7 +74,7 @@ jobs:
           pipx install cmake
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
@@ -158,7 +158,7 @@ jobs:
           path: nuget/
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
