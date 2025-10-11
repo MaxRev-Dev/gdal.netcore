@@ -29,7 +29,7 @@ runs:
         dotnet nuget remove source github > $null -ErrorAction SilentlyContinue
         dotnet nuget remove source nuget.org > $null -ErrorAction SilentlyContinue
         dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
-        dotnet nuget update source nuget --source https://api.nuget.org/v3/index.json --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
+        dotnet nuget add source nuget.org --source https://api.nuget.org/v3/index.json --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
         New-Item -Path "./nuget/" -ItemType Directory -Force
         dotnet nuget add source "./nuget/" --name local.ci
 
@@ -42,6 +42,6 @@ runs:
         dotnet nuget remove source github > /dev/null || :
         dotnet nuget remove source nuget.org > /dev/null || :
         dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
-        dotnet nuget update source nuget --source https://api.nuget.org/v3/index.json --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
+        dotnet nuget add source nuget.org --source https://api.nuget.org/v3/index.json --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
         mkdir -p "./nuget/"
         dotnet nuget add source "./nuget/" --name local.ci
