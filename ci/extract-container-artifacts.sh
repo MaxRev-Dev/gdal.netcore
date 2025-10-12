@@ -1,9 +1,9 @@
 # GDAL.NETCORE Builder - Extract container artifacts
-# Usage: ./extract-container-artifacts.sh 
+# Usage: ./extract-container-artifacts.sh <arch> <container-name>
 
 outputDir="$(dirname "$0")/.."
 arch=$1
-containerName=$(docker create ghcr.io/maxrev-dev/gdal.netcore.builder.$arch:latest)
+containerName=${2:-$(docker create ghcr.io/maxrev-dev/gdal.netcore.builder.$arch:latest)}
 echo "Extracting artifacts from container $containerName to $outputDir" 
 # extract nuget packages
 docker cp $containerName:/build/nuget "$outputDir/"
