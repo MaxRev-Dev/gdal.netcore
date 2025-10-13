@@ -30,13 +30,14 @@ Combining these abbreviations, you get:
 | AIVector        | ✗              | ✗               | ✗              | ro             | ro              | ro             |
 | AVCBin          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
 | AVCE00          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
-| AVIF            | rwvs           | ✗               | ✗              | ✗              | ✗               | ✗              |
+| AVIF            | ✗              | ✗               | ✗              | ✗              | ✗               | ✗              |
 | AirSAR          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | AmigoCloud      | ✗              | ✗               | ✗              | rw+            | rw+             | rw+            |
 | BAG             | rw+v           | rw+v            | rw+v           | rw+v           | rw+v            | rw+v           |
 | BIGGIF          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | BMP             | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | BSB             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
+| BT              | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | BYN             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | CAD             | rovs           | rovs            | rovs           | rovs           | rovs            | rovs           |
 | CALS            | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
