@@ -13,6 +13,6 @@ all: $(TARGETS)
 .PHONY: force
 $(TARGETS): force
 	@echo "Publishing package $@"
-	dotnet nuget push $@ -s nuget -k $(API_KEY_NUGET) --skip-duplicate || exit 1
+	dotnet nuget push $@ -s nuget.org -k $(API_KEY_NUGET) --skip-duplicate || exit 1
 	dotnet nuget push $@ -s github -k $(API_KEY_GITHUB) --skip-duplicate || exit 1
 	@echo "Successfully published package $@"
