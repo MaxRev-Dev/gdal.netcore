@@ -117,11 +117,14 @@ function Set-ReplaceContentInFilesByRegex {
 }
 
 function Get-VisualStudioVars {
-    if (!(Get-Command "nmake" -ErrorAction SilentlyContinue)) {
-        Write-BuildStep "Setting Visual Studio Environment"
-        Import-VisualStudioVars
-        Write-BuildStep "Visual Studio Environment was initialized"
-    }
+    Write-BuildStep "Setting Visual Studio Environment"
+    Import-VisualStudioVars -Architecture $env:CMAKE_ARCHITECTURE
+    Write-BuildStep "Visual Studio Environment was initialized"
+}
+
+function Clear-EnvPathDuplicates {
+    $envPaths = $env:PATH -split ';' | Where-Object { $_ } | Select-Object -Unique
+    $env:PATH = $envPaths -join ';'
 }
 
 function Reset-PsSession { 
@@ -140,7 +143,7 @@ function Install-PwshModuleRequirements {
     if (!(Get-Command choco -ErrorAction SilentlyContinue)) {
         exec { Set-ExecutionPolicy Bypass -Scope Process -Force; `
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; `
-        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) }
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) }
     }
 
     if (!(Get-Command make -ErrorAction SilentlyContinue)) {
@@ -211,20 +214,37 @@ function Get-CloneAndCheckoutCleanGitRepo {
         [Parameter(Mandatory = $true)]
         [string] $Branch,
         [Parameter(Mandatory = $true)]
-        [string] $Path 
+        [string] $CurrentPath 
     )
     
+    Write-BuildStep "Cloning/updating Git repository from $Url (branch: $Branch)"
     Push-Location -StackName "gdal.netcore|root"
-    New-FolderIfNotExistsAndSetCurrentLocation $Path
- 
-    if (-Not (Test-Path -Path $Path -PathType Container) -or 
-         (Get-ChildItem $Path | Measure-Object).Count -eq 0) { 
-        git clone -b $Branch -c core.longpaths=true $Url .
-    } 
-    git checkout -fq $Branch
-    git reset --hard
-    git clean -fdx
-    Pop-Location -StackName "gdal.netcore|root"
+    
+    try {
+        New-FolderIfNotExistsAndSetCurrentLocation $CurrentPath
+
+        $isEmpty = (Get-ChildItem $CurrentPath -ErrorAction SilentlyContinue | Measure-Object).Count -eq 0
+        $isGitRepo = Test-Path -Path (Join-Path $CurrentPath ".git") -PathType Container
+        if (-Not (Test-Path -Path $CurrentPath -PathType Container) -or $isEmpty -or -Not $isGitRepo) {
+            Write-BuildInfo "Cloning repository into $CurrentPath"
+            exec { git clone -b $Branch -c core.longpaths=true $Url . }
+        } else {
+            Write-BuildInfo "Repository already exists, updating..."
+        }
+        
+        exec { git checkout -fq $Branch }
+        exec { git reset --hard }
+        exec { git clean -fdx }
+        
+        Write-BuildInfo "Repository ready at $CurrentPath"
+    }
+    catch {
+        Write-BuildError "Failed to clone/update repository: $_"
+        throw
+    }
+    finally {
+        Pop-Location -StackName "gdal.netcore|root"
+    }
 }
 
 function Get-ForceResolvePath {
