@@ -33,8 +33,8 @@ function Set-GdalVariables {
     $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
     $env:7Z_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\7z")
     Add-EnvPath $env:7Z_ROOT
-    $env:VCPKG_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
-    Add-EnvPath $env:VCPKG_ROOT -Prepend
+    $env:VCPKG_ROOT_GDAL = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
+    Add-EnvPath $env:VCPKG_ROOT_GDAL -Prepend
 }
 
 function Get-7ZipInstallation {   
@@ -93,6 +93,11 @@ function Get-VcpkgInstallation {
         [bool] $bootstrapVcpkg = $true
     )
 
+    # Force VCPKG_ROOT to a workspace-local path to avoid VS's bundled vcpkg under Program Files
+    if (-not $env:VCPKG_ROOT_GDAL -or ($env:VCPKG_ROOT_GDAL -notlike "$env:BUILD_ROOT*")) {
+        $env:VCPKG_ROOT_GDAL = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
+    }
+
     if ($null -eq $env:VCPKG_DEFAULT_BINARY_CACHE) {
         $env:VCPKG_DEFAULT_BINARY_CACHE = "$env:BUILD_ROOT\vcpkg-cache"
     }
@@ -100,11 +105,11 @@ function Get-VcpkgInstallation {
 
     Write-BuildStep "Checking for VCPKG installation"    
     if ($bootstrapVcpkg) {
-        Get-CloneAndCheckoutCleanGitRepo https://github.com/Microsoft/vcpkg.git master $env:VCPKG_ROOT
+        Get-CloneAndCheckoutCleanGitRepo https://github.com/Microsoft/vcpkg.git master $env:VCPKG_ROOT_GDAL
     }
-    if (-Not (Test-Path -Path "$env:VCPKG_ROOT/vcpkg.exe" -PathType Leaf)) { 
+    if (-Not (Test-Path -Path "$env:VCPKG_ROOT_GDAL/vcpkg.exe" -PathType Leaf)) { 
         Write-BuildInfo "Installing VCPKG" 
-        exec { & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" }
+        exec { & "$env:VCPKG_ROOT_GDAL\bootstrap-vcpkg.bat" }
     }
     else {
         Write-BuildInfo "VCPKG is already installed"
@@ -157,7 +162,7 @@ function Install-Proj {
         -DCMAKE_C_FLAGS="/w" `
         -DCMAKE_CXX_FLAGS="/w" `
         -DBUILD_TESTING=OFF `
-        -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_ROOT}\scripts\buildsystems\vcpkg.cmake" `
+        -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_ROOT_GDAL}\scripts\buildsystems\vcpkg.cmake" `
         -DCMAKE_PREFIX_PATH="${env:VCPKG_INSTALLED};${env:SDK_PREFIX}" `
         -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF `
         -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF `
