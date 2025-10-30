@@ -374,7 +374,7 @@ function Copy-DependentDLLs {
     # Get the list of dependent DLLs using ldd
     Write-BuildInfo "Dry run ldd command: "
     & $env:GitBash -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
-    
+
     # Construct the LDD string
     $bashCommand = if ($combinedPath) { "PATH=${combinedPath}:`$PATH ldd $dllFileUnix" } else { "ldd $dllFileUnix" }
 
@@ -398,6 +398,17 @@ function Copy-DependentDLLs {
                 }
 
                 $dllPath = $dllPath -replace "/", "\"
+                
+                if ($dllPath -match "^\\c\\Windows\\System32" -or $dllPath -match "^\\c\\Windows\\SysWOW64") {
+                    foreach ($dir in $dllDirectories) {
+                        $candidatePath = Join-Path -Path $dir -ChildPath $dllName
+                        if (Test-Path -Path $candidatePath) {
+                            Write-BuildInfo "Overriding system DLL with version from '$dir': $candidatePath"
+                            $dllPath = $candidatePath
+                            break
+                        }
+                    }
+                }
                     
                 # Skip system paths and include msodbcsql17.dll and other specific DLLs
                 $dllsToRestore = @("msodbcsql17.dll", "OpenCL.dll", "libcrypto*", "libssl*")
