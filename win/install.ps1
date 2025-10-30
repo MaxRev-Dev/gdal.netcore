@@ -17,7 +17,6 @@ Import-Module (Resolve-Path "functions.psm1") -Force
 Import-Module (Resolve-Path "partials.psm1") -Force
 
 Push-Location -StackName "gdal.netcore|root"
-Clear-EnvPathDuplicates # ensure no duplicates in env path
 
 #$existingVariables = Get-Variable
 try {
@@ -32,14 +31,16 @@ try {
     Add-EnvPath $env:7Z_ROOT
 
     $env:VCPKG_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
-    Add-EnvPath $env:VCPKG_ROOT
+
+    Add-EnvPath $env:VCPKG_ROOT -Prepend
+
+    Set-GdalVariables
+
     Get-7ZipInstallation
     
     Get-VisualStudioVars
 
     Get-VcpkgInstallation -bootstrapVcpkg $bootstrapVcpkg
-
-    Set-GdalVariables
 
     Install-VcpkgPackagesSharedConfig $installVcpkgPackages
 

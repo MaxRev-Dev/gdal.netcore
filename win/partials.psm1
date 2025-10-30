@@ -146,15 +146,17 @@ function Install-Proj {
     Write-BuildInfo "Configuring PROJ..."
     New-FolderIfNotExistsAndSetCurrentLocation $env:ProjCmakeBuild
 
-    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE $env:PROJ_SOURCE `
-        -DCMAKE_INSTALL_PREFIX="$env:PROJ_INSTALL_DIR" `
+    cmake -G "$env:VS_VERSION" -A $env:CMAKE_ARCHITECTURE "${env:PROJ_SOURCE}" `
+        -DCMAKE_INSTALL_PREFIX="${env:PROJ_INSTALL_DIR}" `
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="/w" `
         -DCMAKE_CXX_FLAGS="/w" `
-        -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
-        -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-        -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
-        -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
+        -DBUILD_TESTING=OFF `
+        -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_ROOT}\scripts\buildsystems\vcpkg.cmake" `
+        -DCMAKE_PREFIX_PATH="${env:VCPKG_INSTALLED};${env:SDK_PREFIX}" `
+        -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF `
+        -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF `
+        -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON `
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
     Write-BuildStep "Done building PROJ"
@@ -196,6 +198,8 @@ function Build-Gdal {
 
     $env:Poppler_INCLUDE_DIR = "-DPoppler_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\poppler"
     $env:Poppler_LIBRARY = "-DPoppler_LIBRARY=$env:VCPKG_INSTALLED\lib\poppler.lib"
+    $env:TIFF_INCLUDE_DIR = "-DTIFF_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\tiff"
+    $env:TIFF_LIBRARY = "-DTIFF_LIBRARY_RELEASE=$env:VCPKG_INSTALLED\lib\tiff.lib"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -249,11 +253,14 @@ function Build-Gdal {
     # -DOpenEXR_UTIL_LIBRARY="$env:VCPKG_INSTALLED\lib\OpenEXRUtil-3_2.lib" `
     # -DOpenEXR_HALF_LIBRARY="$env:VCPKG_INSTALLED\lib\Imath-3_1.lib" `
     # -DOpenEXR_IEX_LIBRARY="$env:VCPKG_INSTALLED\lib\Iex-3_2.lib" `
-    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
+
+    cmake -G "$env:VS_VERSION" -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
         -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
-        -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
+        -DCMAKE_PREFIX_PATH="${env:VCPKG_INSTALLED};${env:SDK_PREFIX}" `
+        -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF `
+        -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF `
         -DGDAL_USE_OPENEXR=OFF `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
@@ -351,7 +358,7 @@ function Copy-DependentDLLs {
     # Use overridePath if provided, otherwise use an empty string
     $combinedPath = if ($overridePath) { "${overridePath}:${ldLibraryPath}" } else { $ldLibraryPath }
 
-    $dllFileUnix = Convert-ToUnixPath $dllFile
+    $dllFileUnix = Convert-ToUnixPath $dllFileInternal
     Write-BuildInfo "DLL file unix: $dllFileUnix"
     
     # Get the list of dependent DLLs using ldd
