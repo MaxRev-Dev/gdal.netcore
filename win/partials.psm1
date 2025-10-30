@@ -400,8 +400,15 @@ function Copy-DependentDLLs {
                 $dllPath = $dllPath -replace "/", "\"
                     
                 # Skip system paths and include msodbcsql17.dll and other specific DLLs
-                $dllsToRestore = ("msodbcsql17.dll", "OpenCL.dll")
-                if ($dllPath -notmatch "^\\c\\Windows" -or $dllsToRestore.Contains($dllName)) {
+                $dllsToRestore = @("msodbcsql17.dll", "OpenCL.dll", "libcrypto*", "libssl*")
+                $shouldInclude = $false
+                foreach ($pattern in $dllsToRestore) {
+                    if ($dllName -like $pattern) {
+                        $shouldInclude = $true
+                        break
+                    }
+                }
+                if ($dllPath -notmatch "^\\c\\Windows" -or $shouldInclude) {
                     if ($dllPath -match "^\\([a-z])\\") {
                         $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
                     }  
@@ -443,13 +450,7 @@ function Get-CollectDeps {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @(
-        $env:VCToolsRedistDir + "x64\",
-        "$env:VCPKG_INSTALLED\bin",
-        "$env:SDK_PREFIX\bin",
-        "$env:PROJ_INSTALL_DIR\bin",
-        "$env:GDAL_INSTALL_DIR\bin"
-    )
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", $env:VCToolsRedistDir + "x64\")
     Write-BuildInfo "Using DLL directories: $dllDirectories"
 
     Write-BuildInfo "Collecting dependent DLLs for $dllFile"
