@@ -30,6 +30,11 @@ function Set-GdalVariables {
     $env:VCPKG_INSTALLED_PKGCONFIG = "$env:VCPKG_INSTALLED\lib\pkgconfig"   
     
     $env:WEBP_ROOT = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
+    $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
+    $env:7Z_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\7z")
+    Add-EnvPath $env:7Z_ROOT
+    $env:VCPKG_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
+    Add-EnvPath $env:VCPKG_ROOT -Prepend
 }
 
 function Get-7ZipInstallation {   
