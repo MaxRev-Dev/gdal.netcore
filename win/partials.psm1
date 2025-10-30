@@ -383,7 +383,7 @@ function Copy-DependentDLLs {
                 $dllPath = $dllPath -replace "/", "\"
                     
                 # Skip system paths and include msodbcsql17.dll and other specific DLLs
-                $dllsToRestore = ("msodbcsql17.dll", "OpenCL.dll")
+                $dllsToRestore = ("msodbcsql17.dll", "OpenCL.dll", "libcrypto-3-x64.dll", "libssl-3-x64.dll")
                 if ($dllPath -notmatch "^\\c\\Windows" -or $dllsToRestore.Contains($dllName)) {
                     if ($dllPath -match "^\\([a-z])\\") {
                         $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
