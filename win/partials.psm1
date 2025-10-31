@@ -30,6 +30,11 @@ function Set-GdalVariables {
     $env:VCPKG_INSTALLED_PKGCONFIG = "$env:VCPKG_INSTALLED\lib\pkgconfig"   
     
     $env:WEBP_ROOT = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
+    $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
+    $env:7Z_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\7z")
+    Add-EnvPath $env:7Z_ROOT
+    $env:VCPKG_ROOT_GDAL = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
+    Add-EnvPath $env:VCPKG_ROOT_GDAL -Prepend
 }
 
 function Get-7ZipInstallation {   
@@ -88,6 +93,11 @@ function Get-VcpkgInstallation {
         [bool] $bootstrapVcpkg = $true
     )
 
+    # Force VCPKG_ROOT to a workspace-local path to avoid VS's bundled vcpkg under Program Files
+    if (-not $env:VCPKG_ROOT_GDAL -or ($env:VCPKG_ROOT_GDAL -notlike "$env:BUILD_ROOT*")) {
+        $env:VCPKG_ROOT_GDAL = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
+    }
+
     if ($null -eq $env:VCPKG_DEFAULT_BINARY_CACHE) {
         $env:VCPKG_DEFAULT_BINARY_CACHE = "$env:BUILD_ROOT\vcpkg-cache"
     }
@@ -95,11 +105,11 @@ function Get-VcpkgInstallation {
 
     Write-BuildStep "Checking for VCPKG installation"    
     if ($bootstrapVcpkg) {
-        Get-CloneAndCheckoutCleanGitRepo https://github.com/Microsoft/vcpkg.git master $env:VCPKG_ROOT
+        Get-CloneAndCheckoutCleanGitRepo https://github.com/Microsoft/vcpkg.git master $env:VCPKG_ROOT_GDAL
     }
-    if (-Not (Test-Path -Path "$env:VCPKG_ROOT/vcpkg.exe" -PathType Leaf)) { 
+    if (-Not (Test-Path -Path "$env:VCPKG_ROOT_GDAL/vcpkg.exe" -PathType Leaf)) { 
         Write-BuildInfo "Installing VCPKG" 
-        exec { & "$env:VCPKG_ROOT\bootstrap-vcpkg.bat" }
+        exec { & "$env:VCPKG_ROOT_GDAL\bootstrap-vcpkg.bat" }
     }
     else {
         Write-BuildInfo "VCPKG is already installed"
@@ -146,15 +156,17 @@ function Install-Proj {
     Write-BuildInfo "Configuring PROJ..."
     New-FolderIfNotExistsAndSetCurrentLocation $env:ProjCmakeBuild
 
-    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE $env:PROJ_SOURCE `
-        -DCMAKE_INSTALL_PREFIX="$env:PROJ_INSTALL_DIR" `
+    cmake -G "$env:VS_VERSION" -A $env:CMAKE_ARCHITECTURE "${env:PROJ_SOURCE}" `
+        -DCMAKE_INSTALL_PREFIX="${env:PROJ_INSTALL_DIR}" `
         -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="/w" `
         -DCMAKE_CXX_FLAGS="/w" `
-        -DPROJ_TESTS=OFF -DBUILD_LIBPROJ_SHARED=ON `
-        -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_ROOT\scripts\buildsystems\vcpkg.cmake" `
-        -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
-        -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON
+        -DBUILD_TESTING=OFF `
+        -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_ROOT_GDAL}\scripts\buildsystems\vcpkg.cmake" `
+        -DCMAKE_PREFIX_PATH="${env:VCPKG_INSTALLED};${env:SDK_PREFIX}" `
+        -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF `
+        -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF `
+        -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON `
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
     Write-BuildStep "Done building PROJ"
@@ -196,6 +208,8 @@ function Build-Gdal {
 
     $env:Poppler_INCLUDE_DIR = "-DPoppler_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\poppler"
     $env:Poppler_LIBRARY = "-DPoppler_LIBRARY=$env:VCPKG_INSTALLED\lib\poppler.lib"
+    $env:TIFF_INCLUDE_DIR = "-DTIFF_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\tiff"
+    $env:TIFF_LIBRARY = "-DTIFF_LIBRARY_RELEASE=$env:VCPKG_INSTALLED\lib\tiff.lib"
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -249,11 +263,14 @@ function Build-Gdal {
     # -DOpenEXR_UTIL_LIBRARY="$env:VCPKG_INSTALLED\lib\OpenEXRUtil-3_2.lib" `
     # -DOpenEXR_HALF_LIBRARY="$env:VCPKG_INSTALLED\lib\Imath-3_1.lib" `
     # -DOpenEXR_IEX_LIBRARY="$env:VCPKG_INSTALLED\lib\Iex-3_2.lib" `
-    cmake -G $env:VS_VERSION -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
+
+    cmake -G "$env:VS_VERSION" -A $env:CMAKE_ARCHITECTURE "$env:GDAL_SOURCE" `
         $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -Wno-dev `
         -DCMAKE_C_FLAGS="$env:ARCH_FLAGS" `
         -DCMAKE_CXX_FLAGS="$env:ARCH_FLAGS" `
-        -DCMAKE_PREFIX_PATH="$env:VCPKG_INSTALLED;$env:SDK_PREFIX" `
+        -DCMAKE_PREFIX_PATH="${env:VCPKG_INSTALLED};${env:SDK_PREFIX}" `
+        -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF `
+        -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF `
         -DGDAL_USE_OPENEXR=OFF `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
@@ -351,13 +368,13 @@ function Copy-DependentDLLs {
     # Use overridePath if provided, otherwise use an empty string
     $combinedPath = if ($overridePath) { "${overridePath}:${ldLibraryPath}" } else { $ldLibraryPath }
 
-    $dllFileUnix = Convert-ToUnixPath $dllFile
+    $dllFileUnix = Convert-ToUnixPath $dllFileInternal
     Write-BuildInfo "DLL file unix: $dllFileUnix"
     
     # Get the list of dependent DLLs using ldd
     Write-BuildInfo "Dry run ldd command: "
     & $env:GitBash -c "PATH=${combinedPath}:`$PATH ldd $dllFileUnix"
-    
+
     # Construct the LDD string
     $bashCommand = if ($combinedPath) { "PATH=${combinedPath}:`$PATH ldd $dllFileUnix" } else { "ldd $dllFileUnix" }
 
@@ -381,10 +398,28 @@ function Copy-DependentDLLs {
                 }
 
                 $dllPath = $dllPath -replace "/", "\"
+                
+                if ($dllPath -match "^\\c\\Windows\\System32" -or $dllPath -match "^\\c\\Windows\\SysWOW64") {
+                    foreach ($dir in $dllDirectories) {
+                        $candidatePath = Join-Path -Path $dir -ChildPath $dllName
+                        if (Test-Path -Path $candidatePath) {
+                            Write-BuildInfo "Overriding system DLL with version from '$dir': $candidatePath"
+                            $dllPath = $candidatePath
+                            break
+                        }
+                    }
+                }
                     
                 # Skip system paths and include msodbcsql17.dll and other specific DLLs
-                $dllsToRestore = ("msodbcsql17.dll", "OpenCL.dll")
-                if ($dllPath -notmatch "^\\c\\Windows" -or $dllsToRestore.Contains($dllName)) {
+                $dllsToRestore = @("msodbcsql17.dll", "OpenCL.dll", "libcrypto*", "libssl*")
+                $shouldInclude = $false
+                foreach ($pattern in $dllsToRestore) {
+                    if ($dllName -like $pattern) {
+                        $shouldInclude = $true
+                        break
+                    }
+                }
+                if ($dllPath -notmatch "^\\c\\Windows" -or $shouldInclude) {
                     if ($dllPath -match "^\\([a-z])\\") {
                         $dllPath = $dllPath -replace "^\\([a-z])\\", { "$($matches[1].ToUpper()):\" }
                     }  

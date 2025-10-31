@@ -121,7 +121,7 @@ namespace GdalCore_XUnit
         {
             var folder = Extensions.GetTestDataFolder("../gdal-formats");
             var rid = GetEnvRID();
-            var ridTrimmed = rid.Substring(0, rid.IndexOf('-'));
+            var ridTrimmed = rid.Contains('-') ? rid.Substring(0, rid.IndexOf('-')) : rid;
             var formats = new List<string>();
             foreach (var type in new[] { "raster", "vector" })
             {

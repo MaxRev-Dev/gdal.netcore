@@ -26,19 +26,14 @@ try {
 
     Install-PwshModuleRequirements
 
-    $env:BUILD_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\build-win")
-    $env:7Z_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\7z")
-    Add-EnvPath $env:7Z_ROOT
-
-    $env:VCPKG_ROOT = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
-    Add-EnvPath $env:VCPKG_ROOT
-    Get-7ZipInstallation
-
-    Get-VcpkgInstallation -bootstrapVcpkg $bootstrapVcpkg
 
     Set-GdalVariables
 
+    Get-7ZipInstallation
+    
     Get-VisualStudioVars
+
+    Get-VcpkgInstallation -bootstrapVcpkg $bootstrapVcpkg
 
     Install-VcpkgPackagesSharedConfig $installVcpkgPackages
 

@@ -31,9 +31,9 @@ test-update:
 test-only: test-restore
 	-cd $(TEST_DIR)
 !IF "$(ESSENTIAL_ONLY)" == "1"
-	-dotnet test --no-restore --filter GdalDoesNotFailOnMakeValid
+	dotnet test --no-restore --filter GdalDoesNotFailOnMakeValid
 !ELSE
-	-dotnet test --no-restore
+	dotnet test --no-restore
 !ENDIF
 	-cd $(MAKEDIR)
 
