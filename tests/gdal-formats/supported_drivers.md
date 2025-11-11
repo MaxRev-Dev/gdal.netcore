@@ -140,6 +140,7 @@ Combining these abbreviations, you get:
 | MSSQLSpatial    | ✗              | ✗               | ✗              | rw+u           | rw+u            | rw+u           |
 | MVT             | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
 | MapML           | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
+| MiraMonRaster   | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
 | MiraMonVector   | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
 | MySQL           | ✗              | ✗               | ✗              | rw+u           | rw+u            | rw+u           |
 | NAS             | ✗              | ✗               | ✗              | rov            | rov             | rov            |
@@ -175,7 +176,7 @@ Combining these abbreviations, you get:
 | PNG             | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | PNM             | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | PRF             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
-| Parquet         | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
+| Parquet         | ✗              | ✗               | ✗              | rw+uv          | rw+uv           | rw+uv          |
 | PostGISRaster   | rws            | rws             | rws            | ✗              | ✗               | ✗              |
 | PostgreSQL      | ✗              | ✗               | ✗              | rw+u           | rw+u            | rw+u           |
 | RCM             | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
@@ -187,8 +188,8 @@ Combining these abbreviations, you get:
 | RS2             | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
 | RST             | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | S102            | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
-| S104            | rov            | rov             | rov            | ✗              | ✗               | ✗              |
-| S111            | rov            | rov             | rov            | ✗              | ✗               | ✗              |
+| S104            | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
+| S111            | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
 | S57             | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
 | SAFE            | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | SAGA            | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
