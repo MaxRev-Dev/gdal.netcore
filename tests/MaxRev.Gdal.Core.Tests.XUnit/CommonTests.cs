@@ -84,6 +84,60 @@ namespace GdalCore_XUnit
             Assert.True(valid.IsValid());
         }
 
+        [Theory]
+        [MemberData(nameof(ValidTestDataVector))]
+        public void ConvertShapeToParquet(string shapefile)
+        {
+            using var ds = Gdal.OpenEx(shapefile, 0, null, null, null);
+            var targetPath = Extensions.GetTestDataFolder("samples-vector-parquet");
+            Directory.CreateDirectory(targetPath);
+            var targetPathDs = Path.Combine(targetPath,
+                Path.GetFileNameWithoutExtension(shapefile) + "-generated.parquet");
+            var options = new GDALVectorTranslateOptions(new[] { "-f", "Parquet", "-nlt", "PROMOTE_TO_MULTI" });
+            using var copy = Gdal.wrapper_GDALVectorTranslateDestName(targetPathDs, ds, options, null, null);
+            Assert.NotNull(copy);
+            Assert.True(File.Exists(targetPathDs));
+        }
+
+        [Theory]
+        [MemberData(nameof(ValidTestDataVector))]
+        public void ConvertShapeToArrow(string shapefile)
+        { 
+            using var ds = Gdal.OpenEx(shapefile, 0, null, null, null);
+            var targetPath = Extensions.GetTestDataFolder("samples-vector-arrow");
+            Directory.CreateDirectory(targetPath);
+            var targetPathDs = Path.Combine(targetPath,
+                Path.GetFileNameWithoutExtension(shapefile) + "-generated.arrow");
+            var options = new GDALVectorTranslateOptions(new[] { "-f", "Arrow", "-nlt", "PROMOTE_TO_MULTI" });
+            using var copy = Gdal.wrapper_GDALVectorTranslateDestName(targetPathDs, ds, options, null, null);
+            Assert.NotNull(copy);
+            Assert.True(File.Exists(targetPathDs));
+        }
+
+        [Theory]
+        [MemberData(nameof(ValidTestDataVectorParquet))]
+        public void GetGdalInfoVectorParquet(string file)
+        {
+            using var f = Ogr.Open(file, 0);
+            Assert.NotNull(f);
+            for (var i = 0; i < f.GetLayerCount(); i++)
+            {
+                Assert.NotNull(f.GetLayerByIndex(i));
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(ValidTestDataVectorArrow))]
+        public void GetGdalInfoVectorArrow(string file)
+        {
+            using var f = Ogr.Open(file, 0);
+            Assert.NotNull(f);
+            for (var i = 0; i < f.GetLayerCount(); i++)
+            {
+                Assert.NotNull(f.GetLayerByIndex(i));
+            }
+        }
+
         private static string _staticWkt =
                 "POLYGON((8.39475541866082 18.208975124406155,24.390849168660818 39.41962323304138,43.19944291866082 27.430752179449893,3.9123335436608198 22.736137385695233,8.39475541866082 18.208975124406155))";
 
@@ -150,6 +204,24 @@ namespace GdalCore_XUnit
             get
             {
                 var names = Directory.EnumerateFiles(Extensions.GetTestDataFolder("samples-vector"), "*.shp");
+                return names.Select(x => new[] { x });
+            }
+        }
+
+        public static IEnumerable<object[]> ValidTestDataVectorParquet
+        {
+            get
+            {
+                var names = Directory.EnumerateFiles(Extensions.GetTestDataFolder("samples-vector-parquet"), "*.parquet");
+                return names.Select(x => new[] { x });
+            }
+        }
+
+        public static IEnumerable<object[]> ValidTestDataVectorArrow
+        {
+            get
+            {
+                var names = Directory.EnumerateFiles(Extensions.GetTestDataFolder("samples-vector-arrow"), "*.arrow");
                 return names.Select(x => new[] { x });
             }
         }

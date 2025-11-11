@@ -108,22 +108,22 @@ patch_vcpkg_triplets:
 
 install_packages:
 	@for pack in $(VCPKG_REQUIRE_OSX); do \
-		{ (MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED)) || \
-		(if [ $$? -ne 0 ]; then \
+		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || \
+		{ \
 			echo "Error occurred while installing $$pack"; \
 			cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log; \
 			cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log; \
-		fi; exit 1) \
-	}; \
+			exit 1; \
+		}; \
 	done
 	@for pack in $(VCPKG_REQUIRE_OSX_DYNAMIC); do \
-		{ (MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED)) || \
-		(if [ $$? -ne 0 ]; then \
+		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || \
+		{ \
 			echo "Error occurred while installing $$pack"; \
 			cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log; \
 			cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log; \
-		fi; exit 1) \
-	}; \
+			exit 1; \
+		}; \
 	done
 
 remove_packages:
