@@ -33,6 +33,7 @@ Combining these abbreviations, you get:
 | AVIF            | ✗              | ✗               | ✗              | ✗              | ✗               | ✗              |
 | AirSAR          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | AmigoCloud      | ✗              | ✗               | ✗              | rw+            | rw+             | rw+            |
+| Arrow           | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
 | BAG             | rw+v           | rw+v            | rw+v           | rw+v           | rw+v            | rw+v           |
 | BIGGIF          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | BMP             | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
@@ -174,6 +175,7 @@ Combining these abbreviations, you get:
 | PNG             | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | PNM             | rw+v           | rw+v            | rw+v           | ✗              | ✗               | ✗              |
 | PRF             | rov            | rov             | rov            | ✗              | ✗               | ✗              |
+| Parquet         | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
 | PostGISRaster   | rws            | rws             | rws            | ✗              | ✗               | ✗              |
 | PostgreSQL      | ✗              | ✗               | ✗              | rw+u           | rw+u            | rw+u           |
 | RCM             | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
