@@ -32,7 +32,7 @@ jobs:
       run:
         working-directory: win
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v5.0.1
         with:
           fetch-depth: 0
 
@@ -69,7 +69,7 @@ jobs:
           echo "GDAL_VERSION=$env:GDAL_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Store metadata as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: metadata-win-x64
           path: |
@@ -78,7 +78,7 @@ jobs:
           overwrite: true
 
       - name: GDAL formats windows
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: formats-win
           path: |
@@ -86,7 +86,7 @@ jobs:
           overwrite: true
 
       - name: Store packages as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: packages-win-x64
           path: nuget/*.nupkg
@@ -107,12 +107,12 @@ jobs:
     env:
       GDAL_VERSION: ${{ needs.BuildNugetPackages-Windows.outputs.gdal-version }}
     steps:
-      - uses: actions/checkout@v3.0.0
+      - uses: actions/checkout@v5.0.1
         with:
           fetch-depth: 0
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6.0.0
         with:
           name: packages-win-x64
           path: nuget/
@@ -131,7 +131,7 @@ jobs:
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
           shell: pwsh
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6.0.0
         name: Download artifact - formats
         with:
           pattern: formats-win
@@ -151,7 +151,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.1
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5.0.0
@@ -159,10 +159,9 @@ jobs:
           dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6.0.0
         with:
           pattern: packages-win*
-          merge-multiple: true
           path: nuget/
 
       - name: NuGet - set credentials
