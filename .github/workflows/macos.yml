@@ -198,6 +198,7 @@ jobs:
         with:
           pattern: packages-osx*
           path: nuget/
+          merge-multiple: true
 
       - name: Download artifact - metadata
         uses: actions/download-artifact@v6.0.0

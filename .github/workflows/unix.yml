@@ -251,6 +251,7 @@ jobs:
         with:
           pattern: packages-unix*
           path: "${{ github.workspace}}/nuget/"
+          merge-multiple: true
 
       - name: Download artifact - metadata
         uses: actions/download-artifact@v6.0.0
