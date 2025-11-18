@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
 
       - name: NuGet - set credentials
         uses: ./.github/actions/set-credentials
@@ -127,7 +127,7 @@ jobs:
           '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }}
 
       - name: Store metadata as artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: metadata-unix-${{ matrix.arch }}
           path: |
@@ -136,18 +136,27 @@ jobs:
           overwrite: true
 
       - name: GDAL formats unix
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: formats-unix-${{ matrix.arch }}
           path: |
             tests/gdal-formats/*.txt
           overwrite: true
-
-      - name: Store packages as artifact
-        uses: actions/upload-artifact@v4.6.2
+      - name: Store runtime packages as artifact
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: packages-unix-${{ matrix.arch }}
-          path: nuget/*.nupkg
+          path: |
+            nuget/*.nupkg
+            !nuget/MaxRev.Gdal.Core.*.nupkg
+          overwrite: true
+
+      - name: Store Core package as artifact (x64 only)
+        if: matrix.arch == 'x64'
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: packages-core
+          path: nuget/MaxRev.Gdal.Core.*.nupkg
           overwrite: true
 
   TestPackages-Linux:
@@ -169,18 +178,25 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
 
-      - name: Download artifact
-        uses: actions/download-artifact@v5.0.0
+      - name: Download artifact - core package
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-core
+          path: nuget/
+
+      - name: Download artifact - runtime packages
+        uses: actions/download-artifact@v6.0.0
         with:
           name: packages-unix-${{ matrix.arch }}
           path: nuget/
+
       - name: Remove old formats
         run: |
           rm -rf ${{ github.workspace }}/tests/gdal-formats
 
-      - uses: actions/download-artifact@v5.0.0
+      - uses: actions/download-artifact@v6.0.0
         name: Download artifact - formats
         with:
           name: formats-unix-${{ matrix.arch }}
@@ -217,22 +233,28 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v5.0.1
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5.0.0
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
-      - name: Download artifact - packages
-        uses: actions/download-artifact@v5.0.0
+      - name: Download artifact - core package
+        uses: actions/download-artifact@v6.0.0
         with:
-          pattern: packages-unix*
-          merge-multiple: true
+          pattern: packages-core
           path: "${{ github.workspace}}/nuget/"
 
+      - name: Download artifact - runtime packages
+        uses: actions/download-artifact@v6.0.0
+        with:
+          pattern: packages-unix*
+          path: "${{ github.workspace}}/nuget/"
+          merge-multiple: true
+
       - name: Download artifact - metadata
-        uses: actions/download-artifact@v5.0.0
+        uses: actions/download-artifact@v6.0.0
         with:
           pattern: metadata-unix*
           merge-multiple: true
@@ -250,7 +272,7 @@ jobs:
           make -f publish-makefile pack-bundle-only CAT_NAME=unix PRERELEASE=${{ inputs.is-pre-release }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Store packages as artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: packages-unix-final
           path: nuget/*.nupkg

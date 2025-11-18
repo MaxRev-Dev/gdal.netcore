@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.1
 
       - name: NuGet - set credentials
         uses: ./.github/actions/set-credentials
@@ -108,7 +108,7 @@ jobs:
           make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Store metadata as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: metadata-osx-${{ matrix.arch }}
           path: |
@@ -117,7 +117,7 @@ jobs:
           overwrite: true
 
       - name: GDAL formats osx
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: formats-osx-${{ matrix.arch }}
           path: |
@@ -125,7 +125,7 @@ jobs:
           overwrite: true
 
       - name: Store packages as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: packages-osx-${{ matrix.arch }}
           path: nuget/*.nupkg
@@ -149,10 +149,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.1
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6.0.0
         with:
           name: packages-osx-${{ matrix.arch }}
           path: nuget/
@@ -172,7 +172,7 @@ jobs:
       - name: Remove old formats
         run: |
           rm -rf ${{ github.workspace }}/tests/gdal-formats
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6.0.0
         name: Download artifact - formats
         with:
           name: formats-osx-${{ matrix.arch }}
@@ -191,17 +191,17 @@ jobs:
         working-directory: osx
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5.0.1
 
       - name: Download artifact - packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6.0.0
         with:
           pattern: packages-osx*
-          merge-multiple: true
           path: nuget/
+          merge-multiple: true
 
       - name: Download artifact - metadata
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6.0.0
         with:
           pattern: metadata-osx*
           merge-multiple: true
@@ -219,7 +219,7 @@ jobs:
           make -f publish-makefile pack-bundle-only CAT_NAME=osx PRERELEASE=${{ inputs.is-pre-release }} BUILD_NUMBER_TAIL=${{ github.run_number }}
 
       - name: Store packages as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5.0.0
         with:
           name: packages-osx-final
           path: nuget/*.nupkg
