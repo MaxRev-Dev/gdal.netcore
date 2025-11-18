@@ -69,6 +69,7 @@ jobs:
 
       - name: Install deps
         run: |
+          chmod +x ${{ github.workspace }}/unix/before-install.sh
           ${{ github.workspace }}/unix/before-install.sh
 
       - name: Fetch VCPKG packages
