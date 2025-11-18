@@ -136,7 +136,7 @@ jobs:
             actions-runner: ubuntu-24.04-arm
 
     needs: BuildNugetPackages-Linux
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.actions-runner }}
     defaults:
       run:
         working-directory: unix
