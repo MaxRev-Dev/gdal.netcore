@@ -80,17 +80,17 @@ jobs:
           mkdir -p ${{ github.workspace }}/vcpkg-archives/
           make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
 
-      - name: Compile HDF
+      - name: Init GDAL and PROJ
         run: |
-          make -f gdal-makefile hdf-force BUILD_ARCH=${{ matrix.arch }}
+          make -f gdal-makefile init_gdal init_proj BUILD_ARCH=${{ matrix.arch }}
 
       - name: Compile PROJ
         run: |
-          make -f gdal-makefile proj-force BUILD_ARCH=${{ matrix.arch }}
+          make -f gdal-makefile proj BUILD_ARCH=${{ matrix.arch }}
 
       - name: Compile GDAL
         run: |
-          make -f gdal-makefile gdal-force BUILD_ARCH=${{ matrix.arch }}
+          make -f gdal-makefile gdal BUILD_ARCH=${{ matrix.arch }} DOTNET_VERSION=${{ inputs.dotnet-version }}
 
       - name: Collect deps
         run: |
