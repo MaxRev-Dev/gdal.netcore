@@ -79,13 +79,15 @@ init_hdf: check_hdf_sources
 	@echo "$(TO) HDF sources restore complete"
 
 HDF_zip=hdf$(HDF_VERSION).zip
-HDF_SOURCE=$(BUILD_ROOT)/hdf-$(HDF_VERSION)/hdfsrc
+HDF_SOURCE=$(BUILD_ROOT)/hdf4-hdf$(HDF_VERSION)
 
 download_hdf:
-	@echo "$(TO) Downloading HDF sources..."
-	curl -L -o "$(BUILD_ROOT)/$(HDF_zip)" "https://github.com/HDFGroup/hdf4/releases/download/hdf$(HDF_VERSION)/$(HDF_zip)"
-	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d "$(BUILD_ROOT)/hdf-$(HDF_VERSION)"
-	@echo "$(TO) HDF sources downloaded!"
+	@echo "$(TO) Downloading HDF source ${HDF_zip}..."
+	LD_LIBRARY_PATH="" curl -JL "https://github.com/HDFGroup/hdf4/archive/refs/tags/$(HDF_zip)" -o "$(BUILD_ROOT)/$(HDF_zip)"
+	@echo "$(TO) HDF source downloaded!"
+	@echo "$(TO) Extracting HDF source..."
+	cd "$(BUILD_ROOT)"; unzip -oq "$(BUILD_ROOT)/$(HDF_zip)" -d .
+
 
 check_hdf_sources:
 	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
