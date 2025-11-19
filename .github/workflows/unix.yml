@@ -84,6 +84,10 @@ jobs:
         run: |
           make -f gdal-makefile init_gdal init_proj BUILD_ARCH=${{ matrix.arch }}
 
+      - name: Compile HDF
+        run: |
+          make -f gdal-makefile hdf BUILD_ARCH=${{ matrix.arch }}
+
       - name: Compile PROJ
         run: |
           make -f gdal-makefile proj BUILD_ARCH=${{ matrix.arch }}

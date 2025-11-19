@@ -76,6 +76,9 @@ remove_cache_%:
 		rm -r $($(UP)_CMAKE_TMP); \
 	fi;
 
+init_hdf: check_hdf_sources
+	@echo "$(TO) HDF sources restore complete"
+	
 HDF_zip=CMake-hdf-$(HDF_VERSION).zip
 HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)/hdf-$(HDF_VERSION)
 
