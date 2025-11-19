@@ -121,12 +121,23 @@ jobs:
             tests/gdal-formats/*.txt
           overwrite: true
 
-      - name: Store packages as artifact
+      - name: Store runtime packages as artifact
         uses: actions/upload-artifact@v5.0.0
         with:
           name: packages-unix-${{ matrix.arch }}
-          path: nuget/*.nupkg
+          path: |
+            nuget/*.nupkg
+            !nuget/MaxRev.Gdal.Core.*.nupkg
           overwrite: true
+
+      - name: Store Core package as artifact (x64 only)
+        if: matrix.arch == 'x64'
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: packages-core
+          path: nuget/MaxRev.Gdal.Core.*.nupkg
+          overwrite: true
+
 
   TestPackages-Linux:
     strategy:
@@ -149,11 +160,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5.0.1
 
-      - name: Download artifact
+      - name: Download artifact - core package
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-core
+          path: nuget/
+          merge-multiple: true
+
+      - name: Download artifact - runtime packages
         uses: actions/download-artifact@v6.0.0
         with:
           name: packages-unix-${{ matrix.arch }}
           path: nuget/
+          merge-multiple: true
+
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5.0.0
@@ -167,9 +187,11 @@ jobs:
           api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
+
       - name: Remove old formats
         run: |
           rm -rf ${{ github.workspace }}/tests/gdal-formats
+
       - uses: actions/download-artifact@v6.0.0
         name: Download artifact - formats
         with:
@@ -191,10 +213,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5.0.1
 
-      - name: Download artifact - packages
+      - name: Download artifact - core package
         uses: actions/download-artifact@v6.0.0
         with:
-          pattern: packages-unix*
+          name: packages-core
+          path: nuget/
+          merge-multiple: true
+
+      - name: Download artifact - runtime packages
+        uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-unix-${{ matrix.arch }}
           path: nuget/
           merge-multiple: true
 
