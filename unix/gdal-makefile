@@ -140,9 +140,7 @@ configure_gdal:
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build \
 		-DHDF4_INCLUDE_DIR=$(BUILD_ROOT)/hdf-build/include \
-		-DHDF4_LIBRARY=$(BUILD_ROOT)/hdf-build/lib/libhdf4.so \
 		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.so \
-		-DHDF4_df_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libdf.so \
 		|| exit 1
 
 	@echo "$(TO) GDAL was configured!"
