@@ -223,7 +223,7 @@ jobs:
       - name: Download artifact - runtime packages
         uses: actions/download-artifact@v6.0.0
         with:
-          name: packages-unix-${{ matrix.arch }}
+          name: packages-unix-x64
           path: nuget/
           merge-multiple: true
 
