@@ -98,8 +98,8 @@ Combining these abbreviations, you get:
 | GeoJSON         | ✗              | ✗               | ✗              | rw+uv          | rw+uv           | rw+uv          |
 | GeoJSONSeq      | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
 | GeoRSS          | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
-| HDF4            | ros            | ros             | ros            | ✗              | ✗               | ✗              |
-| HDF4Image       | rw+            | rw+             | rw+            | ✗              | ✗               | ✗              |
+| HDF4            | ros            | ✗               | ros            | ✗              | ✗               | ✗              |
+| HDF4Image       | rw+            | ✗               | rw+            | ✗              | ✗               | ✗              |
 | HDF5            | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
 | HDF5Image       | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | HF2             | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
@@ -226,4 +226,4 @@ Combining these abbreviations, you get:
 | XYZ             | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | ZMap            | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | Zarr            | rw+uvs         | rw+uvs          | rw+uvs         | ✗              | ✗               | ✗              |
-| netCDF          | rw+us          | rw+us           | rw+us          | rw+us          | rw+us           | rw+us          |
+| netCDF          | rw+us          | rw+uvs          | rw+us          | rw+us          | rw+uvs          | rw+us          |
