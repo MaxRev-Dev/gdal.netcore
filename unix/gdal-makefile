@@ -78,12 +78,12 @@ remove_cache_%:
 
 init_hdf: check_hdf_sources
 	@echo "$(TO) HDF sources restore complete"
-	
+
 HDF_zip=CMake-hdf-$(HDF_VERSION).zip
 HDF_SOURCE=$(BUILD_ROOT)/CMake-hdf-$(HDF_VERSION)/hdf-$(HDF_VERSION)
 
 download_hdf:
-	curl -o "$(BUILD_ROOT)/$(HDF_zip)" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF$(HDF_VERSION)/src/$(HDF_zip)"
+	LD_LIBRARY_PATH= curl -o "$(BUILD_ROOT)/$(HDF_zip)" "https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF4/HDF$(HDF_VERSION)/src/$(HDF_zip)"
 	cd "$(BUILD_ROOT)"; unzip -q "$(BUILD_ROOT)/$(HDF_zip)" -d .
 
 check_hdf_sources:
