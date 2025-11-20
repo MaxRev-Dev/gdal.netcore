@@ -98,13 +98,16 @@ configure_hdf:
 	@echo "$(TO) HDF Configuring..."
 
 	@if [[ -d "$(BUILD_ROOT)/hdf-build" ]]; then rm -r "$(BUILD_ROOT)/hdf-build"; fi;
+	@if [[ -d "$(BUILD_ROOT)/hdf-cmake-temp" ]]; then rm -r "$(BUILD_ROOT)/hdf-cmake-temp"; fi;
 
 	-mkdir -p $(HDF_CMAKE_TMP)
 	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build \
+		-DCMAKE_MESSAGE_LOG_LEVEL=ERROR \
 		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_C_FLAGS="-Wno-dev" \
-		-DCMAKE_CXX_FLAGS="-fPIC -Wno-dev" \
+		-DHDF4_ENABLE_ALL_WARNINGS=OFF \
+		-DJPEG_DIR=$(VCPKG_INSTALLED_DYNAMIC)/share \
+		-DZLIB_DIR=$(VCPKG_INSTALLED_DYNAMIC)/share \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
 
 	@echo "$(TO) HDF was configured!"
@@ -140,6 +143,8 @@ configure_gdal:
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build \
 		-DHDF4_INCLUDE_DIR=$(BUILD_ROOT)/hdf-build/include \
+		-DHDF4_COMPONENTS="df;mfhdf;szip" \
+		-DHDF4_df_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libhdf.so \
 		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.so \
 		|| exit 1
 
@@ -194,4 +199,4 @@ reset: reset_proj reset_gdal
 
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
-LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib:${PROJ_BUILD}/lib:${HDF_BUILD}/lib
+LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${PROJ_BUILD}/lib:${HDF_BUILD}/lib
