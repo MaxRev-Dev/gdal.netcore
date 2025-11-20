@@ -28,7 +28,7 @@ VCPKG_REPO=https://github.com/microsoft/vcpkg.git
 VCPKG_COMMIT_VER=2025.06.13
 
 # base requirements for all runtimes
-VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" curl "poppler[cairo,cms,zlib,glib,curl,private-api]"
+VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" "curl[tool,openssl]" "poppler[cairo,cms,zlib,glib,curl,private-api]"
 VCPKG_REQUIRE_DYNAMIC=unixodbc openssl zlib expat xerces-c zlib libxml2 libpq openjpeg cfitsio "openexr[tools]" libwebp giflib hdf5 pcre freexl libkml libpng "libjxl[tools]" netcdf-c "libgeotiff[tools]" "sqlite3[tool,rtree]" cryptopp  blosc arrow[parquet]
 # windows runtime now depends on GisInternals SDK
 # we have nothing to install except custom geos and proj
@@ -81,7 +81,7 @@ SWIG_INCLUDE_=$(BASE_SWIG_)/include
 ##### HDF build location (only for osx)
 HDF_BUILD=$(BUILD_ROOT)/hdf-build
 HDF_CMAKE_TMP=$(BUILD_ROOT)/hdf-cmake-temp
-HDF_VERSION=4.3.0
+HDF_VERSION=4.3.1
 
 ##### PROJ build location
 PROJ_BUILD=$(BUILD_ROOT)/proj-build
