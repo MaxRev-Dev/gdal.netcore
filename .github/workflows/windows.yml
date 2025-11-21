@@ -45,16 +45,41 @@ jobs:
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
           shell: pwsh
 
-      - name: Cache restore
+      # Layer 1: VCPKG binary cache
+      - name: Cache VCPKG packages
+        id: cache-vcpkg
+        uses: actions/cache@v4
+        with:
+          working-directory: ${{ github.workspace }}
+          path: |
+            vcpkg-archives/
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1') }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-
+
+      # Layer 2: Build outputs
+      - name: Cache build outputs
+        id: cache-builds
+        uses: actions/cache@v4
+        with:
+          working-directory: ${{ github.workspace }}
+          path: |
+            build-win/
+          key: builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1') }}
+          restore-keys: |
+            builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt') }}-
+            builds-${{ runner.os }}-
+
+      # Layer 3: .NET SDK packages
+      - name: Cache .NET packages
         uses: actions/cache@v4
         with:
           working-directory: ${{ github.workspace }}
           path: |
             .dotnet/
-            vcpkg-archives/
-          key: ${{ runner.os }}-buildx-${{ matrix.os }}-${{ github.run_id }}
+          key: dotnet-${{ runner.os }}-${{ inputs.dotnet-version }}
           restore-keys: |
-            ${{ runner.os }}-buildx-
+            dotnet-${{ runner.os }}-
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5.0.0

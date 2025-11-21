@@ -50,16 +50,40 @@ jobs:
           api-user-github: ${{ secrets.API_USER_GITHUB }}
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
-      - name: Restore cached packages
-        id: build-packages-cache-restore
+      # Layer 1: VCPKG binary cache
+      - name: Cache VCPKG packages
+        id: cache-vcpkg
+        uses: actions/cache@v4
+        with:
+          path: |
+            vcpkg-archives/
+          key: vcpkg-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'unix/vcpkg-makefile') }}
+          restore-keys: |
+            vcpkg-${{ matrix.os }}-${{ matrix.arch }}-
+
+      # Layer 2: Build outputs (HDF, PROJ)
+      - name: Cache build outputs
+        id: cache-builds
+        uses: actions/cache@v4
+        with:
+          path: |
+            build-unix/hdf-build/
+            build-unix/proj-build/
+            build-unix/vcpkg/installed/
+          key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'unix/gdal-makefile') }}
+          restore-keys: |
+            builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt') }}-
+            builds-${{ matrix.os }}-${{ matrix.arch }}-
+
+      # Layer 3: .NET SDK packages
+      - name: Cache .NET packages
         uses: actions/cache@v4
         with:
           path: |
             .dotnet/
-            vcpkg-archives/
-          key: ${{ matrix.os }}-packages-${{ matrix.arch }}-${{ github.run_id }}
+          key: dotnet-${{ matrix.os }}-${{ matrix.arch }}-${{ inputs.dotnet-version }}
           restore-keys: |
-            ${{ matrix.os }}-packages-${{ matrix.arch }}-
+            dotnet-${{ matrix.os }}-${{ matrix.arch }}-
 
       - name: Install CMake
         run: |
