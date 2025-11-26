@@ -80,6 +80,8 @@ COPY unix /build/unix
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile hdf $(cat /tmp/gdal-netcore-arch)
+RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f gdal-makefile proj $(cat /tmp/gdal-netcore-arch)
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f gdal-makefile gdal DOTNET_VERSION=$DOTNET_VERSION $(cat /tmp/gdal-netcore-arch) 
