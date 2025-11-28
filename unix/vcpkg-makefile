@@ -41,11 +41,11 @@ else
 endif
 
 pull: ## pull the package
-	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
+	@if [ ! -d "$(VCPKG_ROOT)/.git" ]; then \
 		git clone $(VCPKG_REPO) $(VCPKG_ROOT); \
 	fi;
 
-bootstrap: checkout_ver
+bootstrap: pull checkout_ver
 	@if [ ! -f "$(VCPKG_ROOT)/vcpkg" ]; then \
 		cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh || exit 1; \
 	fi;
@@ -72,7 +72,7 @@ update: checkout_ver
 
 $(VCPKG_CLEANUP):
 	@if [ -d "$(VCPKG_ROOT)/$@/" ]; then \
-		 rm -rf "$(VCPKG_ROOT)/$@"; \
+		rm -rf "$(VCPKG_ROOT)/$@" >/dev/null 2>&1 || true; \
 	fi;
 
 build_cleanup: $(VCPKG_CLEANUP)

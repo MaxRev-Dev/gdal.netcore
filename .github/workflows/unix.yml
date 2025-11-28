@@ -104,6 +104,8 @@ jobs:
             PRERELEASE=${{ inputs.is-pre-release }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=gdalnetcore-${{ matrix.arch }}
+          cache-to: type=gha,scope=gdalnetcore-${{ matrix.arch }},mode=max
 
       - name: Build and push on local runner
         uses: docker/build-push-action@v5

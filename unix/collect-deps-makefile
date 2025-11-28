@@ -13,7 +13,8 @@ all: build
 
 OUTPUT = $(PACKAGE_BUILD_ROOT)/runtimes/$(RID)/native
 BUILD_BASE = $(BASE)/bindings
-BINDINGS_SOURCE=$(BUILD_ROOT)/gdal-cmake-temp/swig/csharp
+# Use persistent location for bindings (copied from gdal-cmake-temp during build)
+BINDINGS_SOURCE=$(GDAL_BUILD)/swig/csharp
 
 LIBS_TO_REMOVE=libc.so.* libm.so.* libstdc++.so.* libpthread.so.* linux-vdso.so.* libgcc_s.so.* librt.so.* libdl.so.* ld-linux-x86-64.so.* libresolv.so.* libcrypt.so.*
 
@@ -57,8 +58,8 @@ collect-bindings:
 copy-deps:
 #	copy gdal library
 	cp -rfL $(GDAL_BUILD)/lib/libgdal.so.?? $(OUTPUT)/
-#	copy dynamic wrappers
-	cp -rfL $(BUILD_ROOT)/gdal-cmake-temp/swig/csharp/*.so $(OUTPUT)/
+#	copy dynamic wrappers (from persistent location)
+	cp -rfL $(GDAL_BUILD)/swig/csharp/*.so $(OUTPUT)/
 #   including all deps installed in this repo
 #   and some external dependencies
 #   1. copy gdal.so.XX
@@ -66,7 +67,7 @@ copy-deps:
 #   3. copy to output
 	ls $(OUTPUT)/ | grep -P 'libgdal.so.(?:\d+)' | \
 			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib:$(HDF_BUILD)/lib xargs -I {} \
-			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)
+			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)/
 #   4. remove system libs
 #   https://github.com/dotnet/core/blob/main/Documentation/self-contained-linux-apps.md
 	@$(foreach lib, $(LIBS_TO_REMOVE),  @if [ -a  $(OUTPUT)/$(lib) ]; then echo "Removing sys lib from output -> $(lib)" & rm  $(OUTPUT)/$(lib); fi;${\n})
@@ -79,3 +80,4 @@ copy-projdb:
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig:$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
 LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
+
