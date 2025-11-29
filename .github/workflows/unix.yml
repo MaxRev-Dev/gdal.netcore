@@ -17,8 +17,11 @@ on:
         required: true
 
 env:
-  DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet/
-  VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
+  DOCKER_REGISTRY: ghcr.io/maxrev-dev
+
+permissions:
+  packages: write
+  contents: read
 
 jobs:
   BuildNugetPackages-Linux:
@@ -34,9 +37,6 @@ jobs:
             actions-runner: ubuntu-24.04-arm
 
     runs-on: ${{ matrix.actions-runner }}
-    defaults:
-      run:
-        working-directory: unix
 
     steps:
       - name: Checkout repository
@@ -50,59 +50,83 @@ jobs:
           api-user-github: ${{ secrets.API_USER_GITHUB }}
           api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
-      - name: Restore cached packages
-        id: build-packages-cache-restore
-        uses: actions/cache@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3.6.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.11.1
+
+      - name: Cache restore
+        uses: actions/cache@v4.3.0
         with:
           path: |
             .dotnet/
-            vcpkg-archives/
-          key: ${{ matrix.os }}-packages-${{ matrix.arch }}-${{ github.run_id }}
+            ci/cache/
+          key: ${{ matrix.os }}-buildx-${{ matrix.arch }}-${{ github.run_id }}
           restore-keys: |
-            ${{ matrix.os }}-packages-${{ matrix.arch }}-
-
-      - name: Install CMake
+            ${{ matrix.os }}-buildx-${{ matrix.arch }}-
+      
+      - name: Ensure cache directories
         run: |
-          pipx install cmake
+          mkdir -p ci/cache/.dotnet
+          mkdir -p ci/cache/vcpkg-archives
 
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v5.0.0
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
         with:
-          dotnet-version: ${{ inputs.dotnet-version }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          logout: false
 
-      - name: Install deps
-        run: |
-          chmod +x ${{ github.workspace }}/unix/before-install.sh
-          ${{ github.workspace }}/unix/before-install.sh
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=ref,event=pr
+            latest
 
-      - name: Fetch VCPKG packages
-        run: |
-          mkdir -p ${{ github.workspace }}/vcpkg-archives/
-          make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
+      - name: Build and push on GH runner
+        uses: docker/build-push-action@v5
+        if: ${{ !contains(matrix.actions-runner, 'self-hosted') }}
+        with:
+          push: true
+          context: ${{ github.workspace }}
+          file: ci/Dockerfile.unix
+          platforms: ${{ matrix.os }}
+          build-args: |
+            BUILD_NUMBER_TAIL=${{ github.run_number }}
+            PRERELEASE=${{ inputs.is-pre-release }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=gdalnetcore-${{ matrix.arch }}
+          cache-to: type=gha,scope=gdalnetcore-${{ matrix.arch }},mode=max
 
-      - name: Init GDAL and PROJ
-        run: |
-          make -f gdal-makefile init_gdal init_proj BUILD_ARCH=${{ matrix.arch }}
+      - name: Build and push on local runner
+        uses: docker/build-push-action@v5
+        if: ${{ contains(matrix.actions-runner, 'self-hosted') }}
+        with:
+          load: true
+          push: false
+          tags: ${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}:latest
+          context: .
+          file: ci/Dockerfile.unix
+          platforms: ${{ matrix.os }}
+          build-args: |
+            BUILD_NUMBER_TAIL=${{ github.run_number }}
+            PRERELEASE=${{ inputs.is-pre-release }}
+            DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
+            VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
 
-      - name: Compile HDF
+      - name: Extract artifacts
         run: |
-          make -f gdal-makefile hdf BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Compile PROJ
-        run: |
-          make -f gdal-makefile proj BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Compile GDAL
-        run: |
-          make -f gdal-makefile gdal BUILD_ARCH=${{ matrix.arch }} DOTNET_VERSION=${{ inputs.dotnet-version }}
-
-      - name: Collect deps
-        run: |
-          make -f collect-deps-makefile BUILD_ARCH=${{ matrix.arch }}
-
-      - name: Create packages
-        run: |
-          make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          chmod +x '${{ github.workspace }}/ci/extract-container-artifacts.sh'
+          '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }} --formats --package-build --metadata --nuget
 
       - name: Store metadata as artifact
         uses: actions/upload-artifact@v5.0.0
@@ -120,7 +144,6 @@ jobs:
           path: |
             tests/gdal-formats/*.txt
           overwrite: true
-
       - name: Store runtime packages as artifact
         uses: actions/upload-artifact@v5.0.0
         with:
@@ -138,8 +161,8 @@ jobs:
           path: nuget/MaxRev.Gdal.Core.*.nupkg
           overwrite: true
 
-
   TestPackages-Linux:
+    needs: BuildNugetPackages-Linux
     strategy:
       matrix:
         include:
@@ -150,7 +173,6 @@ jobs:
             arch: arm64
             actions-runner: ubuntu-24.04-arm
 
-    needs: BuildNugetPackages-Linux
     runs-on: ${{ matrix.actions-runner }}
     defaults:
       run:
@@ -165,28 +187,12 @@ jobs:
         with:
           name: packages-core
           path: nuget/
-          merge-multiple: true
 
       - name: Download artifact - runtime packages
         uses: actions/download-artifact@v6.0.0
         with:
           name: packages-unix-${{ matrix.arch }}
           path: nuget/
-          merge-multiple: true
-
-
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v5.0.0
-        with:
-          dotnet-version: ${{ inputs.dotnet-version }}
-
-      - name: NuGet - set credentials
-        uses: ./.github/actions/set-credentials
-        with:
-          api-key-github: ${{ secrets.API_KEY_GITHUB }}
-          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
-          api-user-github: ${{ secrets.API_USER_GITHUB }}
-          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Remove old formats
         run: |
@@ -199,9 +205,26 @@ jobs:
           path: "tests/gdal-formats"
           merge-multiple: true
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.11.1
+
+      - name: Build docker image
+        run: |
+          docker buildx build --load --platform=${{ matrix.os }} \
+            --progress=plain -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest \
+            --build-arg BUILD_NUMBER_TAIL=${{ github.run_number }} \
+            --build-arg BUILD_ARCH=${{ matrix.arch }} \
+            --build-arg PRERELEASE=${{ inputs.is-pre-release }} \
+            -f '${{ github.workspace }}/ci/Dockerfile.unix.test' \
+            ${{ github.workspace }}
+
       - name: Test packages
         run: |
-          make -f test-makefile BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }}
+          docker run --rm \
+            --env BUILD_NUMBER_TAIL=${{ github.run_number }} \
+            --env BUILD_ARCH=${{ matrix.arch }} \
+            --env PRERELEASE=${{ inputs.is-pre-release }} \
+            -t maxrev-dev/gdal.netcore.tester.${{ matrix.arch }}:latest
 
   PushPackages-Linux:
     needs: TestPackages-Linux
@@ -209,9 +232,15 @@ jobs:
     defaults:
       run:
         working-directory: unix
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5.0.1
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v5.0.0
+        with:
+          dotnet-version: ${{ inputs.dotnet-version }}
 
       - name: Download artifact - core package
         uses: actions/download-artifact@v6.0.0
@@ -255,5 +284,5 @@ jobs:
       - name: Push packages
         if: ${{  github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || fromJson(inputs.is-version-branch) }}
         run: |
-          make -f ../unix/push-packages-makefile PRERELEASE=${{ inputs.is-pre-release }} INCLUDE_CORE=1 \
+          make -f push-packages-makefile PRERELEASE=${{ inputs.is-pre-release }} INCLUDE_CORE=1 \
             BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
