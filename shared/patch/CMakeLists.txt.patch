@@ -15,11 +15,11 @@ index ea9c5bb985..856bfa2ee4 100644
  if (DOTNET_FOUND)
    set(CSHARP_LIBRARY_VERSION
 -      "net6.0"
-+      "net9.0"
++      "net10.0"
        CACHE STRING ".NET version to be used for libraries")
    set(CSHARP_APPLICATION_VERSION
 -      "net6.0"
-+      "net9.0"
++      "net10.0"
        CACHE STRING ".NET version to be used for the sample Applications")
  else ()
    set(CSHARP_LIBRARY_VERSION

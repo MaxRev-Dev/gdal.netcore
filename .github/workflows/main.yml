@@ -16,7 +16,7 @@ concurrency:
 
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
-  DOTNET_VERSION: "9.0.x"
+  DOTNET_VERSION: "10.0.x"
   IS_PRE_RELEASE: ${{ !(github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/v')) }}
 
 jobs:

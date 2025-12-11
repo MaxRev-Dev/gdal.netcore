@@ -15,8 +15,8 @@ GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
 GDAL_COMMIT_VER=v$(GDAL_VERSION)
 
-# Sep 15, 2025
-PROJ_VERSION=9.7.0
+# Dec 1, 2025
+PROJ_VERSION=9.7.1
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
 PROJ_COMMIT_VER=$(PROJ_VERSION)
@@ -70,8 +70,8 @@ LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(__libshared)/$(RID)/$(__libshared)
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 ##### Dotnet version for GDAL
-DOTNET_VERSION=9.0
-GDAL_CSHARP_VERSION=net9.0
+DOTNET_VERSION=10.0
+GDAL_CSHARP_VERSION=net10.0
 
 ##### SWIG executable and interface
 BASE_SWIG_=$(GDAL_ROOT)/swig
