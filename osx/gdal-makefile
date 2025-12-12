@@ -149,7 +149,7 @@ configure_gdal:
 		-DHDF4_df_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libhdf.dylib \
 		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.dylib \
 		-DHDF4_COMPONENTS="df;mfhdf;szip" \
-		-DOpenEXR_HALF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libImath-3_1.dylib \
+		-DOpenEXR_HALF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libImath-3_2.dylib \
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
 		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.dylib \
 		-DGDAL_FIND_PACKAGE_PROJ_MODE=MODULE \

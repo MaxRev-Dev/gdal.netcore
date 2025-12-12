@@ -128,6 +128,30 @@ jobs:
           chmod +x '${{ github.workspace }}/ci/extract-container-artifacts.sh'
           '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }} --formats --package-build --metadata --nuget
 
+      - name: Extract error artifacts (on failure)
+        if: failure()
+        run: |
+          # Try to extract error artifacts from failed containers
+          docker ps -a --format "table {{.ID}}\t{{.Image}}\t{{.Status}}" | grep "Exited" | grep "gdal.netcore" | head -1 | awk '{print $1}' | while read container_id; do
+            if [ -n "$container_id" ]; then
+              echo "Extracting error artifacts from container: $container_id"
+              docker cp "$container_id:/build/vcpkg-error-artifacts" ./unix-error-artifacts/ 2>/dev/null || true
+              docker cp "$container_id:/build/vcpkg-error-*.tar.gz" ./ 2>/dev/null || true
+            fi
+          done
+        continue-on-error: true
+
+      - name: Upload VCPKG error artifacts (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: vcpkg-errors-unix-${{ matrix.arch }}-${{ github.run_number }}
+          path: |
+            unix-error-artifacts/
+            vcpkg-error-*.tar.gz
+          retention-days: 30
+        continue-on-error: true
+
       - name: Store metadata as artifact
         uses: actions/upload-artifact@v5.0.0
         with:

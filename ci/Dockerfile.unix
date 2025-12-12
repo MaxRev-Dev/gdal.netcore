@@ -9,12 +9,34 @@ RUN apt-get update && apt-get install -y \
     curl zip unzip tar git wget \
     pkg-config \
     ninja-build \
-    autoconf libtool autoconf-archive libudev-dev \
+    libtool autoconf-archive libudev-dev \
     python3 python3-pip \
     libhdf4-dev libnetcdf-dev linux-libc-dev \
     swig patchelf gettext bison flex \
 # required for gdal
-    default-libmysqlclient-dev && rm -rf /var/lib/apt/lists/* && apt-get clean
+    default-libmysqlclient-dev && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean
+
+# Install GCC 11 from Debian bookworm 
+RUN echo 'deb http://deb.debian.org/debian bookworm main' > /etc/apt/sources.list.d/bookworm.list && \
+    echo 'Package: *\nPin: release a=bookworm\nPin-Priority: 50\n\nPackage: gcc-11 g++-11 gcc-11-base libgcc-s1\nPin: release a=bookworm\nPin-Priority: 500' > /etc/apt/preferences.d/bookworm && \
+    apt-get update && \
+    apt-get install -y gcc-11 g++-11 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100 && \
+    rm /etc/apt/sources.list.d/bookworm.list /etc/apt/preferences.d/bookworm && \
+    apt-get update && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean
+
+# Install newer autoconf (2.71) from source since Debian 11 has older version
+RUN cd /tmp && \
+    wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz && \
+    tar -xzf autoconf-2.71.tar.gz && \
+    cd autoconf-2.71 && \
+    ./configure --prefix=/usr/local && \
+    make && make install && \
+    cd / && rm -rf /tmp/autoconf-2.71* && \
+    hash -r
 
 # install cmake latest
 RUN pip install cmake --upgrade
@@ -22,7 +44,7 @@ RUN pip install cmake --upgrade
 ARG DOTNET_VERSION=9.0
 ARG DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
 
-ENV PATH="${PATH}:/usr/share/dotnet"
+ENV PATH="/usr/local/bin:/usr/local/gcc-11/bin:${PATH}:/usr/share/dotnet"
 # install dotnet with cache mount
 RUN --mount=type=cache,target=/tmp/dotnet-cache \
     /usr/share/dotnet/dotnet --info || curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet
@@ -72,13 +94,15 @@ RUN  --mount=type=cache,target=/build/ci/cache/vcpkg-archives \
 FROM vcpkg-stage AS vcpkg-packages
 COPY shared/patch /build/shared/patch
 COPY unix/vcpkg-makefile /build/unix/vcpkg-makefile
+COPY ci/vcpkg-error-handler.sh /build/ci/vcpkg-error-handler.sh
+RUN chmod +x /build/ci/vcpkg-error-handler.sh
 
 # Install vcpkg packages with cache
 RUN --mount=type=cache,target=/build/ci/cache/vcpkg-archives \
     --mount=type=cache,target=/build/build-unix/vcpkg/buildtrees \
     --mount=type=cache,target=/build/build-unix/vcpkg/downloads \
     set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) || { /build/ci/vcpkg-error-handler.sh /build/build-unix /build/vcpkg-error-artifacts; exit 1; }
 
 # Stage: Build dependencies (HDF, PROJ)
 FROM vcpkg-packages AS deps-build
@@ -120,6 +144,9 @@ FROM gdalbuild AS package-stage
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f collect-deps-makefile $(cat /tmp/gdal-netcore-arch)
 
+# Create vcpkg-error-artifacts directory to ensure COPY always succeeds
+RUN mkdir -p /build/vcpkg-error-artifacts
+
 ARG PRERELEASE
 ARG BUILD_NUMBER_TAIL
 # Copy only what's needed for packaging - ordered by change frequency (least to most)
@@ -137,4 +164,6 @@ COPY --from=package-stage /build/package-build/ /build/package-build/
 COPY --from=package-stage /build/tests/gdal-formats /build/tests/gdal-formats
 # copy nuget packages from build
 COPY --from=package-stage /build/nuget /build/nuget
+# copy error artifacts if they exist
+COPY --from=package-stage /build/vcpkg-error-artifacts /build/vcpkg-error-artifacts
 ENTRYPOINT ["bash"]
