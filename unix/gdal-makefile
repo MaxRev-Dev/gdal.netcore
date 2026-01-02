@@ -186,8 +186,8 @@ build_%:
 	# We need only C# sources and .so wrappers
 	@if [ "$(LW)" = "gdal" ]; then \
 		mkdir -p $(GDAL_BUILD)/swig/csharp; \
-		find $(GDAL_CMAKE_TMP)/swig/csharp -type f -name "*.so" -exec cp --parents {} $(GDAL_BUILD)/swig/csharp/ \; ; \
-		find $(GDAL_CMAKE_TMP)/swig/csharp -type f -name "*.cs" -exec cp --parents {} $(GDAL_BUILD)/swig/csharp/ \; ; \
+		find $(GDAL_CMAKE_TMP)/swig/csharp -type f -name "*.so" -exec cp -v {} $(GDAL_BUILD)/swig/csharp/ \; ; \
+		find $(GDAL_CMAKE_TMP)/swig/csharp -type f -name "*.cs" -exec cp -v {} $(GDAL_BUILD)/swig/csharp/ \; ; \
 	fi;
 
 
