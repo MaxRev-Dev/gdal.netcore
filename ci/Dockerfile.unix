@@ -47,7 +47,9 @@ ARG DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
 ENV PATH="/usr/local/bin:/usr/local/gcc-11/bin:${PATH}:/usr/share/dotnet"
 # install dotnet with cache mount
 RUN --mount=type=cache,target=/tmp/dotnet-cache \
-    /usr/share/dotnet/dotnet --info || curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet
+    if [ ! -f /usr/share/dotnet/dotnet ]; then \
+        curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -c $DOTNET_VERSION -InstallDir /usr/share/dotnet; \
+    fi
 RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
 ARG TARGETPLATFORM
