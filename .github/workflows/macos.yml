@@ -87,6 +87,24 @@ jobs:
           mkdir -p ${{ github.workspace }}/vcpkg-archives/
           make -f vcpkg-makefile BUILD_ARCH=${{ matrix.arch }}
 
+      - name: Collect VCPKG error artifacts (on failure)
+        if: failure()
+        run: |
+          source ${{ github.workspace }}/ci/vcpkg-error-handler.sh
+          show_vcpkg_errors ${{ github.workspace }}/build-osx ${{ github.workspace }}/vcpkg-error-artifacts
+        continue-on-error: true
+
+      - name: Upload VCPKG error artifacts (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v5.0.0
+        with:
+          name: vcpkg-errors-osx-${{ matrix.arch }}-${{ github.run_number }}
+          path: |
+            vcpkg-error-artifacts/
+            vcpkg-error-*.tar.gz
+          retention-days: 30
+        continue-on-error: true
+
       - name: Compile HDF
         run: |
           make -f gdal-makefile hdf BUILD_ARCH=${{ matrix.arch }}

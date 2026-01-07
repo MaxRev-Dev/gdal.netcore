@@ -28,7 +28,20 @@ ifneq ($(filter $(REP),$(VCPKG_REQUIRE_OSX)),'')
 	@if [[ "$(LW)" == *"-force"* ]] ; then \
 		$(MAKE) -f vcpkg-makefile upgrade; \
 		$(VCPKG) remove $(REP):$(VCPKG_RID) --recurse  || exit 1; \
-		$(VCPKG) install $(REP):$(VCPKG_RID) --recurse --clean-after-build || exit 1; \
+		$(VCPKG) install $(REP):$(VCPKG_RID) --recurse --clean-after-build || { \
+			echo "$(TO) ERROR: Failed to install $(REP):$(VCPKG_RID)" >&2; \
+			if [ -f $(ROOTDIR_)/ci/vcpkg-error-handler.sh ]; then \
+				chmod +x $(ROOTDIR_)/ci/vcpkg-error-handler.sh; \
+				$(ROOTDIR_)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOTDIR_)/vcpkg-error-artifacts; \
+			else \
+				echo "$(TO) Searching for issue_body.md for $(REP)..." >&2; \
+				find $(VCPKG_ROOT)/installed -path "*/$(REP)*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+					echo "$(TO) Found issue file: $$issue_file" >&2; \
+					cat "$$issue_file" >&2; \
+				done; \
+			fi; \
+			exit 1; \
+		}; \
 	else \
 		echo "To rebuild add {key}-force"; \
 		$(VCPKG) list; \
@@ -108,20 +121,44 @@ patch_vcpkg_triplets:
 
 install_packages:
 	@for pack in $(VCPKG_REQUIRE_OSX); do \
+		echo "$(TO) Installing $$pack:$(VCPKG_RID)..."; \
 		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || \
 		{ \
-			echo "Error occurred while installing $$pack"; \
-			cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log; \
-			cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log; \
+			echo "$(TO) ERROR: Failed to install $$pack:$(VCPKG_RID)" >&2; \
+			if [ -f $(ROOTDIR_)/ci/vcpkg-error-handler.sh ]; then \
+				chmod +x $(ROOTDIR_)/ci/vcpkg-error-handler.sh; \
+				$(ROOTDIR_)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOTDIR_)/vcpkg-error-artifacts; \
+			else \
+				echo "$(TO) Searching for issue_body.md for $$pack..." >&2; \
+				find $(VCPKG_ROOT)/installed -path "*/$$pack*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+					echo "$(TO) Found issue file: $$issue_file" >&2; \
+					cat "$$issue_file" >&2; \
+				done; \
+				echo "$(TO) Checking build logs..." >&2; \
+				cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log 2>/dev/null || true; \
+				cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log 2>/dev/null || true; \
+			fi; \
 			exit 1; \
 		}; \
 	done
 	@for pack in $(VCPKG_REQUIRE_OSX_DYNAMIC); do \
+		echo "$(TO) Installing $$pack:$(VCPKG_RID)-dynamic..."; \
 		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || \
 		{ \
-			echo "Error occurred while installing $$pack"; \
-			cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log; \
-			cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log; \
+			echo "$(TO) ERROR: Failed to install $$pack:$(VCPKG_RID)-dynamic" >&2; \
+			if [ -f $(ROOTDIR_)/ci/vcpkg-error-handler.sh ]; then \
+				chmod +x $(ROOTDIR_)/ci/vcpkg-error-handler.sh; \
+				$(ROOTDIR_)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOTDIR_)/vcpkg-error-artifacts; \
+			else \
+				echo "$(TO) Searching for issue_body.md for $$pack..." >&2; \
+				find $(VCPKG_ROOT)/installed -path "*/$$pack*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+					echo "$(TO) Found issue file: $$issue_file" >&2; \
+					cat "$$issue_file" >&2; \
+				done; \
+				echo "$(TO) Checking build logs..." >&2; \
+				cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log 2>/dev/null || true; \
+				cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log 2>/dev/null || true; \
+			fi; \
 			exit 1; \
 		}; \
 	done
