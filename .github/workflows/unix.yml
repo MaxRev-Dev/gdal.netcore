@@ -102,6 +102,7 @@ jobs:
           build-args: |
             BUILD_NUMBER_TAIL=${{ github.run_number }}
             PRERELEASE=${{ inputs.is-pre-release }}
+            DOTNET_VERSION=${{ inputs.dotnet-version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=gdalnetcore-${{ matrix.arch }}
@@ -120,6 +121,7 @@ jobs:
           build-args: |
             BUILD_NUMBER_TAIL=${{ github.run_number }}
             PRERELEASE=${{ inputs.is-pre-release }}
+            DOTNET_VERSION=${{ inputs.dotnet-version }}
             DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
             VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
 
