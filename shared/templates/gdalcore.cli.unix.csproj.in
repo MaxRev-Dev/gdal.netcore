@@ -15,6 +15,7 @@
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>${_PACKAGE_BUILD_NUMBER}</Version>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <RestoreSources>$(RestoreSources);${_ROOT_RELATIVE_PATH}/nuget</RestoreSources>
     <Description>GDAL (${_GDAL_VERSION}) CLI tools for ${_RID_TARGET}.
 Includes GDAL utilities (gdalinfo, ogr2ogr, gdal_translate, etc).
     </Description>
