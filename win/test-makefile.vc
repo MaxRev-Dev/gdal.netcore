@@ -46,7 +46,6 @@ test-cli:
 	@cd "$(CLI_TEST_DIR)" && dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) --no-restore
 	@cd "$(CLI_TEST_DIR)" && dotnet restore -s $(NUGET_) --ignore-failed-sources
 	@cd "$(CLI_TEST_DIR)" && dotnet build -c Release --no-restore
-	@cd "$(CLI_TEST_DIR)" && for /f "delims=" %%i in ('dir /b /s ".\\bin\\Release\\gdalinfo.exe"') do @set "CLI_TOOL=%%i" & goto :runcli
-	@cd "$(CLI_TEST_DIR)" && :runcli && if defined CLI_TOOL "%CLI_TOOL%" --version
+	@cd "$(CLI_TEST_DIR)" && cmd /v:on /c "setlocal EnableDelayedExpansion & set \"CLI_TOOL=\" & for /f %%i in ('dir /b /s \"bin\\Release\\gdalinfo.exe\"') do if not defined CLI_TOOL set \"CLI_TOOL=%%i\" & if not defined CLI_TOOL exit /b 1 & \"!CLI_TOOL!\" --version"
 
 test: test-restore test-update test-only test-cli
