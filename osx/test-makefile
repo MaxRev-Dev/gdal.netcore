@@ -53,6 +53,11 @@ test-cli:
 		dotnet build -c Release --no-restore
 	cd $(CLI_TEST_DIR) && \
 		cli_tool=$$(find ./bin/Release -type f -name gdalinfo | head -n 1) && \
+		cli_tool_dir=$$(dirname "$$cli_tool") && \
+		lib_dir="$${cli_tool_dir}/../runtimes/$(CLI_RID)/native" && \
+		GDAL_DATA="$${cli_tool_dir}/../runtimes/any/native/gdal-data" \
+		PROJ_LIB="$${lib_dir}/maxrev.gdal.core.libshared" \
+		DYLD_LIBRARY_PATH="$${lib_dir}:$${DYLD_LIBRARY_PATH}" \
 		"$$cli_tool" --version
 
 test: test-restore test-update test-only test-cli
