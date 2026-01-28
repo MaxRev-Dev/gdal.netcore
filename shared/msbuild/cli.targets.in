@@ -14,4 +14,17 @@
         </None>
     </ItemGroup>
 
+    <PropertyGroup>
+        <MaxRevGdalCliRid>${_RID_TARGET}</MaxRevGdalCliRid>
+        <MaxRevGdalCliToolsRoot>$(TargetDir)$(MaxRevGdalToolsOutputBase)</MaxRevGdalCliToolsRoot>
+        <MaxRevGdalCliRPath>@loader_path/runtimes/${_RID_TARGET}/native</MaxRevGdalCliRPath>
+        <MaxRevGdalCliRPath Condition="'$(MaxRevGdalToolsOutputBase)' != ''">@loader_path/../runtimes/${_RID_TARGET}/native</MaxRevGdalCliRPath>
+    </PropertyGroup>
+
+    <Target Name="MaxRevGdalCliFixRPath"
+            AfterTargets="Build"
+            Condition="'$(OS)' == 'Unix' AND $([System.String]::Copy('$(MaxRevGdalCliRid)').StartsWith('osx-')) AND Exists('/usr/bin/install_name_tool')">
+        <Exec Command="if [ -d &quot;$(MaxRevGdalCliToolsRoot)&quot; ]; then find &quot;$(MaxRevGdalCliToolsRoot)&quot; -maxdepth 1 -type f -perm -111 -exec install_name_tool -add_rpath &quot;$(MaxRevGdalCliRPath)&quot; {} +; fi" />
+    </Target>
+
 </Project>

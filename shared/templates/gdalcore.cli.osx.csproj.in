@@ -14,6 +14,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
     <Version>${_PACKAGE_BUILD_NUMBER}</Version>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
     <Description>GDAL (${_GDAL_VERSION}) CLI tools for ${_RID_TARGET}.
 Includes GDAL utilities (gdalinfo, ogr2ogr, gdal_translate, etc).
     </Description>
@@ -34,6 +35,11 @@ Includes GDAL utilities (gdalinfo, ogr2ogr, gdal_translate, etc).
       <PackagePath>buildTransitive/</PackagePath>
       <Pack>true</Pack>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="${_PACKAGE_NAME_CORE}" Version="${_PACKAGE_BUILD_NUMBER}" />
+    <PackageReference Include="${_PACKAGE_NAME_RUNTIME}.${_BUILD_ARCH}" Version="${_PACKAGE_BUILD_NUMBER}" />
   </ItemGroup>
 
 </Project>
