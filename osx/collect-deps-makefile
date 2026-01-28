@@ -18,6 +18,7 @@ endef
 all: build
 
 OUTPUT = $(PACKAGE_BUILD_ROOT)/runtimes/$(RID)/native
+TOOLS_OUTPUT = $(PACKAGE_BUILD_ROOT)/tools/$(RID)
 BUILD_BASE = $(BASE)/bindings
 WRAP_TARGETS = $(wildcard $(BINDINGS_SOURCE)/lib*.dylib)
 
@@ -34,7 +35,7 @@ build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 	$(MAKE) -f gdal-makefile formats-output
 
-linkall: initdirs copy-projdb collect-bindings copy-deps
+linkall: initdirs copy-projdb collect-bindings copy-deps copy-tools
 	@echo "Libraries patched successfully"
 
 clean:
@@ -48,6 +49,8 @@ initdirs:
 	rm -rvf $(OUTPUT)/*.*
 	mkdir -p $(OUTPUT)
 	mkdir -p $(NUGET_)
+	rm -rvf $(TOOLS_OUTPUT)/*
+	mkdir -p $(TOOLS_OUTPUT)
 
 collect-bindings:
 # copy generatated c# sources to project directory
@@ -73,6 +76,9 @@ copy-deps:
 		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
 		-cd -d $(OUTPUT)/ -p "@loader_path/"
+
+copy-tools:
+	cp -rfL $(GDAL_BUILD)/bin/* $(TOOLS_OUTPUT)/
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)

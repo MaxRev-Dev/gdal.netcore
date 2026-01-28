@@ -22,6 +22,11 @@ $packages = @(
     "MaxRev.Gdal.MacosRuntime.Minimal.x64.$version.nupkg"
     "MaxRev.Gdal.MacosRuntime.Minimal.arm64.$version.nupkg"
     "MaxRev.Gdal.WindowsRuntime.Minimal.$version.nupkg"
+    "MaxRev.Gdal.CLI.linux-x64.$version.nupkg"
+    "MaxRev.Gdal.CLI.linux-arm64.$version.nupkg"
+    "MaxRev.Gdal.CLI.osx-x64.$version.nupkg"
+    "MaxRev.Gdal.CLI.osx-arm64.$version.nupkg"
+    "MaxRev.Gdal.CLI.win-x64.$version.nupkg"
 )
 foreach ($package in $packages) {
     Write-BuildInfo "Trying to find $package"

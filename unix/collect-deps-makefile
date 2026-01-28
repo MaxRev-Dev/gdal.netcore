@@ -12,6 +12,7 @@ endef
 all: build
 
 OUTPUT = $(PACKAGE_BUILD_ROOT)/runtimes/$(RID)/native
+TOOLS_OUTPUT = $(PACKAGE_BUILD_ROOT)/tools/$(RID)
 BUILD_BASE = $(BASE)/bindings
 # Use persistent location for bindings (copied from gdal-cmake-temp during build)
 BINDINGS_SOURCE=$(GDAL_BUILD)/swig/csharp
@@ -22,7 +23,7 @@ build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 	$(MAKE) -f gdal-makefile formats-output
 
-linkall: initdirs copy-deps copy-projdb collect-bindings
+linkall: initdirs copy-deps copy-projdb collect-bindings copy-tools
 	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
 	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN:$$ORIGIN/runtimes/$(RID)/native' $(lib); fi;${\n})
 
@@ -44,7 +45,9 @@ cleanpackages:
 
 initdirs:
 	rm -rvf $(OUTPUT)/*.*
+	rm -rvf $(TOOLS_OUTPUT)/*
 	mkdir -p $(OUTPUT)
+	mkdir -p $(TOOLS_OUTPUT)
 
 collect-bindings:
 # copy generatated c# sources to project directory
@@ -72,6 +75,9 @@ copy-deps:
 #   https://github.com/dotnet/core/blob/main/Documentation/self-contained-linux-apps.md
 	@$(foreach lib, $(LIBS_TO_REMOVE),  @if [ -a  $(OUTPUT)/$(lib) ]; then echo "Removing sys lib from output -> $(lib)" & rm  $(OUTPUT)/$(lib); fi;${\n})
 
+copy-tools:
+	cp -rfL $(GDAL_BUILD)/bin/* $(TOOLS_OUTPUT)/
+
 copy-projdb:
 	-mkdir -p $(LIBSHARED)
 	cp -rf $(PROJ_BUILD)/share/proj/proj.db $(LIBSHARED)
@@ -80,4 +86,3 @@ copy-projdb:
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED)/lib/pkgconfig:$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig
 LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
-

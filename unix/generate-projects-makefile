@@ -19,12 +19,13 @@ export _ROOT_RELATIVE_PATH=..
 export _PACKAGE_BUILD_NUMBER=$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)
 export _PACKAGE_NAME_RUNTIME=$(PACKAGE_NAME_RUNTIME)
 export _PACKAGE_NAME_CORE=$(PACKAGE_NAME_CORE)
+export _PACKAGE_NAME_CLI=$(PACKAGE_NAME_CLI)
 export _TARGET_OS=$(TARGET_OS)
 export _BUILD_ARCH=$(BUILD_ARCH)
 RID_TARGET=$(TARGET_OS)-$(BUILD_ARCH)
 export _RID_TARGET=$(RID_TARGET)
 
-ONSUBST='$${_BUILD_ARCH} $${_GEOS_VERSION} $${_ROOT_RELATIVE_PATH} $${_GDAL_VERSION} $${_PROJ_VERSION} $${_PACKAGE_BUILD_NUMBER} $${_PACKAGE_NAME_RUNTIME} $${_TARGET_OS} $${_BUILD_ARCH} $${_RID_TARGET} $${_PACKAGE_NAME_CORE}'
+ONSUBST='$${_BUILD_ARCH} $${_GEOS_VERSION} $${_ROOT_RELATIVE_PATH} $${_GDAL_VERSION} $${_PROJ_VERSION} $${_PACKAGE_BUILD_NUMBER} $${_PACKAGE_NAME_RUNTIME} $${_TARGET_OS} $${_BUILD_ARCH} $${_RID_TARGET} $${_PACKAGE_NAME_CORE} $${_PACKAGE_NAME_CLI}'
 
 # substitute all variables in template project files
 generate-projects: generate-build-base generate-bundles-$(CAT_NAME) generate-projects-$(CAT_NAME)
@@ -59,17 +60,25 @@ generate-bundles-win:
 
 generate-projects-osx: generate-build-base generate-bundles-osx
 	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=MacosRuntime TARGET_OS=osx BUILD_ARCH=arm64
+	@$(MAKE) -f $(THIS_FILE) generate-target-cli TARGET_OS=osx BUILD_ARCH=arm64
 	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=MacosRuntime TARGET_OS=osx BUILD_ARCH=x64
+	@$(MAKE) -f $(THIS_FILE) generate-target-cli TARGET_OS=osx BUILD_ARCH=x64
 	@cat $(RUNTIME_PROJECT_OSX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_OSX_FINAL)
+	@cat $(TOOLS_PROJECT_OSX) | envsubst $${ONSUBST} > $(TOOLS_PROJECT_OSX_FINAL)
 
 generate-projects-unix: generate-build-base generate-bundles-unix
 	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=LinuxRuntime TARGET_OS=linux BUILD_ARCH=arm64
+	@$(MAKE) -f $(THIS_FILE) generate-target-cli TARGET_OS=linux BUILD_ARCH=arm64
 	@$(MAKE) -f $(THIS_FILE) generate-target-single RUNTIME_PACKAGE_PARTIAL=LinuxRuntime TARGET_OS=linux BUILD_ARCH=x64
+	@$(MAKE) -f $(THIS_FILE) generate-target-cli TARGET_OS=linux BUILD_ARCH=x64
 	@cat $(RUNTIME_PROJECT_UNIX) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_UNIX_FINAL) 
+	@cat $(TOOLS_PROJECT_UNIX) | envsubst $${ONSUBST} > $(TOOLS_PROJECT_UNIX_FINAL)
 
 generate-projects-win: generate-build-base generate-bundles-win
 	@$(MAKE) -f $(THIS_FILE) generate-target-single-win RUNTIME_PACKAGE_PARTIAL=WindowsRuntime TARGET_OS=win BUILD_ARCH=x64
+	@$(MAKE) -f $(THIS_FILE) generate-target-cli TARGET_OS=win BUILD_ARCH=x64
 	@cat $(RUNTIME_PROJECT_WIN) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_WIN_FINAL)
+	@cat $(TOOLS_PROJECT_WIN) | envsubst $${ONSUBST} > $(TOOLS_PROJECT_WIN_FINAL)
 
 generate-final-bundle:
 	@mkdir -p $(dir $(RUNTIME_PROJECT_BUNDLE_FINAL))
@@ -96,4 +105,6 @@ generate-target-single-core:
 	@echo "Generating target file - Core"
 	@cat $(RUNTIME_TARGET_BUNDLE) | envsubst $${ONSUBST} > $(RUNTIME_TARGET_BUNDLE_FINAL_CORE)
 
-
+generate-target-cli:
+	@echo "Generating target file - CLI tools"
+	@cat $(CLI_TARGET_TEMPLATE) | envsubst $${ONSUBST} > $(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_CLI).$(RID_TARGET).targets

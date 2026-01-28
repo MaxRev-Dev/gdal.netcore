@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <PropertyGroup>
+        <MaxRevGdalToolsOutputBase Condition="'$(MaxRevGdalToolsOutputBase)' == ''"></MaxRevGdalToolsOutputBase>
+        <!-- EnsureTrailingSlash is only available since VS 2017 -->
+        <MaxRevGdalToolsOutputBase Condition="'$(MaxRevGdalToolsOutputBase)' != '' AND !HasTrailingSlash('$(MaxRevGdalToolsOutputBase)')">$(MaxRevGdalToolsOutputBase)\</MaxRevGdalToolsOutputBase>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="$(MSBuildThisFileDirectory)..\tools\${_RID_TARGET}\**\*">
+            <Link>$(MaxRevGdalToolsOutputBase)%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+</Project>

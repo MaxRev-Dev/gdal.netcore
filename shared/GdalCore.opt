@@ -108,6 +108,9 @@ RUNTIME_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.windowsruntime.csproj.
 RUNTIME_PROJECT_BUNDLE=$(ROOTDIR_)/shared/templates/gdalcore.bundle.csproj.in
 RUNTIME_PROJECT_BUNDLE_UNIX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.bundle.csproj.in
 RUNTIME_PROJECT_BUNDLE_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.bundle.csproj.in
+TOOLS_PROJECT_UNIX=$(ROOTDIR_)/shared/templates/gdalcore.cli.unix.csproj.in
+TOOLS_PROJECT_OSX=$(ROOTDIR_)/shared/templates/gdalcore.cli.osx.csproj.in
+TOOLS_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.cli.win.csproj.in
 
 # Generated project files
 GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
@@ -117,13 +120,18 @@ RUNTIME_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.windowsruntime.final.cs
 RUNTIME_PROJECT_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.bundle.final.csproj
 RUNTIME_PROJECT_BUNDLE_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.bundle.final.csproj
 RUNTIME_PROJECT_BUNDLE_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.bundle.final.csproj
+TOOLS_PROJECT_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.cli.unix.final.csproj
+TOOLS_PROJECT_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.cli.osx.final.csproj
+TOOLS_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.cli.win.final.csproj
 
 PACKAGE_NAME_CORE=MaxRev.Gdal.Core
 PACKAGE_NAME_RUNTIME=MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal
+PACKAGE_NAME_CLI=MaxRev.Gdal.CLI
 RUNTIME_TARGET_BUNDLE=$(ROOTDIR_)/shared/msbuild/default.targets.in
 RUNTIME_TARGET_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).$(BUILD_ARCH).targets
 RUNTIME_TARGET_BUNDLE_FINAL_WIN=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).targets
 RUNTIME_TARGET_BUNDLE_FINAL_CORE=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_CORE).targets
+CLI_TARGET_TEMPLATE=$(ROOTDIR_)/shared/msbuild/cli.targets.in
 
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx

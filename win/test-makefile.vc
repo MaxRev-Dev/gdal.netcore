@@ -6,6 +6,8 @@
 !INCLUDE ../shared/GdalCore.opt
 
 all: test
+CLI_TEST_DIR=$(ROOTDIR_)\\tests\\.cli-smoke
+CLI_RID=win-x64
 
 test-restore:
 	-cd $(TEST_DIR)
@@ -37,4 +39,14 @@ test-only: test-restore
 !ENDIF
 	-cd $(MAKEDIR)
 
-test: test-restore test-update test-only
+test-cli:
+	@if exist "$(CLI_TEST_DIR)" rmdir /s /q "$(CLI_TEST_DIR)"
+	@mkdir "$(CLI_TEST_DIR)"
+	@cd "$(CLI_TEST_DIR)" && dotnet new console --no-restore
+	@cd "$(CLI_TEST_DIR)" && dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) --no-restore
+	@cd "$(CLI_TEST_DIR)" && dotnet restore -s $(NUGET_) --ignore-failed-sources
+	@cd "$(CLI_TEST_DIR)" && dotnet build -c Release --no-restore
+	@cd "$(CLI_TEST_DIR)" && for /f "delims=" %%i in ('dir /b /s ".\\bin\\Release\\gdalinfo.exe"') do @set "CLI_TOOL=%%i" & goto :runcli
+	@cd "$(CLI_TEST_DIR)" && :runcli && if defined CLI_TOOL "%CLI_TOOL%" --version
+
+test: test-restore test-update test-only test-cli
