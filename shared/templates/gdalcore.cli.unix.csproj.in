@@ -39,7 +39,6 @@ Includes GDAL utilities (gdalinfo, ogr2ogr, gdal_translate, etc).
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="${_PACKAGE_NAME_CORE}" Version="${_PACKAGE_BUILD_NUMBER}" />
     <PackageReference Include="${_PACKAGE_NAME_RUNTIME}.${_BUILD_ARCH}" Version="${_PACKAGE_BUILD_NUMBER}" />
   </ItemGroup>
 
