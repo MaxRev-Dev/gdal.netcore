@@ -20,21 +20,23 @@ try {
     dotnet add package "MaxRev.Gdal.CLI.$CliRid" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
     dotnet add package "$RuntimePackage" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
     dotnet restore -s "$NugetPath" --ignore-failed-sources
-    dotnet build -c Release --no-restore
+    $publishDir = Join-Path $CliTestDir 'publish'
+    dotnet publish -c Release -o "$publishDir" --no-restore
 
-    $binRelease = Join-Path $CliTestDir 'bin\Release'
-    $cliTool = Get-ChildItem -Path $binRelease -Recurse -Filter 'gdalinfo.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+    $cliTool = Get-ChildItem -Path $publishDir -Recurse -Filter 'gdalinfo.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
     if (-not $cliTool) {
-        $toolsFallback = Join-Path $CliTestDir ("tools\{0}\gdalinfo.exe" -f $CliRid)
+        $toolsFallback = Join-Path $publishDir ("tools\{0}\gdalinfo.exe" -f $CliRid)
         if (Test-Path -Path $toolsFallback) {
             $cliTool = Get-Item -Path $toolsFallback
         }
     }
     if (-not $cliTool) {
-        throw "gdalinfo.exe not found under $binRelease or tools\\$CliRid"
+        throw "gdalinfo.exe not found under $publishDir"
     }
 
     Write-Host "CLI_TOOL=$($cliTool.FullName)"
+    $runtimePath = Join-Path $publishDir ("runtimes\{0}\native" -f $CliRid)
+    $env:PATH = "$runtimePath;$env:PATH"
     & $cliTool.FullName --version
 }
 finally {
