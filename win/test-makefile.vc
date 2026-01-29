@@ -6,7 +6,7 @@
 !INCLUDE ../shared/GdalCore.opt
 
 all: test
-CLI_TEST_DIR=$(ROOTDIR_)\\tests\\.cli-smoke
+CLI_TEST_DIR=$(MAKEDIR)\\..\\tests\\.cli-smoke
 CLI_RID=win-x64
 
 test-restore:
@@ -42,10 +42,10 @@ test-only: test-restore
 test-cli:
 	@if exist "$(CLI_TEST_DIR)" rmdir /s /q "$(CLI_TEST_DIR)"
 	@mkdir "$(CLI_TEST_DIR)"
-	@cd "$(CLI_TEST_DIR)" && dotnet new console --no-restore
-	@cd "$(CLI_TEST_DIR)" && dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) --no-restore
-	@cd "$(CLI_TEST_DIR)" && dotnet restore -s $(NUGET_) --ignore-failed-sources
-	@cd "$(CLI_TEST_DIR)" && dotnet build -c Release --no-restore
-	@cd "$(CLI_TEST_DIR)" && cmd /v:on /c "setlocal EnableDelayedExpansion & set \"CLI_TOOL=\" & for /f %%i in ('dir /b /s \"bin\\Release\\gdalinfo.exe\"') do if not defined CLI_TOOL set \"CLI_TOOL=%%i\" & if not defined CLI_TOOL exit /b 1 & \"!CLI_TOOL!\" --version"
+	@pushd "$(CLI_TEST_DIR)" && dotnet new console --no-restore && popd
+	@pushd "$(CLI_TEST_DIR)" && dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) --no-restore && popd
+	@pushd "$(CLI_TEST_DIR)" && dotnet restore -s $(NUGET_) --ignore-failed-sources && popd
+	@pushd "$(CLI_TEST_DIR)" && dotnet build -c Release --no-restore && popd
+	@pushd "$(CLI_TEST_DIR)" && cmd /v:on /c "setlocal EnableDelayedExpansion & set \"CLI_TOOL=\" & for /f %%i in ('dir /b /s \"bin\\Release\\gdalinfo.exe\"') do if not defined CLI_TOOL set \"CLI_TOOL=%%i\" & if not defined CLI_TOOL exit /b 1 & \"!CLI_TOOL!\" --version" && popd
 
 test: test-restore test-update test-only test-cli

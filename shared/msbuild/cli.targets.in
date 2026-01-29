@@ -24,7 +24,7 @@
     <Target Name="MaxRevGdalCliFixRPath"
             AfterTargets="CopyFilesToOutputDirectory"
             Condition="'$(OS)' == 'Unix' AND $([System.String]::Copy('$(MaxRevGdalCliRid)').StartsWith('osx-')) AND Exists('/usr/bin/install_name_tool')">
-        <Exec Command="if [ -d &quot;$(MaxRevGdalCliToolsRoot)&quot; ]; then find &quot;$(MaxRevGdalCliToolsRoot)&quot; -maxdepth 1 -type f -perm -111 -exec sh -c 'file -b &quot;$$1&quot; | grep -q &quot;Mach-O&quot; &amp;&amp; install_name_tool -add_rpath &quot;$(MaxRevGdalCliRPath)&quot; &quot;$$1&quot;' _ {} \\; fi" />
+        <Exec Command="if [ -d &quot;$(MaxRevGdalCliToolsRoot)&quot; ]; then find &quot;$(MaxRevGdalCliToolsRoot)&quot; -maxdepth 1 -type f -perm -111 -exec sh -c 'file -b &quot;$$1&quot; | grep -q &quot;Mach-O&quot; &amp;&amp; install_name_tool -add_rpath &quot;$(MaxRevGdalCliRPath)&quot; &quot;$$1&quot;' sh {} +; fi" />
     </Target>
 
 </Project>
