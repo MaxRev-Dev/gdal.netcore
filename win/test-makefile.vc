@@ -45,6 +45,7 @@ test-cli:
 		-CliRid "$(CLI_RID)" \
 		-GdalVersion "$(GDAL_VERSION)" \
 		-PackageBuildNumber "$(PACKAGE_BUILD_NUMBER)" \
-		-NugetPath "$(NUGET_)"
+		-NugetPath "$(NUGET_)" \
+		-RuntimePackage "MaxRev.Gdal.WindowsRuntime.Minimal"
 
 test: test-restore test-update test-only test-cli
