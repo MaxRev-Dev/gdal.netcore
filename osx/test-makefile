@@ -52,9 +52,9 @@ test-cli:
 	cd $(CLI_TEST_DIR) && \
 		dotnet restore --ignore-failed-sources -s $(NUGET_)
 	cd $(CLI_TEST_DIR) && \
-		dotnet build -c Release --no-restore
+		dotnet publish -c Release -o publish --no-restore
 	cd $(CLI_TEST_DIR) && \
-		cli_tool=$$(find ./bin/Release -type f -name gdalinfo | head -n 1) && \
+		cli_tool=$$(find ./publish -type f -name gdalinfo | head -n 1) && \
 		cli_tool_dir=$$(dirname "$$cli_tool") && \
 		lib_dir="$${cli_tool_dir}/runtimes/$(CLI_RID)/native" && \
 		GDAL_DATA="$${cli_tool_dir}/runtimes/any/native/gdal-data" \
