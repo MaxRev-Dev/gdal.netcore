@@ -9,35 +9,46 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-if (Test-Path -Path $CliTestDir) {
-    Remove-Item -Path $CliTestDir -Recurse -Force
+if (-not (Test-Path -Path $CliTestDir)) {
+    throw "CLI test project not found at $CliTestDir"
 }
-New-Item -Path $CliTestDir -ItemType Directory | Out-Null
+
+$binPath = Join-Path $CliTestDir 'bin'
+$objPath = Join-Path $CliTestDir 'obj'
+if (Test-Path -Path $binPath) {
+    Remove-Item -Path $binPath -Recurse -Force
+}
+if (Test-Path -Path $objPath) {
+    Remove-Item -Path $objPath -Recurse -Force
+}
 
 Push-Location $CliTestDir
 try {
-    dotnet new console --no-restore
     dotnet add package "MaxRev.Gdal.CLI.$CliRid" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
     dotnet add package "$RuntimePackage" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
+    dotnet add package "MaxRev.Gdal.Core" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
     dotnet restore -s "$NugetPath" --ignore-failed-sources
-    $publishDir = Join-Path $CliTestDir 'publish'
-    dotnet publish -c Release -o "$publishDir" --no-restore
-
-    $cliTool = Get-ChildItem -Path $publishDir -Recurse -Filter 'gdalinfo.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
-    if (-not $cliTool) {
-        $toolsFallback = Join-Path $publishDir ("tools\{0}\gdalinfo.exe" -f $CliRid)
-        if (Test-Path -Path $toolsFallback) {
-            $cliTool = Get-Item -Path $toolsFallback
-        }
-    }
-    if (-not $cliTool) {
-        throw "gdalinfo.exe not found under $publishDir"
-    }
-
-    Write-Host "CLI_TOOL=$($cliTool.FullName)"
-    $runtimePath = Join-Path $publishDir ("runtimes\{0}\native" -f $CliRid)
+    dotnet build -c Release --no-restore
+    $outputDir = Join-Path $CliTestDir 'bin\Release\net10.0'
+    $runtimePath = Join-Path $outputDir ("runtimes\{0}\native" -f $CliRid)
     $env:PATH = "$runtimePath;$env:PATH"
-    & $cliTool.FullName --version
+
+    $tools = @('gdalinfo.exe', 'ogr2ogr.exe', 'gdal_translate.exe')
+    foreach ($tool in $tools) {
+        $cliTool = Join-Path $outputDir $tool
+        if (-not (Test-Path -Path $cliTool)) {
+            $toolsFallback = Join-Path $outputDir ("tools\{0}\{1}" -f $CliRid, $tool)
+            if (Test-Path -Path $toolsFallback) {
+                $cliTool = $toolsFallback
+            }
+        }
+        if (-not (Test-Path -Path $cliTool)) {
+            throw "$tool not found under $outputDir"
+        }
+
+        Write-Host "CLI_TOOL=$cliTool"
+        & $cliTool --version
+    }
 }
 finally {
     Pop-Location

@@ -11,7 +11,7 @@ CMD_TYPE=dotnet run
 endif
 
 MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal MaxRev.Gdal.Universal
-CLI_TEST_DIR=$(ROOTDIR_)/tests/.cli-smoke
+CLI_TEST_DIR=$(ROOTDIR_)/tests/MaxRev.GdalCore.Tests.CLI
 CLI_RID=linux-$(BUILD_ARCH)
 
 all: test
@@ -41,10 +41,7 @@ test-only: test-restore
 		$(CMD_TYPE) --no-restore $(TEST_DIR)/*.csproj
 
 test-cli:
-	rm -rf $(CLI_TEST_DIR)
-	mkdir -p $(CLI_TEST_DIR)
-	cd $(CLI_TEST_DIR) && \
-		dotnet new console --no-restore
+	rm -rf $(CLI_TEST_DIR)/bin $(CLI_TEST_DIR)/obj
 	cd $(CLI_TEST_DIR) && \
 		dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) --no-restore
 	cd $(CLI_TEST_DIR) && \
@@ -53,6 +50,8 @@ test-cli:
 		dotnet restore --ignore-failed-sources -s $(NUGET_)
 	cd $(CLI_TEST_DIR) && \
 		dotnet build -c Release --no-restore
+	cd $(CLI_TEST_DIR) && \
+		dotnet run -c Release --no-build
 	cd $(CLI_TEST_DIR) && \
 		cli_tool=$$(find ./bin/Release -type f -name gdalinfo | head -n 1) && \
 		cli_tool_dir=$$(dirname "$$cli_tool") && \

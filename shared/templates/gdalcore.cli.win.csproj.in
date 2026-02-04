@@ -36,6 +36,14 @@ Includes GDAL utilities (gdalinfo, ogr2ogr, gdal_translate, etc).
       <PackagePath>buildTransitive/</PackagePath>
       <Pack>true</Pack>
     </None>
+    <None Include="${_ROOT_RELATIVE_PATH}/shared/msbuild/MaxRev.Gdal.CLI.PathInitializer.cs">
+      <PackagePath>buildTransitive/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="${_ROOT_RELATIVE_PATH}/shared/msbuild/MaxRev.Gdal.CLI.Helpers.cs">
+      <PackagePath>buildTransitive/</PackagePath>
+      <Pack>true</Pack>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

@@ -5,6 +5,7 @@
         <MaxRevGdalToolsOutputBase Condition="'$(MaxRevGdalToolsOutputBase)' == ''"></MaxRevGdalToolsOutputBase>
         <!-- EnsureTrailingSlash is only available since VS 2017 -->
         <MaxRevGdalToolsOutputBase Condition="'$(MaxRevGdalToolsOutputBase)' != '' AND !HasTrailingSlash('$(MaxRevGdalToolsOutputBase)')">$(MaxRevGdalToolsOutputBase)\</MaxRevGdalToolsOutputBase>
+        <MaxRevGdalCliEnablePathInitializer Condition="'$(MaxRevGdalCliEnablePathInitializer)' == ''">true</MaxRevGdalCliEnablePathInitializer>
     </PropertyGroup>
 
     <ItemGroup>
@@ -14,6 +15,11 @@
         </None>
     </ItemGroup>
 
+    <ItemGroup Condition="'$(MaxRevGdalCliEnablePathInitializer)' == 'true'">
+        <Compile Include="$(MSBuildThisFileDirectory)MaxRev.Gdal.CLI.PathInitializer.cs" Link="MaxRev.Gdal.CLI.PathInitializer.cs" />
+        <Compile Include="$(MSBuildThisFileDirectory)MaxRev.Gdal.CLI.Helpers.cs" Link="MaxRev.Gdal.CLI.Helpers.cs" />
+    </ItemGroup>
+
     <PropertyGroup>
         <MaxRevGdalCliRid>${_RID_TARGET}</MaxRevGdalCliRid>
         <MaxRevGdalCliToolsRoot>$(TargetDir)$(MaxRevGdalToolsOutputBase)</MaxRevGdalCliToolsRoot>
@@ -21,10 +27,10 @@
         <MaxRevGdalCliRPath Condition="'$(MaxRevGdalToolsOutputBase)' != ''">@loader_path/../runtimes/${_RID_TARGET}/native</MaxRevGdalCliRPath>
     </PropertyGroup>
 
-    <Target Name="MaxRevGdalCliFixRPath"
-            AfterTargets="CopyFilesToOutputDirectory"
-            Condition="'$(OS)' == 'Unix' AND $([System.String]::Copy('$(MaxRevGdalCliRid)').StartsWith('osx-')) AND Exists('/usr/bin/install_name_tool')">
-        <Exec Command="if [ -d &quot;$(MaxRevGdalCliToolsRoot)&quot; ]; then find &quot;$(MaxRevGdalCliToolsRoot)&quot; -maxdepth 1 -type f -perm -111 -exec sh -c 'file -b &quot;$$1&quot; | grep -q &quot;Mach-O&quot; &amp;&amp; install_name_tool -add_rpath &quot;$(MaxRevGdalCliRPath)&quot; &quot;$$1&quot; || true' sh {} +; fi" />
+        <Target Name="MaxRevGdalCliFixRPath"
+            AfterTargets="CopyFilesToOutputDirectory;Build"
+            Condition="$([MSBuild]::IsOSPlatform('OSX')) AND $([System.String]::Copy('$(MaxRevGdalCliRid)').StartsWith('osx-')) AND Exists('/usr/bin/install_name_tool')">
+        <Exec Command="if [ -d &quot;$(MaxRevGdalCliToolsRoot)&quot; ]; then find &quot;$(MaxRevGdalCliToolsRoot)&quot; -maxdepth 2 -type f -perm -111 -exec sh -c 'file -b &quot;$$1&quot; | grep -q &quot;Mach-O&quot; &amp;&amp; install_name_tool -add_rpath &quot;$(MaxRevGdalCliRPath)&quot; &quot;$$1&quot; || true' sh {} +; fi" />
     </Target>
 
 </Project>
