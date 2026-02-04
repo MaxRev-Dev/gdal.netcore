@@ -40,7 +40,7 @@ test-only: test-restore
 	cd $(TEST_TARGET) && \
 		$(CMD_TYPE) --no-restore $(TEST_DIR)/*.csproj
 
-test-cli:
+test-cli: 
 	rm -rf $(CLI_TEST_DIR)
 	mkdir -p $(CLI_TEST_DIR)
 	cd $(CLI_TEST_DIR) && \
@@ -50,16 +50,18 @@ test-cli:
 	cd $(CLI_TEST_DIR) && \
 		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_) --no-restore
 	cd $(CLI_TEST_DIR) && \
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_) --no-restore
+	cd $(CLI_TEST_DIR) && \
 		dotnet restore --ignore-failed-sources -s $(NUGET_)
 	cd $(CLI_TEST_DIR) && \
-		dotnet publish -c Release -o publish --no-restore
+		dotnet build -c Release --no-restore
+		
+test-cli-run: test-cli
 	cd $(CLI_TEST_DIR) && \
-		cli_tool=$$(find ./publish -type f -name gdalinfo | head -n 1) && \
+		cli_tool=$$(realpath "./bin/Release/$(GDAL_CSHARP_VERSION)/gdalinfo") && \
 		cli_tool_dir=$$(dirname "$$cli_tool") && \
-		lib_dir="$${cli_tool_dir}/runtimes/$(CLI_RID)/native" && \
-		GDAL_DATA="$${cli_tool_dir}/runtimes/any/native/gdal-data" \
-		PROJ_LIB="$${lib_dir}/maxrev.gdal.core.libshared" \
-		DYLD_LIBRARY_PATH="$${lib_dir}:$${DYLD_LIBRARY_PATH}" \
+		lib_dir=$$(realpath "$${cli_tool_dir}/runtimes/$(CLI_RID)/native") && \
+		DYLD_LIBRARY_PATH="$$lib_dir:$$DYLD_LIBRARY_PATH" \
 		"$$cli_tool" --version
 
 test: test-restore test-update test-only test-cli
