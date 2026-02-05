@@ -28,15 +28,15 @@ namespace MaxRev.Gdal.CLI
                 {
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                     {
-                        AppendEnv("DYLD_LIBRARY_PATH", runtimeNativeDir, comparer);
+                        PrependEnv("DYLD_LIBRARY_PATH", runtimeNativeDir, comparer);
                     }
                     else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                     {
-                        AppendEnv("LD_LIBRARY_PATH", runtimeNativeDir, comparer);
+                        PrependEnv("LD_LIBRARY_PATH", runtimeNativeDir, comparer);
                     }
                     else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        AppendEnv("PATH", runtimeNativeDir, comparer);
+                        PrependEnv("PATH", runtimeNativeDir, comparer);
                     }
 
                     var projLib = Path.Combine(runtimeNativeDir, "maxrev.gdal.core.libshared");
@@ -58,7 +58,7 @@ namespace MaxRev.Gdal.CLI
             }
         }
 
-        private static void AppendEnv(string key, string value, StringComparer comparer)
+        private static void PrependEnv(string key, string value, StringComparer comparer)
         {
             var existing = Environment.GetEnvironmentVariable(key) ?? string.Empty;
             var parts = new HashSet<string>(
@@ -71,9 +71,9 @@ namespace MaxRev.Gdal.CLI
             }
 
             var newValue = string.Concat(
-                existing,
+                value,
                 existing.Length > 0 ? Path.PathSeparator.ToString() : string.Empty,
-                value);
+                existing);
             Environment.SetEnvironmentVariable(key, newValue, EnvironmentVariableTarget.Process);
         }
 
