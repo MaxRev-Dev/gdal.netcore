@@ -29,26 +29,7 @@ try {
     dotnet add package "MaxRev.Gdal.Core" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
     dotnet restore -s "$NugetPath" --ignore-failed-sources
     dotnet build -c Release --no-restore
-    $outputDir = Join-Path $CliTestDir 'bin\Release\net10.0'
-    $runtimePath = Join-Path $outputDir ("runtimes\{0}\native" -f $CliRid)
-    $env:PATH = "$runtimePath;$env:PATH"
-
-    $tools = @('gdalinfo.exe', 'ogr2ogr.exe', 'gdal_translate.exe')
-    foreach ($tool in $tools) {
-        $cliTool = Join-Path $outputDir $tool
-        if (-not (Test-Path -Path $cliTool)) {
-            $toolsFallback = Join-Path $outputDir ("tools\{0}\{1}" -f $CliRid, $tool)
-            if (Test-Path -Path $toolsFallback) {
-                $cliTool = $toolsFallback
-            }
-        }
-        if (-not (Test-Path -Path $cliTool)) {
-            throw "$tool not found under $outputDir"
-        }
-
-        Write-Host "CLI_TOOL=$cliTool"
-        & $cliTool --version
-    }
+    dotnet run -c Release --no-build
 }
 finally {
     Pop-Location

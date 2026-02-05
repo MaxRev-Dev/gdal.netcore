@@ -11,7 +11,7 @@ CMD_TYPE=dotnet run
 endif
 
 MISSING_PACKAGES=MaxRev.Gdal.LinuxRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal MaxRev.Gdal.Universal
-CLI_TEST_DIR=$(ROOTDIR_)/tests/MaxRev.GdalCore.Tests.CLI
+CLI_TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.CLI
 CLI_RID=osx-$(BUILD_ARCH)
 
 any: test
@@ -56,12 +56,6 @@ test-cli:
 		dotnet run -c Release --no-build
 		
 test-cli-run: test-cli
-	cd $(CLI_TEST_DIR) && \
-		cli_tool=$$(realpath "./bin/Release/$(GDAL_CSHARP_VERSION)/gdalinfo") && \
-		cli_tool_dir=$$(dirname "$$cli_tool") && \
-		lib_dir=$$(realpath "$${cli_tool_dir}/runtimes/$(CLI_RID)/native") && \
-		DYLD_LIBRARY_PATH="$$lib_dir:$$DYLD_LIBRARY_PATH" \
-		"$$cli_tool" --version
 
 test: test-restore test-update test-only test-cli
 	@exit 0

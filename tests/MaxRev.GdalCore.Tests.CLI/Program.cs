@@ -1,7 +1,7 @@
 using MaxRev.Gdal.CLI;
 using System.Runtime.InteropServices;
 
-namespace MaxRev.GdalCore.Tests.CLI
+namespace MaxRev.Gdal.Core.Tests.CLI
 {
     internal static class Program
     {

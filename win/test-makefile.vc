@@ -6,7 +6,7 @@
 !INCLUDE ../shared/GdalCore.opt
 
 all: test
-CLI_TEST_DIR=$(MAKEDIR)\\..\\tests\\MaxRev.GdalCore.Tests.CLI
+CLI_TEST_DIR=$(MAKEDIR)\\..\\tests\\MaxRev.Gdal.Core.Tests.CLI
 CLI_RID=win-x64
 
 test-restore:
