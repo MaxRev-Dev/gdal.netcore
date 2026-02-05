@@ -4,10 +4,10 @@ include ../shared/bundle/base.opt
 
 ifeq ($(APP_RUN),)
 TEST_TARGET=$(TEST_DIR)
-CMD_TYPE=dotnet test
+CMD_TYPE=dotnet test --tl:off
 else
 TEST_TARGET=$(TEST_DIR_APP)
-CMD_TYPE=dotnet run
+CMD_TYPE=dotnet run --tl:off
 endif
 
 MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal MaxRev.Gdal.Universal
