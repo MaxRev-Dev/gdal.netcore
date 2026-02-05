@@ -18,6 +18,12 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                 if (!string.IsNullOrEmpty(runtimeNativeDir))
                 {
                     Console.WriteLine($"Runtime native dir: {runtimeNativeDir}");
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        var gdalDll = Path.Combine(runtimeNativeDir, "gdal.dll");
+                        Console.WriteLine($"gdal.dll exists: {File.Exists(gdalDll)}");
+                        Console.WriteLine($"PATH: {Environment.GetEnvironmentVariable("PATH")}");
+                    }
                 }
                 else
                 {
@@ -36,6 +42,7 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                         return 1;
                     }
                     var exitCode = GdalCli.Run(tool, new[] { "--version" },
+                        workingDirectory: AppContext.BaseDirectory,
                         stdout: Console.Write,
                         stderr: Console.Error.Write);
                     if (exitCode != 0)
