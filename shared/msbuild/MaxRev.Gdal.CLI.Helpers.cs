@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace MaxRev.Gdal.CLI
@@ -39,6 +40,44 @@ namespace MaxRev.Gdal.CLI
 
             var toolPath = Path.Combine(baseDir, "tools", rid, exeName);
             return File.Exists(toolPath) ? toolPath : null;
+        }
+
+        public static IReadOnlyList<string> GetAvailableTools(string? baseDir = null)
+        {
+            baseDir = string.IsNullOrWhiteSpace(baseDir) ? AppContext.BaseDirectory : baseDir;
+            var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+            var tools = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            CollectTools(baseDir, isWindows, tools);
+
+            var rid = GetRuntimeRid();
+            if (!string.IsNullOrEmpty(rid))
+            {
+                var toolsDir = Path.Combine(baseDir, "tools", rid);
+                CollectTools(toolsDir, isWindows, tools);
+            }
+
+            var result = tools.ToList();
+            result.Sort(StringComparer.OrdinalIgnoreCase);
+            return result;
+        }
+
+        private static void CollectTools(string directory, bool isWindows, HashSet<string> tools)
+        {
+            if (!Directory.Exists(directory))
+            {
+                return;
+            }
+
+            var pattern = isWindows ? "*.exe" : "*";
+            foreach (var file in Directory.GetFiles(directory, pattern))
+            {
+                var name = Path.GetFileNameWithoutExtension(file);
+                if (!string.IsNullOrEmpty(name))
+                {
+                    tools.Add(name);
+                }
+            }
         }
 
         public static int Run(string toolName,
@@ -85,20 +124,14 @@ namespace MaxRev.Gdal.CLI
 
             if (!string.IsNullOrWhiteSpace(output))
             {
-                if (stdout != null)
-                {
-                    stdout(output);
-                }
+                stdout?.Invoke(output);
             }
 
             if (!string.IsNullOrWhiteSpace(error))
             {
-                if (stderr != null)
-                {
-                    stderr(error);
-                }
+                stderr?.Invoke(error);
             }
-
+            
             return process.ExitCode;
         }
 

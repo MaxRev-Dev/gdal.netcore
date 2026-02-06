@@ -11,7 +11,13 @@ namespace MaxRev.Gdal.Core.Tests.CLI
             {
                 Console.WriteLine($"OS: {RuntimeInformation.OSDescription}");
                 Console.WriteLine($"Arch: {RuntimeInformation.OSArchitecture}");
-
+                
+                var tools = GdalCli.GetAvailableTools();
+                Console.WriteLine($"Found {tools.Count} available tools:");
+                foreach (var tool in tools)
+                {
+                    Console.WriteLine($"Available tool: {tool}");
+                }
                 GdalCli.EnsureEnvironment();
 
                 var toolsToCheck = new[] { "gdalinfo", "ogr2ogr", "gdal_translate" };
@@ -26,13 +32,10 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                         Console.Error.WriteLine($"Tool '{tool}' not found");
                         return 1;
                     }
-
+                    
                     var exitCode = GdalCli.Run(tool, new[] { "--version" },
-                        workingDirectory: AppContext.BaseDirectory,
-                        stdout: Console.Write,
-                        stderr: Console.Error.Write);
-
-                    Console.Out.Flush();
+                        stdout: s => Console.WriteLine($"[GdalCli stdout] {s}"),
+                        stderr: s => Console.Error.WriteLine($"[GdalCli stderr] {s}"));
 
                     if (exitCode != 0)
                     {
