@@ -80,12 +80,20 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                     string? stderrContent = null;
                     var exitCode = GdalCli.Run(tool, new[] { "--version" },
                         workingDirectory: AppContext.BaseDirectory,
-                        stdout: s => { stdoutContent = s; Console.Write(s); },
-                        stderr: s => { stderrContent = s; Console.Error.Write(s); });
+                        stdout: s => { stdoutContent = s; },
+                        stderr: s => { stderrContent = s; });
 
-                    if (string.IsNullOrEmpty(stdoutContent) && string.IsNullOrEmpty(stderrContent))
+                    Console.WriteLine($"[DEBUG] stdout length: {stdoutContent?.Length ?? 0}, stderr length: {stderrContent?.Length ?? 0}");
+                    Console.Out.Flush();
+                    if (!string.IsNullOrEmpty(stdoutContent))
                     {
-                        Console.WriteLine($"[DEBUG] {tool} produced no stdout/stderr output");
+                        Console.WriteLine($"[STDOUT] {stdoutContent}");
+                        Console.Out.Flush();
+                    }
+                    if (!string.IsNullOrEmpty(stderrContent))
+                    {
+                        Console.WriteLine($"[STDERR] {stderrContent}");
+                        Console.Out.Flush();
                     }
 
                     if (exitCode != 0)
