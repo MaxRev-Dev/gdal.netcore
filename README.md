@@ -202,7 +202,19 @@ var toolPath = GdalCli.GetToolPath("gdalinfo");
 
 See [tests/MaxRev.Gdal.Core.Tests.CLI](tests/MaxRev.Gdal.Core.Tests.CLI/) for more examples.
 
-The package automatically sets up the required environment variables (`PATH`, `LD_LIBRARY_PATH`, `DYLD_LIBRARY_PATH`, `GDAL_DATA`, `PROJ_LIB`) so the tools can find their native libraries. This happens via a module initializer when the assembly loads. `GdalCli.EnsureEnvironment()` can be called explicitly but is safe to call multiple times - initialization only runs once.
+#### How it works
+
+The CLI package includes two source files (`GdalCli` helper and `PathInitializer`) that are compiled directly into your project via `buildTransitive` targets. There is no extra assembly dependency - these become part of your application.
+
+On startup, a `[ModuleInitializer]` automatically configures the process environment so the native GDAL tools can locate their shared libraries:
+- **Windows**: prepends the native runtime directory to `PATH`
+- **Linux**: prepends to `LD_LIBRARY_PATH`
+- **macOS**: prepends to `DYLD_LIBRARY_PATH`
+- **All platforms**: sets `GDAL_DATA` and `PROJ_LIB` to the bundled data directories
+
+When you call `GdalCli.Run(...)`, it spawns the tool as a child process which inherits these environment variables. The initialization is idempotent - `GdalCli.EnsureEnvironment()` can be called explicitly but will only run once.
+
+You can disable the automatic source inclusion by setting `MaxRevGdalCliEnablePathInitializer` to `false` in your project file if you want to manage environment setup yourself.
 
 ## Supported runtimes
 - Windows x64 (.NET Framework 4.6.1+, .NET Standard 2.0+, .NET 6/7/8+)
