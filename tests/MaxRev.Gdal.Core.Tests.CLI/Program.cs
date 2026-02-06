@@ -24,6 +24,18 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                         Console.WriteLine($"gdal.dll exists: {File.Exists(gdalDll)}");
                         Console.WriteLine($"PATH: {Environment.GetEnvironmentVariable("PATH")}");
                     }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                    {
+                        var gdalSo = Directory.GetFiles(runtimeNativeDir, "libgdal.so*").FirstOrDefault();
+                        Console.WriteLine($"libgdal.so exists: {gdalSo ?? "<not found>"}");
+                        Console.WriteLine($"LD_LIBRARY_PATH: {Environment.GetEnvironmentVariable("LD_LIBRARY_PATH")}");
+                    }
+                    else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        var gdalDylib = Directory.GetFiles(runtimeNativeDir, "libgdal*.dylib").FirstOrDefault();
+                        Console.WriteLine($"libgdal.dylib exists: {gdalDylib ?? "<not found>"}");
+                        Console.WriteLine($"DYLD_LIBRARY_PATH: {Environment.GetEnvironmentVariable("DYLD_LIBRARY_PATH")}");
+                    }
                 }
                 else
                 {
@@ -31,20 +43,51 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                 }
 
                 GdalCli.EnsureEnvironment();
+
+                // Print environment AFTER EnsureEnvironment sets it up
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Console.WriteLine($"LD_LIBRARY_PATH (after init): {Environment.GetEnvironmentVariable("LD_LIBRARY_PATH")}");
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    Console.WriteLine($"DYLD_LIBRARY_PATH (after init): {Environment.GetEnvironmentVariable("DYLD_LIBRARY_PATH")}");
+                }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Console.WriteLine($"PATH (after init): {Environment.GetEnvironmentVariable("PATH")}");
+                }
+
                 var toolsToCheck = new[] { "gdalinfo", "ogr2ogr", "gdal_translate" };
                 foreach (var tool in toolsToCheck)
                 {
                     Console.WriteLine($"Running {tool} --version");
                     var toolPath = GdalCli.GetToolPath(tool);
                     Console.WriteLine($"Tool path: {toolPath ?? "<not found>"}");
+
+                    // On Linux, check if tool is executable and show file info
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !string.IsNullOrEmpty(toolPath))
+                    {
+                        var fileInfo = new FileInfo(toolPath);
+                        Console.WriteLine($"Tool size: {fileInfo.Length} bytes");
+                    }
                     if (string.IsNullOrEmpty(toolPath))
                     {
                         return 1;
                     }
+
+                    string? stdoutContent = null;
+                    string? stderrContent = null;
                     var exitCode = GdalCli.Run(tool, new[] { "--version" },
                         workingDirectory: AppContext.BaseDirectory,
-                        stdout: Console.Write,
-                        stderr: Console.Error.Write);
+                        stdout: s => { stdoutContent = s; Console.Write(s); },
+                        stderr: s => { stderrContent = s; Console.Error.Write(s); });
+
+                    if (string.IsNullOrEmpty(stdoutContent) && string.IsNullOrEmpty(stderrContent))
+                    {
+                        Console.WriteLine($"[DEBUG] {tool} produced no stdout/stderr output");
+                    }
+
                     if (exitCode != 0)
                     {
                         Console.Error.WriteLine($"{tool} failed with exit code {exitCode}");
