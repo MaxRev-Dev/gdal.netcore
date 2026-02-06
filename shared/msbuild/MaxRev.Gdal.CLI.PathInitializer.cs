@@ -8,9 +8,12 @@ namespace MaxRev.Gdal.CLI
 {
     internal static class PathInitializer
     {
+        private static volatile bool _initialized;
+
         [ModuleInitializer]
         internal static void Initialize()
         {
+            if (_initialized) return;
             try
             {
                 var baseDir = AppContext.BaseDirectory;
@@ -51,6 +54,8 @@ namespace MaxRev.Gdal.CLI
                 {
                     Environment.SetEnvironmentVariable("GDAL_DATA", gdalData, EnvironmentVariableTarget.Process);
                 }
+
+                _initialized = true;
             }
             catch
             {

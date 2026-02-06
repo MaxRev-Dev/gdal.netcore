@@ -27,16 +27,12 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                         return 1;
                     }
 
-                    string? output = null;
                     var exitCode = GdalCli.Run(tool, new[] { "--version" },
                         workingDirectory: AppContext.BaseDirectory,
-                        stdout: s => output = s,
+                        stdout: Console.Write,
                         stderr: Console.Error.Write);
 
-                    if (!string.IsNullOrEmpty(output))
-                    {
-                        Console.WriteLine(output.TrimEnd());
-                    }
+                    Console.Out.Flush();
 
                     if (exitCode != 0)
                     {
