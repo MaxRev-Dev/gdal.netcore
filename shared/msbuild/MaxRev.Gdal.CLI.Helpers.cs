@@ -69,9 +69,24 @@ namespace MaxRev.Gdal.CLI
                 return;
             }
 
-            var pattern = isWindows ? "*.exe" : "*";
-            foreach (var file in Directory.GetFiles(directory, pattern))
+            foreach (var file in Directory.GetFiles(directory))
             {
+                var fileName = Path.GetFileName(file);
+                if (isWindows)
+                {
+                    if (!fileName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
+                    if (fileName.Contains('.'))
+                    {
+                        continue;
+                    }
+                }
+
                 var name = Path.GetFileNameWithoutExtension(file);
                 if (!string.IsNullOrEmpty(name))
                 {
