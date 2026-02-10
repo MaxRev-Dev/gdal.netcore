@@ -327,7 +327,7 @@ Enjoy!
 
 ## Acknowledgements
 
-As the maintainer of this repository, I would like to express my heartfelt thanks for supporting development to:
+As the maintainer of this repository, I would like to express my heartfelt thanks to everyone who has supported the development, especially:
 
 [<img height="50" alt="Verge Agriculture Inc." src="https://github.com/user-attachments/assets/c5fe571e-b920-48c5-af31-840b9cc48c4a" />](https://vergeag.com/)
 &nbsp;&nbsp;&nbsp;
