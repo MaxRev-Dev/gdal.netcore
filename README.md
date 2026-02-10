@@ -332,4 +332,8 @@ Enjoy!
 
 ## Acknowledgements
 
-As the maintainer of this repository, I want to express my heartfelt thanks to [Verge Agriculture Inc.](https://vergeag.com/). They generously provided the necessary resources that made compiling the **macOS** bindings and the latest versions of GDAL possible.
+As the maintainer of this repository, I would like to express my heartfelt thanks for supporting development to:
+
+[<img src="https://vergeag.com/images/verge-logo-white.png" alt="Verge Agriculture Inc." height="64">](https://vergeag.com/)
+&nbsp;&nbsp;&nbsp;
+[<img src="https://images.squarespace-cdn.com/content/v1/5967536d1e5b6c31e1edb074/2d9fc977-c650-4011-84d4-cf6e8c48ab7f/site_logo_motto2.png?format=1500w" alt="StatMap Ltd" height="64">](https://www.evo.statmap.co.uk/)
