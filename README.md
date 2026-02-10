@@ -11,25 +11,21 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
 [MaxRev.Gdal.Universal](https://www.nuget.org/packages/MaxRev.Gdal.Universal/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.Universal) 
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.Universal) <br>
-
 [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.Core) 
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.Core) <br>
-
 [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.WindowsRuntime.Minimal)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.WindowsRuntime.Minimal) <br>
-
 [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/)
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal) <br>
--  [MaxRev.Gdal.LinuxRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.x64/)
+- [MaxRev.Gdal.LinuxRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.x64/)
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal.x64)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal.x64) <br>
 - [MaxRev.Gdal.LinuxRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.arm64/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal.arm64)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal.arm64) <br>
-
 
 [MaxRev.Gdal.MacosRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal/)
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.MacosRuntime.Minimal)
@@ -186,7 +182,6 @@ using MaxRev.Gdal.CLI;
 // OPTIONAL - You can also call it explicitly if needed:
 // GdalCli.EnsureEnvironment();
 
-
 // Run a GDAL tool and capture output
 var exitCode = GdalCli.Run("gdalinfo", new[] { "--version" },
     stdout: Console.Write,
@@ -334,6 +329,6 @@ Enjoy!
 
 As the maintainer of this repository, I would like to express my heartfelt thanks for supporting development to:
 
-[<img src="https://vergeag.com/images/verge-logo-white.png" alt="Verge Agriculture Inc." height="64">](https://vergeag.com/)
+[<img height="50" alt="Verge Agriculture Inc." src="https://github.com/user-attachments/assets/c5fe571e-b920-48c5-af31-840b9cc48c4a" />](https://vergeag.com/)
 &nbsp;&nbsp;&nbsp;
-[<img src="https://images.squarespace-cdn.com/content/v1/5967536d1e5b6c31e1edb074/2d9fc977-c650-4011-84d4-cf6e8c48ab7f/site_logo_motto2.png?format=1500w" alt="StatMap Ltd" height="64">](https://www.evo.statmap.co.uk/)
+[<img height="50" alt="StatMap Ltd" src="https://github.com/user-attachments/assets/85701812-9f7b-46f7-849b-11d1edcc2bf8" />](https://www.evo.statmap.co.uk/)
