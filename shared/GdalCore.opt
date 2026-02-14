@@ -25,7 +25,7 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=2025.06.13
+VCPKG_COMMIT_VER=2025.10.17
 
 # base requirements for all runtimes
 VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" "curl[tool,openssl]" "poppler[cairo,cms,zlib,glib,curl,private-api]"

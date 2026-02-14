@@ -74,6 +74,8 @@ jobs:
             build-osx/hdf-build/
             build-osx/proj-build/
             build-osx/vcpkg/installed/
+            build-osx/.build-state.json
+            build-osx/.build-times.txt
           key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/gdal-makefile') }}
           restore-keys: |
             builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt') }}-
@@ -102,8 +104,11 @@ jobs:
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
-      - name: Install deps
+      - name: Install build tools
         run: |
+          # jq is pre-installed on macOS GitHub runners
+          # Verify it's available
+          command -v jq || brew install jq
           ${{ github.workspace }}/osx/before-install.sh
 
       - name: Fetch VCPKG packages

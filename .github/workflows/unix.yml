@@ -70,6 +70,8 @@ jobs:
             build-unix/hdf-build/
             build-unix/proj-build/
             build-unix/vcpkg/installed/
+            build-unix/.build-state.json
+            build-unix/.build-times.txt
           key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'unix/gdal-makefile') }}
           restore-keys: |
             builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt') }}-
@@ -94,8 +96,10 @@ jobs:
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
 
-      - name: Install deps
+      - name: Install build tools
         run: |
+          # Install jq for build state tracking
+          sudo apt-get update && sudo apt-get install -y jq
           chmod +x ${{ github.workspace }}/unix/before-install.sh
           ${{ github.workspace }}/unix/before-install.sh
 

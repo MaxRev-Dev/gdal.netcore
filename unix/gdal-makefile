@@ -5,6 +5,16 @@
 include RID.opt
 include ../shared/GdalCore.opt
 
+# Build state and timing configuration
+STATE_FILE=$(BUILD_ROOT)/.build-state.json
+
+# Detect number of CPU cores
+NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
+ifdef PARALLEL_JOBS
+  NPROC := $(PARALLEL_JOBS)
+endif
+$(info $(PRE) Using $(NPROC) parallel jobs)
+
 # default targets on linux
 TARGETS = hdf proj gdal
 
@@ -40,6 +50,14 @@ TO = $(PRE) ${UP} |
 ifneq ($(filter $(REP),$(TARGETS)),'')
 	@echo "$(TO) trying to make stuff for => $(REP)"
 
+	@# Check if build is needed (unless forced)
+	@if [[ "$(LW)" != *"-force" ]]; then \
+		$(MAKE) -f gdal-makefile check_state_$(REP) && { \
+			echo "$(TO) Build is up to date, skipping"; \
+			exit 0; \
+		} || true; \
+	fi
+	
 	@if [ ! -d "$(BUILD_ROOT)/$(REP)-build" ] || [[ "$(LW)" == *"-force" ]]; then \
 		$(MAKE) -f gdal-makefile init_$(REP) || exit 1; \
 		$(MAKE) -f gdal-makefile configure_$(REP) || exit 1; \
@@ -177,10 +195,17 @@ configure_proj:
 
 	@echo "$(TO) PROJ was configured!"
 
-build_%:
-	@echo "$(TO) $(LW) Building..."
-	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j4 --target install || exit 1
-	@echo "$(TO) $(LW) was built successfully!"
+build_% build_%_timed:
+	@echo "$(TO) $(LW) Building with $(NPROC) parallel jobs..."
+	@date +%s > /tmp/build_timer_$(LW).txt
+	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j$(NPROC) --target install || exit 1
+	@START=$$(cat /tmp/build_timer_$(LW).txt 2>/dev/null || echo 0); \
+	END=$$(date +%s); \
+	DURATION=$$((END - START)); \
+	echo "$(TO) $(LW) was built successfully in $${DURATION}s!"; \
+	mkdir -p $(BUILD_ROOT); \
+	echo "$(UP)=$${DURATION}" >> $(BUILD_ROOT)/.build-times.txt
+	@$(MAKE) -f gdal-makefile save_state_$(LW)
 
 __LIBS_GDAL=LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(BUILD_ROOT)/gdal-build/lib
 formats-output:
@@ -196,6 +221,57 @@ formats-output:
 
 reset: reset_proj reset_gdal
 	@echo "$(TO) Reset ALL is complete"
+
+# Build state management targets
+check_state_%:
+	@COMPONENT=$(LW); \
+	if [ -f "$(STATE_FILE)" ] && command -v jq >/dev/null 2>&1; then \
+		LAST_VER=$$(jq -r ".$$COMPONENT.version // empty" $(STATE_FILE) 2>/dev/null); \
+		LAST_HASH=$$(jq -r ".$$COMPONENT.hash // empty" $(STATE_FILE) 2>/dev/null); \
+		CURRENT_VER=$($(UP)_VERSION); \
+		if [ -d "$($(UP)_ROOT)" ]; then \
+			CURRENT_HASH=$$(cd $($(UP)_ROOT) && git rev-parse HEAD 2>/dev/null || echo "unknown"); \
+		else \
+			CURRENT_HASH="not-cloned"; \
+		fi; \
+		if [ "$$LAST_VER" = "$$CURRENT_VER" ] && [ "$$LAST_HASH" = "$$CURRENT_HASH" ] && [ -d "$(BUILD_ROOT)/$$COMPONENT-build" ]; then \
+			echo "$(PRE) ✓ $$COMPONENT is up to date (v$$CURRENT_VER), skipping build"; \
+			exit 0; \
+		else \
+			echo "$(PRE) ⚠️  $$COMPONENT needs rebuild"; \
+			[ "$$LAST_VER" != "$$CURRENT_VER" ] && echo "$(PRE)    Version: $$LAST_VER → $$CURRENT_VER"; \
+			[ "$$LAST_HASH" != "$$CURRENT_HASH" ] && echo "$(PRE)    Hash: $${LAST_HASH:0:8} → $${CURRENT_HASH:0:8}"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "$(PRE) ℹ️  No state file or jq not found, building $$COMPONENT"; \
+		exit 1; \
+	fi
+
+save_state_%:
+	@COMPONENT=$(LW); \
+	if command -v jq >/dev/null 2>&1; then \
+		mkdir -p $(BUILD_ROOT); \
+		CURRENT_VER=$($(UP)_VERSION); \
+		if [ -d "$($(UP)_ROOT)" ]; then \
+			CURRENT_HASH=$$(cd $($(UP)_ROOT) && git rev-parse HEAD 2>/dev/null || echo "unknown"); \
+		else \
+			CURRENT_HASH="not-cloned"; \
+		fi; \
+		TIMESTAMP=$$(date -u +%Y-%m-%dT%H:%M:%SZ); \
+		if [ -f "$(STATE_FILE)" ]; then \
+			EXISTING=$$(cat $(STATE_FILE)); \
+		else \
+			EXISTING="{}"; \
+		fi; \
+		echo "$$EXISTING" | jq --arg comp "$$COMPONENT" \
+			--arg ver "$$CURRENT_VER" \
+			--arg hash "$$CURRENT_HASH" \
+			--arg time "$$TIMESTAMP" \
+			'.[\$$comp] = {version: \$$ver, hash: \$$hash, built: \$$time}' \
+			> $(STATE_FILE).tmp && mv $(STATE_FILE).tmp $(STATE_FILE); \
+		echo "$(PRE) 💾 Saved state for $$COMPONENT (v$$CURRENT_VER)"; \
+	fi
 
 .EXPORT_ALL_VARIABLES:
 PKG_CONFIG_PATH=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig

@@ -514,3 +514,7 @@ FodyWeavers.xsd
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,visualstudio,visualstudiocode,windows
 
 test*.vrt
+
+# Planning and roadmap files
+roadmap/
+.planning/
