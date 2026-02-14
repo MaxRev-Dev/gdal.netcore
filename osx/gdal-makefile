@@ -53,21 +53,18 @@ SHELL=/bin/bash
 ifneq ($(filter $(REP),$(TARGETS)),'')
 	@echo "$(TO) trying to make stuff for => $(REP)"
 
-	@# Check if build is needed (unless forced)
-	@if [[ "$(LW)" != *"-force" ]]; then \
-		$(MAKE) -f gdal-makefile check_state_$(REP) && { \
-			echo "$(TO) Build is up to date, skipping"; \
-			exit 0; \
-		} || true; \
-	fi
-	
-	@if [ ! -d "$(BUILD_ROOT)/$(REP)-build" ] || [[ "$(LW)" == *"-force" ]]; then \
+	@if [[ "$(LW)" == *"-force" ]]; then \
+		echo "$(TO) Force rebuild requested"; \
 		$(MAKE) -f gdal-makefile init_$(REP) || exit 1; \
 		$(MAKE) -f gdal-makefile configure_$(REP) || exit 1; \
 		$(MAKE) -f gdal-makefile build_$(REP) || exit 1; \
+	elif $(MAKE) -f gdal-makefile check_state_$(REP) 2>/dev/null; then \
+		echo "$(TO) Build is up to date, skipping"; \
 	else \
-		echo "$(PRE) Build folder exists $(BUILD_ROOT)/$(REP)-build"; \
-		echo "$(PRE) To rebuild add '$(REP)-force'"; \
+		echo "$(TO) Build state changed, rebuilding"; \
+		$(MAKE) -f gdal-makefile init_$(REP) || exit 1; \
+		$(MAKE) -f gdal-makefile configure_$(REP) || exit 1; \
+		$(MAKE) -f gdal-makefile build_$(REP) || exit 1; \
 	fi;
 else
 	@echo "$(PRE) Can not make $(REP)"
