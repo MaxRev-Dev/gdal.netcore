@@ -69,13 +69,14 @@ jobs:
           path: |
             build-unix/hdf-build/
             build-unix/proj-build/
+            build-unix/gdal-build/
+            build-unix/gdal-cmake-temp/
             build-unix/vcpkg/installed/
             build-unix/.build-state.json
             build-unix/.build-times.txt
           key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'unix/gdal-makefile') }}
           restore-keys: |
             builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt') }}-
-            builds-${{ matrix.os }}-${{ matrix.arch }}-
 
       # Layer 3: .NET SDK packages
       - name: Cache .NET packages
