@@ -7,13 +7,13 @@ include ../shared/GdalCore.opt
 VCPKG=$(abspath $(VCPKG_ROOT))/vcpkg
 
 # lowercase func
-LW = $(shell echo '$*' | tr A-Z a-z)
+TARGET_LOWER = $(shell echo '$*' | tr A-Z a-z)
 
 # add support for [-force] param
-REP = $(shell echo '$*' | sed "s/-force//g")
+TARGET_CLEAN = $(shell echo '$*' | sed "s/-force//g")
 
 # target pretty output
-TO = $(PRE) VCPKG |
+TARGET_PREFIX = $(LOG_PREFIX) VCPKG |
 SHELL=/bin/bash
 
 all: install_vcpkg install_requirements
@@ -23,18 +23,18 @@ force: $(addsuffix -force, $(TARGETS))
 
 # accepts any params to install/uninstall package
 % :
-ifneq ($(filter $(REP),$(VCPKG_REQUIRE_OSX)),'')
-	@echo "'vcpkg make' > trying to make stuff for => $(REP)"
-	@if [[ "$(LW)" == *"-force"* ]] ; then \
+ifneq ($(filter $(TARGET_CLEAN),$(VCPKG_REQUIRE_OSX)),'')
+	@echo "'vcpkg make' > trying to make stuff for => $(TARGET_CLEAN)"
+	@if [[ "$(TARGET_LOWER)" == *"-force"* ]] ; then \
 		$(MAKE) -f vcpkg-makefile upgrade; \
-		$(VCPKG) remove $(REP):$(VCPKG_RID) --recurse  || exit 1; \
-		$(VCPKG) install $(REP):$(VCPKG_RID) --recurse --clean-after-build || exit 1; \
+		$(VCPKG) remove $(TARGET_CLEAN):$(VCPKG_RID) --recurse  || exit 1; \
+		$(VCPKG) install $(TARGET_CLEAN):$(VCPKG_RID) --recurse --clean-after-build || exit 1; \
 	else \
 		echo "To rebuild add {key}-force"; \
 		$(VCPKG) list; \
 	fi;
 else
-	@echo "Can not make $(REP)"
+	@echo "Can not make $(TARGET_CLEAN)"
 endif
 
 pull:
@@ -58,9 +58,9 @@ install_requirements: install_vcpkg checkout_ver install_requirements_only
 	@exit 0
 
 checkout_ver:
-	@echo "$(TO) Checking for remote changes..."
+	@echo "$(TARGET_PREFIX) Checking for remote changes..."
 	@cd $(VCPKG_ROOT) && git fetch || exit 1
-	@echo "$(TO) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
+	@echo "$(TARGET_PREFIX) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
 	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force || exit 1
 
 upgrade: checkout_ver

@@ -3,11 +3,11 @@
 ##### ------- SHARED CONFIGURATION ------- #####
 
 ##### repo root
-ROOTDIR_=$(BASE)/..
+ROOT_DIR=$(BASE)/..
 BUILD_NUMBER_TAIL=100
 
 ### build (drivers) root
-BUILD_ROOT=$(ROOTDIR_)/build-$(BASE_RID)
+BUILD_ROOT=$(ROOT_DIR)/build-$(BASE_RID)
 
 # Nov 8, 2025
 GDAL_VERSION=3.12.0
@@ -51,7 +51,7 @@ VCPKG_INSTALLED=$(VCPKG_ROOT)/installed/$(VCPKG_RID)
 VCPKG_INSTALLED_STATIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-static
 VCPKG_INSTALLED_DYNAMIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
 # triplets
-VPCKG_CUSTOM_TRIPLETS=$(VCPKG_ROOT)/custom-triplets
+VCPKG_CUSTOM_TRIPLETS=$(VCPKG_ROOT)/custom-triplets
 VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets
 VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --no-print-usage
 VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
@@ -61,11 +61,11 @@ VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
 
 # ---------------------- CONFIG ---------------------
 
-PRE=[gdal.netcore]
+LOG_PREFIX=[gdal.netcore]
 
-PACKAGE_BUILD_ROOT=$(ROOTDIR_)/package-build
-__libshared=maxrev.gdal.core.libshared
-LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(__libshared)/$(RID)/$(__libshared)
+PACKAGE_BUILD_ROOT=$(ROOT_DIR)/package-build
+LIB_SHARED_NAME=maxrev.gdal.core.libshared
+LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(LIB_SHARED_NAME)/$(RID)/$(LIB_SHARED_NAME)
 
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
@@ -74,9 +74,9 @@ DOTNET_VERSION=9.0
 GDAL_CSHARP_VERSION=net9.0
 
 ##### SWIG executable and interface
-BASE_SWIG_=$(GDAL_ROOT)/swig
-BASE_CSHARP_=$(BASE_SWIG_)/csharp
-SWIG_INCLUDE_=$(BASE_SWIG_)/include
+SWIG_BASE=$(GDAL_ROOT)/swig
+CSHARP_BASE=$(SWIG_BASE)/csharp
+SWIG_INCLUDE=$(SWIG_BASE)/include
 
 ##### HDF build location (only for osx)
 HDF_BUILD=$(BUILD_ROOT)/hdf-build
@@ -92,22 +92,22 @@ GDAL_BUILD=$(BUILD_ROOT)/gdal-build
 GDAL_CMAKE_TMP=$(BUILD_ROOT)/gdal-cmake-temp
 
 ##### NUGET output folder
-NUGET_=$(ROOTDIR_)/nuget
+NUGET_DIR=$(ROOT_DIR)/nuget
 
 ### Shared .NET Core Tests
-TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.XUnit
-TEST_DIR_APP=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests
-TEST_TARGET_AZ=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.AzureFunctions
-TEST_FORMATS_OUTPUT=$(ROOTDIR_)/tests/gdal-formats
+TEST_DIR=$(ROOT_DIR)/tests/MaxRev.Gdal.Core.Tests.XUnit
+TEST_DIR_APP=$(ROOT_DIR)/tests/MaxRev.Gdal.Core.Tests
+TEST_TARGET_AZ=$(ROOT_DIR)/tests/MaxRev.Gdal.Core.Tests.AzureFunctions
+TEST_FORMATS_OUTPUT=$(ROOT_DIR)/tests/gdal-formats
 
 # Templates for project files
-GDALCORE_PROJECT=$(ROOTDIR_)/shared/templates/gdalcore.loader.csproj.in
-RUNTIME_PROJECT_UNIX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.csproj.in
-RUNTIME_PROJECT_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.csproj.in
-RUNTIME_PROJECT_WIN=$(ROOTDIR_)/shared/templates/gdalcore.windowsruntime.csproj.in
-RUNTIME_PROJECT_BUNDLE=$(ROOTDIR_)/shared/templates/gdalcore.bundle.csproj.in
-RUNTIME_PROJECT_BUNDLE_UNIX=$(ROOTDIR_)/shared/templates/gdalcore.linuxruntime.bundle.csproj.in
-RUNTIME_PROJECT_BUNDLE_OSX=$(ROOTDIR_)/shared/templates/gdalcore.macosruntime.bundle.csproj.in
+GDALCORE_PROJECT=$(ROOT_DIR)/shared/templates/gdalcore.loader.csproj.in
+RUNTIME_PROJECT_UNIX=$(ROOT_DIR)/shared/templates/gdalcore.linuxruntime.csproj.in
+RUNTIME_PROJECT_OSX=$(ROOT_DIR)/shared/templates/gdalcore.macosruntime.csproj.in
+RUNTIME_PROJECT_WIN=$(ROOT_DIR)/shared/templates/gdalcore.windowsruntime.csproj.in
+RUNTIME_PROJECT_BUNDLE=$(ROOT_DIR)/shared/templates/gdalcore.bundle.csproj.in
+RUNTIME_PROJECT_BUNDLE_UNIX=$(ROOT_DIR)/shared/templates/gdalcore.linuxruntime.bundle.csproj.in
+RUNTIME_PROJECT_BUNDLE_OSX=$(ROOT_DIR)/shared/templates/gdalcore.macosruntime.bundle.csproj.in
 
 # Generated project files
 GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
@@ -120,7 +120,7 @@ RUNTIME_PROJECT_BUNDLE_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.bun
 
 PACKAGE_NAME_CORE=MaxRev.Gdal.Core
 PACKAGE_NAME_RUNTIME=MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal
-RUNTIME_TARGET_BUNDLE=$(ROOTDIR_)/shared/msbuild/default.targets.in
+RUNTIME_TARGET_BUNDLE=$(ROOT_DIR)/shared/msbuild/default.targets.in
 RUNTIME_TARGET_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).$(BUILD_ARCH).targets
 RUNTIME_TARGET_BUNDLE_FINAL_WIN=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).targets
 RUNTIME_TARGET_BUNDLE_FINAL_CORE=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_CORE).targets

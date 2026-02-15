@@ -13,20 +13,20 @@ NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 ifdef PARALLEL_JOBS
   NPROC := $(PARALLEL_JOBS)
 endif
-$(info $(PRE) Using $(NPROC) parallel jobs)
+$(info $(LOG_PREFIX) Using $(NPROC) parallel jobs)
 
 # default targets on linux
 TARGETS = hdf proj gdal
 
 all: $(TARGETS)
-	@echo "$(PRE) Everything looks good. Linux libraries for GDAL is ready to packaging!"
-	@echo "$(PRE) Configured libraries (vcpkg): $(VCPKG_REQUIRE_UNIX)"
-	@echo "$(PRE) Configured libraries: $(TARGETS)"
+	@echo "$(LOG_PREFIX) Everything looks good. Linux libraries for GDAL is ready to packaging!"
+	@echo "$(LOG_PREFIX) Configured libraries (vcpkg): $(VCPKG_REQUIRE_UNIX)"
+	@echo "$(LOG_PREFIX) Configured libraries: $(TARGETS)"
 
 pre_vcpkg:
-	@echo "$(PRE) Precheck for VCPKG libraries installation..."
+	@echo "$(LOG_PREFIX) Precheck for VCPKG libraries installation..."
 	$(MAKE) -f vcpkg-makefile
-	@echo "$(PRE) VCPKG libraries precheck complete"
+	@echo "$(LOG_PREFIX) VCPKG libraries precheck complete"
 
 complete: pre_vcpkg all
 	@exit 0
@@ -36,81 +36,81 @@ force: $(addsuffix -force, $(TARGETS))
 	@exit 0
 
 # lower and uppercase funcs
-UP  = $(shell echo '$*' | tr a-z A-Z)
-LW = $(shell echo '$*' | tr A-Z a-z)
+TARGET_UPPER  = $(shell echo '$*' | tr a-z A-Z)
+TARGET_LOWER = $(shell echo '$*' | tr A-Z a-z)
 
 # add support for [-force] param
-REP = $(shell echo '$(LW)' | sed "s/-force//g")
+TARGET_CLEAN = $(shell echo '$(TARGET_LOWER)' | sed "s/-force//g")
 
 # target pretty output
-TO = $(PRE) ${UP} |
+TARGET_PREFIX = $(LOG_PREFIX) ${TARGET_UPPER} |
 
 # accepts any user params
 % :
-ifneq ($(filter $(REP),$(TARGETS)),'')
-	@echo "$(TO) trying to make stuff for => $(REP)"
+ifneq ($(filter $(TARGET_CLEAN),$(TARGETS)),'')
+	@echo "$(TARGET_PREFIX) trying to make stuff for => $(TARGET_CLEAN)"
 
-	@if [[ "$(LW)" == *"-force" ]]; then \
-		echo "$(TO) Force rebuild requested"; \
-		$(MAKE) -f gdal-makefile init_$(REP) || exit 1; \
-		$(MAKE) -f gdal-makefile configure_$(REP) || exit 1; \
-		$(MAKE) -f gdal-makefile build_$(REP) || exit 1; \
-	elif $(MAKE) -f gdal-makefile check_state_$(REP) 2>/dev/null; then \
-		echo "$(TO) Build is up to date, skipping"; \
+	@if [[ "$(TARGET_LOWER)" == *"-force" ]]; then \
+		echo "$(TARGET_PREFIX) Force rebuild requested"; \
+		$(MAKE) -f gdal-makefile init_$(TARGET_CLEAN) || exit 1; \
+		$(MAKE) -f gdal-makefile configure_$(TARGET_CLEAN) || exit 1; \
+		$(MAKE) -f gdal-makefile build_$(TARGET_CLEAN) || exit 1; \
+	elif $(MAKE) -f gdal-makefile check_state_$(TARGET_CLEAN) 2>/dev/null; then \
+		echo "$(TARGET_PREFIX) Build is up to date, skipping"; \
 	else \
-		echo "$(TO) Build state changed, rebuilding"; \
-		$(MAKE) -f gdal-makefile init_$(REP) || exit 1; \
-		$(MAKE) -f gdal-makefile configure_$(REP) || exit 1; \
-		$(MAKE) -f gdal-makefile build_$(REP) || exit 1; \
+		echo "$(TARGET_PREFIX) Build state changed, rebuilding"; \
+		$(MAKE) -f gdal-makefile init_$(TARGET_CLEAN) || exit 1; \
+		$(MAKE) -f gdal-makefile configure_$(TARGET_CLEAN) || exit 1; \
+		$(MAKE) -f gdal-makefile build_$(TARGET_CLEAN) || exit 1; \
 	fi;
 else
-	@echo "$(PRE) Can not make $(REP)"
+	@echo "$(LOG_PREFIX) Can not make $(TARGET_CLEAN)"
 endif
 
 init_%: reset_% remove_cache_%
-	@echo "$(TO) Sources restore complete"
+	@echo "$(TARGET_PREFIX) Sources restore complete"
 
 clone_%:
-	@if [ ! -d "$($(UP)_ROOT)" ]; then \
-		git clone $($(UP)_REPO) $($(UP)_ROOT); \
+	@if [ ! -d "$($(TARGET_UPPER)_ROOT)" ]; then \
+		git clone $($(TARGET_UPPER)_REPO) $($(TARGET_UPPER)_ROOT); \
 	fi;
 
 reset_%: clone_%
-	@echo "$(TO) Restoring $(LW) sources version to $($(UP)_COMMIT_VER)"
-	@echo "$(TO) Checking for remote changes..."
-	@cd $($(UP)_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force
-	@cd $($(UP)_ROOT) && git checkout -q tags/$($(UP)_COMMIT_VER) --force || exit 1
-	@echo "$(TO) Resetting sources..."
-	@cd $($(UP)_ROOT) && git reset --hard || exit 1
-	@echo "$(TO) Cleaning the repo before compiling from scratch..."
-	@cd $($(UP)_ROOT) && $(GIT_CLEAN) || exit 1
+	@echo "$(TARGET_PREFIX) Restoring $(TARGET_LOWER) sources version to $($(TARGET_UPPER)_COMMIT_VER)"
+	@echo "$(TARGET_PREFIX) Checking for remote changes..."
+	@cd $($(TARGET_UPPER)_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force
+	@cd $($(TARGET_UPPER)_ROOT) && git checkout -q tags/$($(TARGET_UPPER)_COMMIT_VER) --force || exit 1
+	@echo "$(TARGET_PREFIX) Resetting sources..."
+	@cd $($(TARGET_UPPER)_ROOT) && git reset --hard || exit 1
+	@echo "$(TARGET_PREFIX) Cleaning the repo before compiling from scratch..."
+	@cd $($(TARGET_UPPER)_ROOT) && $(GIT_CLEAN) || exit 1
 
 remove_cache_%:
-	@echo "$(TO) Removing build cache..."
-	@if [[ -d "$($(UP)_CMAKE_TMP)" ]]; then \
-		rm -r $($(UP)_CMAKE_TMP); \
+	@echo "$(TARGET_PREFIX) Removing build cache..."
+	@if [[ -d "$($(TARGET_UPPER)_CMAKE_TMP)" ]]; then \
+		rm -r $($(TARGET_UPPER)_CMAKE_TMP); \
 	fi;
 
 init_hdf: check_hdf_sources
-	@echo "$(TO) HDF sources restore complete"
+	@echo "$(TARGET_PREFIX) HDF sources restore complete"
 
-HDF_zip=hdf$(HDF_VERSION).zip
+HDF_ZIP=hdf$(HDF_VERSION).zip
 HDF_SOURCE=$(BUILD_ROOT)/hdf4-hdf$(HDF_VERSION)
 
 download_hdf:
-	@echo "$(TO) Downloading HDF source ${HDF_zip}..."
-	LD_LIBRARY_PATH="" curl -JL "https://github.com/HDFGroup/hdf4/archive/refs/tags/$(HDF_zip)" -o "$(BUILD_ROOT)/$(HDF_zip)"
-	@echo "$(TO) HDF source downloaded!"
-	@echo "$(TO) Extracting HDF source..."
-	cd "$(BUILD_ROOT)"; unzip -oq "$(BUILD_ROOT)/$(HDF_zip)" -d .
+	@echo "$(TARGET_PREFIX) Downloading HDF source ${HDF_ZIP}..."
+	LD_LIBRARY_PATH="" curl -JL "https://github.com/HDFGroup/hdf4/archive/refs/tags/$(HDF_ZIP)" -o "$(BUILD_ROOT)/$(HDF_ZIP)"
+	@echo "$(TARGET_PREFIX) HDF source downloaded!"
+	@echo "$(TARGET_PREFIX) Extracting HDF source..."
+	cd "$(BUILD_ROOT)"; unzip -oq "$(BUILD_ROOT)/$(HDF_ZIP)" -d .
 
 check_hdf_sources:
-	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_zip)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
+	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_ZIP)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
 		$(MAKE) -f gdal-makefile download_hdf; \
 	fi;
 
 configure_hdf:
-	@echo "$(TO) HDF Configuring..."
+	@echo "$(TARGET_PREFIX) HDF Configuring..."
 
 	@if [[ -d "$(BUILD_ROOT)/hdf-build" ]]; then rm -r "$(BUILD_ROOT)/hdf-build"; fi;
 	@if [[ -d "$(BUILD_ROOT)/hdf-cmake-temp" ]]; then rm -r "$(BUILD_ROOT)/hdf-cmake-temp"; fi;
@@ -125,12 +125,12 @@ configure_hdf:
 		-DZLIB_DIR=$(VCPKG_INSTALLED_DYNAMIC)/share \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) || exit 1
 
-	@echo "$(TO) HDF was configured!"
+	@echo "$(TARGET_PREFIX) HDF was configured!"
 
 configure_gdal:
-	@echo "$(TO) GDAL Configuring..."
+	@echo "$(TARGET_PREFIX) GDAL Configuring..."
 	@cd $(GDAL_ROOT) && \
-		git apply "$(ROOTDIR_)/shared/patch/CMakeLists.txt.patch" || exit 1
+		git apply "$(ROOT_DIR)/shared/patch/CMakeLists.txt.patch" || exit 1
 
 	@if [[ -d "$(BUILD_ROOT)/gdal-build" ]]; then rm -r "$(BUILD_ROOT)/gdal-build"; fi;
 	@if [[ -d "$(GDAL_ROOT)/autotest" ]]; then rm -r "$(GDAL_ROOT)/autotest"; fi;
@@ -163,10 +163,10 @@ configure_gdal:
 		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.so \
 		|| exit 1
 
-	@echo "$(TO) GDAL was configured!"
+	@echo "$(TARGET_PREFIX) GDAL was configured!"
 
 configure_proj:
-	@echo "$(TO) PROJ Configuring..."
+	@echo "$(TARGET_PREFIX) PROJ Configuring..."
 	@if [[ -d "$(BUILD_ROOT)/proj-build" ]]; then rm -r "$(BUILD_ROOT)/proj-build"; fi;
 	@if [[ -d "$(PROJ_ROOT)/test" ]]; then rm -r "$(PROJ_ROOT)/test"; fi;
 	-mkdir -p $(PROJ_CMAKE_TMP)
@@ -190,19 +190,19 @@ configure_proj:
 			-DCURL_LIBRARY="$(VCPKG_INSTALLED_DYNAMIC)/lib/libcurl.so" \
 			|| exit 1
 
-	@echo "$(TO) PROJ was configured!"
+	@echo "$(TARGET_PREFIX) PROJ was configured!"
 
 build_% build_%_timed:
-	@echo "$(TO) $(LW) Building with $(NPROC) parallel jobs..."
-	@date +%s > /tmp/build_timer_$(LW).txt
-	@cd "$(BUILD_ROOT)/$(LW)-cmake-temp" && cmake --build . -j$(NPROC) --target install || exit 1
-	@START=$$(cat /tmp/build_timer_$(LW).txt 2>/dev/null || echo 0); \
+	@echo "$(TARGET_PREFIX) $(TARGET_LOWER) Building with $(NPROC) parallel jobs..."
+	@date +%s > /tmp/build_timer_$(TARGET_LOWER).txt
+	@cd "$(BUILD_ROOT)/$(TARGET_LOWER)-cmake-temp" && cmake --build . -j$(NPROC) --target install || exit 1
+	@START=$$(cat /tmp/build_timer_$(TARGET_LOWER).txt 2>/dev/null || echo 0); \
 	END=$$(date +%s); \
 	DURATION=$$((END - START)); \
-	echo "$(TO) $(LW) was built successfully in $${DURATION}s!"; \
+	echo "$(TARGET_PREFIX) $(TARGET_LOWER) was built successfully in $${DURATION}s!"; \
 	mkdir -p $(BUILD_ROOT); \
-	echo "$(UP)=$${DURATION}" >> $(BUILD_ROOT)/.build-times.txt
-	@$(MAKE) -f gdal-makefile save_state_$(LW)
+	echo "$(TARGET_UPPER)=$${DURATION}" >> $(BUILD_ROOT)/.build-times.txt
+	@$(MAKE) -f gdal-makefile save_state_$(TARGET_LOWER)
 
 __LIBS_GDAL=LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(BUILD_ROOT)/gdal-build/lib
 formats-output:
@@ -217,41 +217,41 @@ formats-output:
 		./ogrinfo --formats > $(TEST_FORMATS_OUTPUT)/gdal-formats-unix-vector.txt)
 
 reset: reset_proj reset_gdal
-	@echo "$(TO) Reset ALL is complete"
+	@echo "$(TARGET_PREFIX) Reset ALL is complete"
 
 # Build state management targets
 check_state_%:
-	@COMPONENT=$(LW); \
+	@COMPONENT=$(TARGET_LOWER); \
 	if [ -f "$(STATE_FILE)" ] && command -v jq >/dev/null 2>&1; then \
 		LAST_VER=$$(jq -r ".$$COMPONENT.version // empty" $(STATE_FILE) 2>/dev/null); \
 		LAST_HASH=$$(jq -r ".$$COMPONENT.hash // empty" $(STATE_FILE) 2>/dev/null); \
-		CURRENT_VER=$($(UP)_VERSION); \
-		if [ -d "$($(UP)_ROOT)" ]; then \
-			CURRENT_HASH=$$(cd $($(UP)_ROOT) && git rev-parse HEAD 2>/dev/null || echo "unknown"); \
+		CURRENT_VER=$($(TARGET_UPPER)_VERSION); \
+		if [ -d "$($(TARGET_UPPER)_ROOT)" ]; then \
+			CURRENT_HASH=$$(cd $($(TARGET_UPPER)_ROOT) && git rev-parse HEAD 2>/dev/null || echo "unknown"); \
 		else \
 			CURRENT_HASH="not-cloned"; \
 		fi; \
 		if [ "$$LAST_VER" = "$$CURRENT_VER" ] && [ "$$LAST_HASH" = "$$CURRENT_HASH" ] && [ -d "$(BUILD_ROOT)/$$COMPONENT-build" ]; then \
-			echo "$(PRE) ✓ $$COMPONENT is up to date (v$$CURRENT_VER), skipping build"; \
+			echo "$(LOG_PREFIX) ✓ $$COMPONENT is up to date (v$$CURRENT_VER), skipping build"; \
 			exit 0; \
 		else \
-			echo "$(PRE) ⚠️  $$COMPONENT needs rebuild"; \
-			[ "$$LAST_VER" != "$$CURRENT_VER" ] && echo "$(PRE)    Version: $$LAST_VER → $$CURRENT_VER"; \
-			[ "$$LAST_HASH" != "$$CURRENT_HASH" ] && echo "$(PRE)    Hash: $${LAST_HASH:0:8} → $${CURRENT_HASH:0:8}"; \
+			echo "$(LOG_PREFIX) ⚠️  $$COMPONENT needs rebuild"; \
+			[ "$$LAST_VER" != "$$CURRENT_VER" ] && echo "$(LOG_PREFIX)    Version: $$LAST_VER → $$CURRENT_VER"; \
+			[ "$$LAST_HASH" != "$$CURRENT_HASH" ] && echo "$(LOG_PREFIX)    Hash: $${LAST_HASH:0:8} → $${CURRENT_HASH:0:8}"; \
 			exit 1; \
 		fi; \
 	else \
-		echo "$(PRE) ℹ️  No state file or jq not found, building $$COMPONENT"; \
+		echo "$(LOG_PREFIX) ℹ️  No state file or jq not found, building $$COMPONENT"; \
 		exit 1; \
 	fi
 
 save_state_%:
-	@COMPONENT=$(LW); \
+	@COMPONENT=$(TARGET_LOWER); \
 	if command -v jq >/dev/null 2>&1; then \
 		mkdir -p $(BUILD_ROOT); \
-		CURRENT_VER=$($(UP)_VERSION); \
-		if [ -d "$($(UP)_ROOT)" ]; then \
-			CURRENT_HASH=$$(cd $($(UP)_ROOT) && git rev-parse HEAD 2>/dev/null || echo "unknown"); \
+		CURRENT_VER=$($(TARGET_UPPER)_VERSION); \
+		if [ -d "$($(TARGET_UPPER)_ROOT)" ]; then \
+			CURRENT_HASH=$$(cd $($(TARGET_UPPER)_ROOT) && git rev-parse HEAD 2>/dev/null || echo "unknown"); \
 		else \
 			CURRENT_HASH="not-cloned"; \
 		fi; \
@@ -267,7 +267,7 @@ save_state_%:
 			--arg time "$$TIMESTAMP" \
 			'.[\$$comp] = {version: \$$ver, hash: \$$hash, built: \$$time}' \
 			> $(STATE_FILE).tmp && mv $(STATE_FILE).tmp $(STATE_FILE); \
-		echo "$(PRE) 💾 Saved state for $$COMPONENT (v$$CURRENT_VER)"; \
+		echo "$(LOG_PREFIX) 💾 Saved state for $$COMPONENT (v$$CURRENT_VER)"; \
 	fi
 
 .EXPORT_ALL_VARIABLES:
