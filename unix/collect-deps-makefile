@@ -39,7 +39,7 @@ clean:
 	(cd $(PWD) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
 
 cleanpackages:
-	@if [ -d "$(NUGET_)" ]; then rm -rf "$(NUGET_)"; fi;
+	@if [ -d "$(NUGET_DIR)" ]; then rm -rf "$(NUGET_DIR)"; fi;
 
 initdirs:
 	rm -rvf $(OUTPUT)/*.*
@@ -66,7 +66,7 @@ copy-deps:
 #   3. copy to output
 	ls $(OUTPUT)/ | grep -P 'libgdal.so.(?:\d+)' | \
 			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib:$(HDF_BUILD)/lib xargs -I {} \
-			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOTDIR_)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)
+			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOT_DIR)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)
 #   4. remove system libs
 #   https://github.com/dotnet/core/blob/main/Documentation/self-contained-linux-apps.md
 	@$(foreach lib, $(LIBS_TO_REMOVE),  @if [ -a  $(OUTPUT)/$(lib) ]; then echo "Removing sys lib from output -> $(lib)" & rm  $(OUTPUT)/$(lib); fi;${\n})

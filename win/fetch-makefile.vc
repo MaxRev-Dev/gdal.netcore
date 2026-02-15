@@ -6,7 +6,7 @@
 !INCLUDE ../shared/GdalCore.opt
 
 fetch-gdal:
-	@echo $(PRE) Fetching GDAL sources...
+	@echo $(LOG_PREFIX) Fetching GDAL sources...
 !IF !EXISTS($(GDAL_ROOT))
     git clone $(GDAL_REPO) $(GDAL_ROOT)
 !ENDIF

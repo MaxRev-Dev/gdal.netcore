@@ -20,9 +20,9 @@ install_vcpkg:
 	@IF NOT EXIST "$(VCPKG_ROOT)\" git clone $(VCPKG_REPO) $(VCPKG_ROOT)
 
 checkout_ver:
-	@echo "$(PRE) Checking for remote changes..." 
+	@echo "$(LOG_PREFIX) Checking for remote changes..." 
 	@cd $(VCPKG_ROOT) && git fetch
-	@echo "$(PRE) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
+	@echo "$(LOG_PREFIX) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
 	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force 
 
 bootstrap: 
@@ -30,10 +30,10 @@ bootstrap:
 
 install_requirements: install_vcpkg checkout_ver bootstrap patch_vcpkg_triplets install_packages   
 
-VCPKG_WINDOWS_DEFAULT_TRIPLET = "$(VPCKG_CUSTOM_TRIPLETS)/x64-windows.cmake"
+VCPKG_WINDOWS_DEFAULT_TRIPLET = "$(VCPKG_CUSTOM_TRIPLETS)/x64-windows.cmake"
 
 patch_vcpkg_triplets:
-	@if not exist "$(VPCKG_CUSTOM_TRIPLETS)" md "$(VPCKG_CUSTOM_TRIPLETS)"
+	@if not exist "$(VCPKG_CUSTOM_TRIPLETS)" md "$(VCPKG_CUSTOM_TRIPLETS)"
 
 #   this is default x64-windows (dynamic) triplet
 	@echo set(VCPKG_TARGET_ARCHITECTURE x64) > $(VCPKG_WINDOWS_DEFAULT_TRIPLET)

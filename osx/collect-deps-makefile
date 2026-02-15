@@ -42,12 +42,12 @@ clean:
 	(cd $(PWD) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
 
 cleanpackages:
-	@if [ -d "$(NUGET_)" ]; then rm -rf "$(NUGET_)"; fi;
+	@if [ -d "$(NUGET_DIR)" ]; then rm -rf "$(NUGET_DIR)"; fi;
 
 initdirs:
 	rm -rvf $(OUTPUT)/*.*
 	mkdir -p $(OUTPUT)
-	mkdir -p $(NUGET_)
+	mkdir -p $(NUGET_DIR)
 
 collect-bindings:
 # copy generatated c# sources to project directory

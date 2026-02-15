@@ -47,12 +47,12 @@ generate-bundles:
 	cat $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)) | envsubst $${ONSUBST} > $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
 generate-bundles-unix: generate-bundles
-	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.arm64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
-	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.x64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
+	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.arm64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_DIR)
+	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.LinuxRuntime.Minimal.x64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_DIR)
 
 generate-bundles-osx: generate-bundles
-	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.arm64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
-	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.x64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_)
+	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.arm64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_DIR)
+	dotnet add $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL) package MaxRev.Gdal.MacosRuntime.Minimal.x64 --no-restore --version $(_PACKAGE_BUILD_NUMBER) --package-directory $(NUGET_DIR)
 
 generate-bundles-win:
 	@echo "Nothing to do"
