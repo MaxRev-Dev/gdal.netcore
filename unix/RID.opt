@@ -16,3 +16,7 @@ SHELL=/bin/bash
 
 SED=sed
 DEL_DIR=rm -rf
+
+# Platform-specific library variables
+LIB_PATH_VAR=LD_LIBRARY_PATH
+LIB_EXT=so

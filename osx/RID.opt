@@ -17,3 +17,7 @@ SHELL=/bin/bash
 SED=gsed
 DEL_DIR=rm -rf
 OSX_DEPLOYMENT_TARGET=11.0
+
+# Platform-specific library variables
+LIB_PATH_VAR=DYLD_FALLBACK_LIBRARY_PATH
+LIB_EXT=dylib
