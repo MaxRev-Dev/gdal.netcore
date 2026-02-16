@@ -1,5 +1,6 @@
 using MaxRev.Gdal.Core;
 using OSGeo.OSR;
+using System.IO;
 using Xunit;
 
 namespace GdalCore_XUnit
@@ -38,6 +39,126 @@ namespace GdalCore_XUnit
             var ey = 5331101.98;
             Assert.Equal(ex, px, 0);
             Assert.Equal(ey, py, 0);
+        }
+
+        [Fact]
+        public void TransformEPSG_4326_To_EPSG_3857_WebMercator()
+        {
+            Proj.Configure();
+
+            // Create WGS84 (EPSG:4326) source
+            var sourceSr = new SpatialReference(null);
+            sourceSr.ImportFromEPSG(4326);
+            sourceSr.SetAxisMappingStrategy(AxisMappingStrategy.OAMS_TRADITIONAL_GIS_ORDER);
+
+            // Create Web Mercator (EPSG:3857) target
+            var targetSr = new SpatialReference(null);
+            targetSr.ImportFromEPSG(3857);
+            targetSr.SetAxisMappingStrategy(AxisMappingStrategy.OAMS_TRADITIONAL_GIS_ORDER);
+
+            var transformation = new CoordinateTransformation(sourceSr, targetSr);
+
+            // Transform London coordinates (lon=-0.1278, lat=51.5074)
+            var projected = new double[3];
+            transformation.TransformPoint(projected, -0.1278, 51.5074, 0.0);
+            var px = projected[0];
+            var py = projected[1];
+
+            // Assert projected X is in range (-14300, -14200)
+            Assert.InRange(px, -14300, -14200);
+            // Assert projected Y is in range (6711000, 6712000)
+            Assert.InRange(py, 6711000, 6712000);
+        }
+
+        [Fact]
+        public void WGS84_RoundTrip_PreservesCoordinates()
+        {
+            Proj.Configure();
+
+            // Create WGS84 (EPSG:4326)
+            var wgs84 = new SpatialReference(null);
+            wgs84.ImportFromEPSG(4326);
+            wgs84.SetAxisMappingStrategy(AxisMappingStrategy.OAMS_TRADITIONAL_GIS_ORDER);
+
+            // Create Web Mercator (EPSG:3857)
+            var webMercator = new SpatialReference(null);
+            webMercator.ImportFromEPSG(3857);
+            webMercator.SetAxisMappingStrategy(AxisMappingStrategy.OAMS_TRADITIONAL_GIS_ORDER);
+
+            // Original San Francisco coordinates
+            var originalLon = -122.4194;
+            var originalLat = 37.7749;
+
+            // Transform to Web Mercator
+            var toWebMercator = new CoordinateTransformation(wgs84, webMercator);
+            var mercatorCoords = new double[3];
+            toWebMercator.TransformPoint(mercatorCoords, originalLon, originalLat, 0.0);
+
+            // Transform back to WGS84
+            var backToWgs84 = new CoordinateTransformation(webMercator, wgs84);
+            var roundTripped = new double[3];
+            backToWgs84.TransformPoint(roundTripped, mercatorCoords[0], mercatorCoords[1], 0.0);
+
+            // Assert round-tripped coordinates match originals to 6 decimal places
+            Assert.Equal(originalLon, roundTripped[0], 6);
+            Assert.Equal(originalLat, roundTripped[1], 6);
+        }
+
+        [Fact]
+        public void PROJ_Database_Exists_And_IsValid()
+        {
+            Proj.Configure();
+
+            // The test verifies proj.db exists and is functional by:
+            // 1. Attempting to import from EPSG (requires proj.db to be present and valid)
+            // 2. Verifying the import succeeds (OGRERR_NONE)
+            // 3. Verifying the spatial reference exports correctly to WKT
+
+            // Validate EPSG code lookup (verifies proj.db is functional)
+            var sr = new SpatialReference(null);
+            var result = sr.ImportFromEPSG(4326);
+            Assert.Equal(0, result); // OGRERR_NONE - import succeeded
+
+            // Export to WKT and verify it contains "WGS 84"
+            sr.ExportToWkt(out string wkt, null);
+            Assert.Contains("WGS 84", wkt);
+
+            // Test a second EPSG code to verify database integrity
+            var sr2 = new SpatialReference(null);
+            var result2 = sr2.ImportFromEPSG(3857);
+            Assert.Equal(0, result2); // OGRERR_NONE
+
+            sr2.ExportToWkt(out string wkt2, null);
+            Assert.Contains("WGS 84", wkt2); // Web Mercator is based on WGS 84
+        }
+
+        [Fact]
+        public void TransformEPSG_4326_To_EPSG_32633_UTM()
+        {
+            Proj.Configure();
+
+            // Create WGS84 (EPSG:4326) source
+            var sourceSr = new SpatialReference(null);
+            sourceSr.ImportFromEPSG(4326);
+            sourceSr.SetAxisMappingStrategy(AxisMappingStrategy.OAMS_TRADITIONAL_GIS_ORDER);
+
+            // Create UTM Zone 33N (EPSG:32633) target
+            var targetSr = new SpatialReference(null);
+            targetSr.ImportFromEPSG(32633);
+            targetSr.SetAxisMappingStrategy(AxisMappingStrategy.OAMS_TRADITIONAL_GIS_ORDER);
+
+            var transformation = new CoordinateTransformation(sourceSr, targetSr);
+
+            // Transform coordinates (lon=15.0, lat=45.0) - near central meridian of zone 33
+            var projected = new double[3];
+            transformation.TransformPoint(projected, 15.0, 45.0, 0.0);
+            var px = projected[0];
+            var py = projected[1];
+
+            // Assert projected X is in range (500000, 501000) - near central meridian
+            Assert.InRange(px, 500000, 501000);
+            // Assert projected Y is in range (4982000, 4983000)
+            Assert.InRange(py, 4982000, 4983000);
         }
     }
 }
