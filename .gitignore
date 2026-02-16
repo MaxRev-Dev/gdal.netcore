@@ -29,6 +29,8 @@ utf8-data/**
 !compile/*.*
 package-build/
 shared/bundle/targets/
+!shared/msbuild/**/*.cs
+
 # Created by https://www.toptal.com/developers/gitignore/api/macos,linux,visualstudio,visualstudiocode,windows
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,linux,visualstudio,visualstudiocode,windows
 

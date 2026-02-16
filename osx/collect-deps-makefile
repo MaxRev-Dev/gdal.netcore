@@ -9,6 +9,9 @@ BUILD_BASE_LIB=$(GDAL_BUILD)/lib
 SHELL=/bin/bash
 BINDINGS_SOURCE=$(BUILD_ROOT)/gdal-cmake-temp/swig/csharp
 
+# codesining requires paid certificate, so we will use ad-hoc signing to avoid issues with macOS Gatekeeper
+CODESIGN_IDENTITY?=-
+
 # output helper
 define \n
 
@@ -18,6 +21,7 @@ endef
 all: build
 
 OUTPUT = $(PACKAGE_BUILD_ROOT)/runtimes/$(RID)/native
+TOOLS_OUTPUT = $(PACKAGE_BUILD_ROOT)/tools/$(RID)
 BUILD_BASE = $(BASE)/bindings
 WRAP_TARGETS = $(wildcard $(BINDINGS_SOURCE)/lib*.dylib)
 
@@ -34,7 +38,7 @@ build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 	$(MAKE) -f gdal-makefile formats-output
 
-linkall: initdirs copy-projdb collect-bindings copy-deps
+linkall: initdirs copy-projdb collect-bindings copy-deps copy-tools
 	@echo "Libraries patched successfully"
 
 clean:
@@ -48,6 +52,8 @@ initdirs:
 	rm -rvf $(OUTPUT)/*.*
 	mkdir -p $(OUTPUT)
 	mkdir -p $(NUGET_DIR)
+	rm -rvf $(TOOLS_OUTPUT)/*
+	mkdir -p $(TOOLS_OUTPUT)
 
 collect-bindings:
 # copy generatated c# sources to project directory
@@ -65,14 +71,47 @@ copy-deps:
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
 #	3. copy to output
 	cp -rfL $(BINDINGS_SOURCE)/*.dylib $(OUTPUT)/
+	@{ \
+		gdal_lib=$$(ls "$(OUTPUT)"/libgdal.*.dylib 2>/dev/null | head -n 1); \
+		if [ -n "$$gdal_lib" ]; then \
+			gdal_base=$$(basename "$$gdal_lib"); \
+			gdal_major=$$(echo "$$gdal_base" | sed -E 's/^libgdal\.([0-9]+).*/\1/'); \
+			if [ -n "$$gdal_major" ]; then \
+				ln -sf "$$gdal_base" "$(OUTPUT)/libgdal.$$gdal_major.dylib"; \
+			fi; \
+		fi; \
+	};
 
 	dylibbundler -b  \
 		$(addprefix  -x , $(addprefix $(OUTPUT)/,$(notdir $(WRAP_TARGETS)))) \
 		-s ${VCPKG_INSTALLED_DYNAMIC}/lib \
-		-s $(GDAL_BUILD)/lib \
+		-s $(BUILD_BASE_LIB) \
 		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
+		-of \
 		-cd -d $(OUTPUT)/ -p "@loader_path/"
+	@echo "Removing duplicate RPATH entries..."
+	@for lib in $(OUTPUT)/*.dylib; do \
+		if [ -f "$$lib" ]; then \
+			rpaths=$$(otool -l "$$lib" | grep -A 2 "cmd LC_RPATH" | grep "path " | awk '{print $$2}' | sort | uniq -d); \
+			for rpath in $$rpaths; do \
+				echo "Removing duplicate RPATH $$rpath from $$(basename $$lib)"; \
+				install_name_tool -delete_rpath "$$rpath" "$$lib" 2>/dev/null || true; \
+			done; \
+			codesign --remove-signature "$$lib" 2>/dev/null || true; \
+			codesign --force --sign "$(CODESIGN_IDENTITY)" "$$lib" 2>/dev/null || true; \
+		fi; \
+	done
+	find $(BUILD_BASE_LIB) -maxdepth 1 -type l -name "libgdal.*.dylib" -exec cp -P {} $(OUTPUT)/ \;
+
+copy-tools:
+	cp -rfL $(GDAL_BUILD)/bin/* $(TOOLS_OUTPUT)/
+	@for tool in $(TOOLS_OUTPUT)/*; do \
+		if [ -f "$$tool" ]; then \
+			codesign --remove-signature "$$tool" 2>/dev/null || true; \
+			codesign --force --sign "$(CODESIGN_IDENTITY)" "$$tool" 2>/dev/null || true; \
+		fi; \
+	done
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)

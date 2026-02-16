@@ -11,6 +11,8 @@ CMD_TYPE=dotnet run
 endif
 
 MISSING_PACKAGES=MaxRev.Gdal.LinuxRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal MaxRev.Gdal.Universal
+CLI_TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.CLI
+CLI_RID=osx-$(BUILD_ARCH)
 
 any: test
 
@@ -38,5 +40,22 @@ test-only: test-restore
 	cd $(TEST_TARGET) && \
 		$(CMD_TYPE) --no-restore $(TEST_DIR)/*.csproj
 
-test: test-restore test-update test-only
+test-cli: 
+	rm -rf $(CLI_TEST_DIR)/bin $(CLI_TEST_DIR)/obj
+	cd $(CLI_TEST_DIR) && \
+		dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_) --no-restore
+	cd $(CLI_TEST_DIR) && \
+		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_) --no-restore
+	cd $(CLI_TEST_DIR) && \
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_) --no-restore
+	cd $(CLI_TEST_DIR) && \
+		dotnet restore --ignore-failed-sources -s $(NUGET_)
+	cd $(CLI_TEST_DIR) && \
+		dotnet build -c Release --no-restore
+	cd $(CLI_TEST_DIR) && \
+		dotnet run -c Release --no-build
+		
+test-cli-run: test-cli
+
+test: test-restore test-update test-only test-cli
 	@exit 0

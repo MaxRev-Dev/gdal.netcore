@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <NoBuild>true</NoBuild>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <Copyright>MaxRev © 2026</Copyright>
+    <Authors>MaxRev</Authors>
+    <PackageId>${_PACKAGE_NAME_CLI}.${_RID_TARGET}</PackageId>
+    <AssemblyName>${_PACKAGE_NAME_CLI}.${_RID_TARGET}</AssemblyName>
+    <PackageTags>gdal;cli;tools</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/MaxRev-Dev/gdal.netcore</RepositoryUrl>
+    <Version>${_PACKAGE_BUILD_NUMBER}</Version>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <RestoreSources>$(RestoreSources);${_ROOT_RELATIVE_PATH}/nuget</RestoreSources>
+    <Description>GDAL (${_GDAL_VERSION}) CLI tools for ${_RID_TARGET}.
+Includes GDAL utilities (gdalinfo, ogr2ogr, gdal_translate, etc).
+    </Description>
+    <PackageReleaseNotes>
+- GDAL ${_GDAL_VERSION}
+- PROJ ${_PROJ_VERSION}
+- GEOS ${_GEOS_VERSION}
+    </PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="${_ROOT_RELATIVE_PATH}/README.md" Pack="true" PackagePath="/" />
+    <None Include="tools/${_RID_TARGET}/**">
+      <PackagePath>tools/${_RID_TARGET}/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="./${_PACKAGE_NAME_CLI}.${_RID_TARGET}.targets">
+      <PackagePath>buildTransitive/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="${_ROOT_RELATIVE_PATH}/shared/msbuild/MaxRev.Gdal.CLI.PathInitializer.cs">
+      <PackagePath>buildTransitive/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+    <None Include="${_ROOT_RELATIVE_PATH}/shared/msbuild/MaxRev.Gdal.CLI.Helpers.cs">
+      <PackagePath>buildTransitive/</PackagePath>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="${_PACKAGE_NAME_RUNTIME}" Version="${_PACKAGE_BUILD_NUMBER}" />
+  </ItemGroup>
+
+</Project>

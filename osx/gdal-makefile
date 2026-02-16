@@ -30,6 +30,7 @@ force: $(addsuffix -force, $(TARGETS))
 configure_hdf:
 	@echo "$(TARGET_PREFIX) HDF Configuring..."
 
+	@if [[ -d "$(BUILD_ROOT)/hdf-cmake-temp" ]]; then rm "$(BUILD_ROOT)/hdf-cmake-temp/CMakeCache.txt"; fi;
 	@if [[ -d "$(BUILD_ROOT)/hdf-build" ]]; then rm -r "$(BUILD_ROOT)/hdf-build"; fi;
 
 	-mkdir -p $(HDF_CMAKE_TMP)
@@ -37,6 +38,8 @@ configure_hdf:
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_FLAGS="-fPIC -w" \
+		-DZLIB_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include \
+		-DZLIB_LIBRARY_RELEASE=$(VCPKG_INSTALLED_DYNAMIC)/lib/libz.dylib \
 		-DCMAKE_PREFIX_PATH=$(VCPKG_INSTALLED_DYNAMIC) \
 		-DCMAKE_OSX_DEPLOYMENT_TARGET=$(OSX_DEPLOYMENT_TARGET) || exit 1
 
@@ -47,6 +50,7 @@ configure_gdal:
 	@cd $(GDAL_ROOT) && \
 		git apply "$(ROOT_DIR)/shared/patch/CMakeLists.txt.patch" || exit 1
 
+	@if [[ -d "$(BUILD_ROOT)/gdal-cmake-temp" ]]; then rm "$(BUILD_ROOT)/gdal-cmake-temp/CMakeCache.txt"; fi;
 	@if [[ -d "$(BUILD_ROOT)/gdal-build" ]]; then rm -r "$(BUILD_ROOT)/gdal-build"; fi;
 	@if [[ -d "$(GDAL_ROOT)/autotest" ]]; then rm -r "$(GDAL_ROOT)/autotest"; fi;
 
@@ -76,7 +80,7 @@ configure_gdal:
 		-DHDF4_df_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libhdf.dylib \
 		-DHDF4_mfhdf_LIBRARY_RELEASE=$(BUILD_ROOT)/hdf-build/lib/libmfhdf.dylib \
 		-DHDF4_COMPONENTS="df;mfhdf;szip" \
-		-DOpenEXR_HALF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libImath-3_1.dylib \
+		-DOpenEXR_HALF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libImath-3_2.dylib \
 		-DPROJ_INCLUDE_DIR=$(PROJ_BUILD)/include \
 		-DPROJ_LIBRARY_RELEASE=$(PROJ_BUILD)/lib/libproj.dylib \
 		-DGDAL_FIND_PACKAGE_PROJ_MODE=MODULE \
@@ -89,6 +93,8 @@ configure_gdal:
 
 configure_proj:
 	@echo "$(TARGET_PREFIX) PROJ Configuring..."
+
+	@if [[ -d "$(BUILD_ROOT)/proj-cmake-temp" ]]; then rm "$(BUILD_ROOT)/proj-cmake-temp/CMakeCache.txt"; fi;
 	@if [[ -d "$(BUILD_ROOT)/proj-build" ]]; then rm -r "$(BUILD_ROOT)/proj-build"; fi;
 	@if [[ -d "$(PROJ_ROOT)/test" ]]; then rm -r "$(PROJ_ROOT)/test"; fi;
 	-mkdir -p $(PROJ_CMAKE_TMP)

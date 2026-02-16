@@ -3,8 +3,8 @@
   <PropertyGroup>
     <Platform>${_BUILD_ARCH}</Platform>
     <DebugType>portable</DebugType>
-    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0;net461</TargetFrameworks>
-    <Copyright>MaxRev © 2025</Copyright>
+    <TargetFrameworks>netstandard2.0;netstandard2.1;net6.0;net7.0;net8.0;net9.0;net10.0;net461</TargetFrameworks>
+    <Copyright>MaxRev © 2026</Copyright>
     <Authors>MaxRev</Authors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PackageId>MaxRev.Gdal.MacosRuntime.Minimal.${_BUILD_ARCH}</PackageId>
@@ -17,7 +17,7 @@
     <Version>${_PACKAGE_BUILD_NUMBER}</Version>
     <Description>GDAL (${_GDAL_VERSION}) minimal libraries package.
 Drivers included PROJ (${_PROJ_VERSION}), GEOS (${_GEOS_VERSION}), SQLITE3, CURL, JPEG, PNG, HDF4, HDF5, and others.
-Targets osx-${_BUILD_ARCH} runtime. Target Frameworks: netstandard[2.1|2.0], netframework 4.6.1+, net6.0, net7.0, net8.0, net9.0
+Targets osx-${_BUILD_ARCH} runtime. Target Frameworks: netstandard[2.1|2.0], netframework 4.6.1+, net6.0, net7.0, net8.0, net9.0, net10.0
     </Description>
     <PackageReleaseNotes>
 - GDAL ${_GDAL_VERSION}

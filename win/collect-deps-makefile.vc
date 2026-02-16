@@ -7,6 +7,7 @@
 
 OUTPUT=$(abspath $(PACKAGE_BUILD_ROOT)/runtimes/win-x64/native)
 OUTPUT=$(abspath $(OUTPUT))
+TOOLS_OUTPUT=$(abspath $(PACKAGE_BUILD_ROOT)/tools/$(RID))
 BUILD_ROOT=$(abspath $(BUILD_ROOT))
 BINDINGS_ROOT=$(abspath $(GDAL_CMAKE_TMP)/swig/csharp)
 BINDINGS_OUT=$(abspath $(BASE)/bindings)
@@ -19,6 +20,7 @@ get-output:
 
 clean_output:
 	-$(DEL_DIR) "$(OUTPUT)\"
+	-$(DEL_DIR) "$(TOOLS_OUTPUT)\"
 
 copyprojdb:
 	@if not exist "$(LIBSHARED)" mkdir "$(LIBSHARED)"
@@ -32,11 +34,17 @@ collect_bindings:
 	$(COPY_TOP_DIR) "$(BINDINGS_ROOT)\osr\*.cs" "$(BINDINGS_OUT)\osr\"
 	$(COPY_TOP_DIR) "$(BINDINGS_ROOT)\ogr\*.cs" "$(BINDINGS_OUT)\ogr\"
 
-collect: collect_bindings copyprojdb
+collect: collect_bindings copyprojdb copytools
 	@if not exist "$(OUTPUT)" mkdir "$(OUTPUT)"
+	@if not exist "$(TOOLS_OUTPUT)" mkdir "$(TOOLS_OUTPUT)"
 # 	remove SDK dlls that are not needed
 	$(DEL_FILE) "$(OUTPUT)\gdal*.dll"
 	$(COPY) "$(abspath $(BUILD_ROOT)\gdal-build\share\csharp)\*_wrap.dll" "$(OUTPUT)\"
 	$(COPY_I) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).CRT\*.dll" "$(OUTPUT)\"
 	
 	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" )
+
+copytools:
+	@if exist "$(abspath $(BUILD_ROOT)\gdal-build\bin)\*.exe" $(COPY_I) "$(abspath $(BUILD_ROOT)\gdal-build\bin)\*.exe" "$(TOOLS_OUTPUT)\" 
+	@if exist "$(abspath $(BUILD_ROOT)\gdal-build\bin)\*.bat" $(COPY_I) "$(abspath $(BUILD_ROOT)\gdal-build\bin)\*.bat" "$(TOOLS_OUTPUT)\" 
+	@if exist "$(abspath $(BUILD_ROOT)\gdal-build\bin)\*.cmd" $(COPY_I) "$(abspath $(BUILD_ROOT)\gdal-build\bin)\*.cmd" "$(TOOLS_OUTPUT)\" 

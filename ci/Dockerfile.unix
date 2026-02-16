@@ -9,26 +9,49 @@ RUN apt-get update && apt-get install -y \
     curl zip unzip tar git wget \
     pkg-config \
     ninja-build \
-    autoconf libtool autoconf-archive libudev-dev \
+    libtool autoconf-archive libudev-dev \
     python3 python3-pip \
-    linux-libc-dev \
     libhdf4-dev libnetcdf-dev linux-libc-dev \
     swig patchelf gettext bison flex \
 # required for gdal
-    default-libmysqlclient-dev
+    default-libmysqlclient-dev && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean
+
+# Install GCC 11 from Debian bookworm 
+RUN echo 'deb http://deb.debian.org/debian bookworm main' > /etc/apt/sources.list.d/bookworm.list && \
+    echo 'Package: *\nPin: release a=bookworm\nPin-Priority: 50\n\nPackage: gcc-11 g++-11 gcc-11-base libgcc-s1\nPin: release a=bookworm\nPin-Priority: 500' > /etc/apt/preferences.d/bookworm && \
+    apt-get update && \
+    apt-get install -y gcc-11 g++-11 && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100 && \
+    rm /etc/apt/sources.list.d/bookworm.list /etc/apt/preferences.d/bookworm && \
+    apt-get update && \
+    rm -rf /var/lib/apt/lists/* && apt-get clean
+
+# Install newer autoconf (2.71) from source since Debian 11 has older version
+RUN cd /tmp && \
+    wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz && \
+    tar -xzf autoconf-2.71.tar.gz && \
+    cd autoconf-2.71 && \
+    ./configure --prefix=/usr/local && \
+    make && make install && \
+    cd / && rm -rf /tmp/autoconf-2.71* && \
+    hash -r
 
 # install cmake latest
 RUN pip install cmake --upgrade
 
-# load cache from previous build
-COPY ci/cache*/dotnet* /usr/share/dotnet/ 
-
-ARG DOTNET_VERSION=9.0
+ARG DOTNET_VERSION
 ARG DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
 
-ENV PATH="${PATH}:/usr/share/dotnet"
-# install dotnet
-RUN /usr/share/dotnet/dotnet --info || curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin -Channel $DOTNET_VERSION -InstallDir /usr/share/dotnet
+ENV PATH="/usr/local/bin:/usr/local/gcc-11/bin:${PATH}:/usr/share/dotnet"
+# install dotnet with cache mount
+# Strip .x suffix from DOTNET_VERSION for the install script (e.g., 10.0.x -> 10.0)
+RUN --mount=type=cache,target=/tmp/dotnet-cache \
+    if [ ! -f /usr/share/dotnet/dotnet ]; then \
+        INSTALL_VERSION=$(echo $DOTNET_VERSION | sed 's/\.x$//'); \
+        curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel $INSTALL_VERSION --install-dir /usr/share/dotnet; \
+    fi
 RUN ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet
 
 ARG TARGETPLATFORM
@@ -55,7 +78,8 @@ RUN if [ $BUILDPLATFORM = "linux/arm64" ]; \
 
 RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
 
-FROM base AS gdalbuild
+# Stage: vcpkg installation with persistent cache
+FROM base AS vcpkg-stage
 WORKDIR /build/unix
 ARG VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
 RUN mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
@@ -64,47 +88,86 @@ COPY --from=base /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
 COPY shared/GdalCore.opt /build/shared/
 COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
-COPY unix/gdal-makefile /build/unix/
-# load cache from previous build
-COPY ci/cache*/vcpkg* /build/ci/cache/vcpkg-archives/
-COPY ci/cache*/build-unix* /build/build-unix/
 
-RUN ls -la /build/ci/cache/vcpkg-archives/
-
-RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f gdal-makefile $(cat /tmp/gdal-netcore-arch) init_gdal init_proj
-RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+# Install vcpkg with full repository cache
+RUN  --mount=type=cache,target=/build/ci/cache/vcpkg-archives \
+    set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) install_vcpkg
-COPY shared /build/shared
-COPY unix /build/unix
-RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch)
-RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+
+# Stage: vcpkg packages with persistent cache
+FROM vcpkg-stage AS vcpkg-packages
+COPY shared/patch /build/shared/patch
+COPY unix/vcpkg-makefile /build/unix/vcpkg-makefile
+COPY ci/vcpkg-error-handler.sh /build/ci/vcpkg-error-handler.sh
+RUN chmod +x /build/ci/vcpkg-error-handler.sh
+
+# Install vcpkg packages with cache
+RUN --mount=type=cache,target=/build/ci/cache/vcpkg-archives \
+    --mount=type=cache,target=/build/build-unix/vcpkg/buildtrees \
+    --mount=type=cache,target=/build/build-unix/vcpkg/downloads \
+    set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) || { /build/ci/vcpkg-error-handler.sh /build/build-unix /build/vcpkg-error-artifacts; exit 1; }
+
+# Stage: Build dependencies (HDF, PROJ)
+FROM vcpkg-packages AS deps-build
+COPY unix/gdal-makefile /build/unix/
+
+# Initialize sources
+RUN --mount=type=cache,target=/build/build-unix/hdf-source \
+    --mount=type=cache,target=/build/build-unix/gdal-source \
+    --mount=type=cache,target=/build/build-unix/proj-source \
+    set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile $(cat /tmp/gdal-netcore-arch) init_hdf init_gdal init_proj
+
+# Build HDF with source and cmake cache
+RUN --mount=type=cache,target=/build/build-unix/hdf-source \
+    --mount=type=cache,target=/build/build-unix/hdf-cmake-temp \
+    set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile hdf $(cat /tmp/gdal-netcore-arch)
+
+# Build PROJ with source and cmake cache
+RUN --mount=type=cache,target=/build/build-unix/proj-source \
+    --mount=type=cache,target=/build/build-unix/proj-cmake-temp \
+    set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f gdal-makefile proj $(cat /tmp/gdal-netcore-arch)
-RUN set -a && . /tmp/gdal-netcore-env && set +a; \
-    make -f gdal-makefile gdal DOTNET_VERSION=$DOTNET_VERSION $(cat /tmp/gdal-netcore-arch) 
 
+# Stage: GDAL build
+FROM deps-build AS gdalbuild
 COPY shared /build/shared
 COPY unix /build/unix
 
+# Build GDAL with source and cmake cache
+# The gdal-makefile will copy bindings from gdal-cmake-temp to gdal-build/swig/csharp
+RUN --mount=type=cache,target=/build/build-unix/gdal-source \
+    --mount=type=cache,target=/build/build-unix/gdal-cmake-temp \
+    set -a && . /tmp/gdal-netcore-env && set +a; \
+    make -f gdal-makefile gdal DOTNET_VERSION=$DOTNET_VERSION $(cat /tmp/gdal-netcore-arch)
+
+# Stage: Collect dependencies and package
+FROM gdalbuild AS package-stage
 RUN set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f collect-deps-makefile $(cat /tmp/gdal-netcore-arch)
 
+# Create vcpkg-error-artifacts directory to ensure COPY always succeeds
+RUN mkdir -p /build/vcpkg-error-artifacts
+
 ARG PRERELEASE
 ARG BUILD_NUMBER_TAIL
-COPY . /build
-RUN rm -rf /build/nuget && mkdir -p /build/nuget
-RUN set -a && . /tmp/gdal-netcore-env && set +a; \
+# Copy only what's needed for packaging - ordered by change frequency (least to most)
+COPY compile /build/compile
+COPY nuget /build/nuget
+COPY README.md /build/README.md
+RUN --mount=type=cache,target=/build/build-unix/gdal-cmake-temp \
+    set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f publish-makefile pack $(cat /tmp/gdal-netcore-arch) BUILD_NUMBER_TAIL=$BUILD_NUMBER_TAIL PRERELEASE=$PRERELEASE
 
 FROM alpine AS final
-COPY --from=base /usr/share/dotnet /usr/share/dotnet
-# copy cache from build
-COPY --from=gdalbuild /build/build-unix /build/build-unix
-COPY --from=gdalbuild /build/shared /build/shared
-COPY --from=gdalbuild /build/ci/cache/vcpkg-archives/ /build/ci/cache/vcpkg-archives/
-COPY --from=gdalbuild /build/package-build/ /build/package-build/
-COPY --from=gdalbuild /build/tests/gdal-formats /build/tests/gdal-formats
+# copy outputs from package stage
+COPY --from=package-stage /build/shared /build/shared
+COPY --from=package-stage /build/package-build/ /build/package-build/
+COPY --from=package-stage /build/tests/gdal-formats /build/tests/gdal-formats
 # copy nuget packages from build
-COPY --from=gdalbuild /build/nuget /build/nuget
+COPY --from=package-stage /build/nuget /build/nuget
+# copy error artifacts if they exist
+COPY --from=package-stage /build/vcpkg-error-artifacts /build/vcpkg-error-artifacts
 ENTRYPOINT ["bash"]

@@ -1,5 +1,5 @@
 # Runs tests from GDAL.NETCORE on Linux
-ARG DOTNET_VERSION=9.0
+ARG DOTNET_VERSION=10.0
 FROM mcr.microsoft.com/dotnet/sdk:$DOTNET_VERSION as base
 RUN apt-get update && apt-get install -y \
     build-essential
@@ -26,6 +26,8 @@ RUN if [ $BUILDPLATFORM = "linux/arm64" ]; \
     fi
 
 RUN echo "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1" >> /tmp/gdal-netcore-env;
+RUN echo "DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION=1" >> /tmp/gdal-netcore-env;
+RUN echo "TERM=xterm" >> /tmp/gdal-netcore-env;
 
 WORKDIR /build/unix
 

@@ -7,28 +7,25 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
 
 ## Packages (NuGet)
 
+#### C# Bindings and runtime libraries:
 [MaxRev.Gdal.Universal](https://www.nuget.org/packages/MaxRev.Gdal.Universal/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.Universal) 
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.Universal) <br>
-
 [MaxRev.Gdal.Core](https://www.nuget.org/packages/MaxRev.Gdal.Core/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.Core) 
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.Core) <br>
-
 [MaxRev.Gdal.WindowsRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.WindowsRuntime.Minimal/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.WindowsRuntime.Minimal)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.WindowsRuntime.Minimal) <br>
-
 [MaxRev.Gdal.LinuxRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal/)
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal) <br>
--  [MaxRev.Gdal.LinuxRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.x64/)
+- [MaxRev.Gdal.LinuxRuntime.Minimal.x64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.x64/)
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal.x64)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal.x64) <br>
 - [MaxRev.Gdal.LinuxRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.LinuxRuntime.Minimal.arm64/) 
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.LinuxRuntime.Minimal.arm64)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.LinuxRuntime.Minimal.arm64) <br>
-
 
 [MaxRev.Gdal.MacosRuntime.Minimal](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal/)
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.MacosRuntime.Minimal)
@@ -39,6 +36,24 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
 - [MaxRev.Gdal.MacosRuntime.Minimal.arm64](https://www.nuget.org/packages/MaxRev.Gdal.MacosRuntime.Minimal.arm64/)
 ![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.MacosRuntime.Minimal.arm64)
 ![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.MacosRuntime.Minimal.arm64)
+
+**CLI Tools** - GDAL command-line utilities (gdalinfo, ogr2ogr, gdal_translate, etc.)
+
+[MaxRev.Gdal.CLI.win-x64](https://www.nuget.org/packages/MaxRev.Gdal.CLI.win-x64/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.CLI.win-x64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.CLI.win-x64) <br>
+[MaxRev.Gdal.CLI.linux-x64](https://www.nuget.org/packages/MaxRev.Gdal.CLI.linux-x64/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.CLI.linux-x64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.CLI.linux-x64) <br>
+[MaxRev.Gdal.CLI.linux-arm64](https://www.nuget.org/packages/MaxRev.Gdal.CLI.linux-arm64/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.CLI.linux-arm64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.CLI.linux-arm64) <br>
+[MaxRev.Gdal.CLI.osx-x64](https://www.nuget.org/packages/MaxRev.Gdal.CLI.osx-x64/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.CLI.osx-x64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.CLI.osx-x64) <br>
+[MaxRev.Gdal.CLI.osx-arm64](https://www.nuget.org/packages/MaxRev.Gdal.CLI.osx-arm64/)
+![NuGet Version](https://img.shields.io/nuget/v/MaxRev.Gdal.CLI.osx-arm64)
+![NuGet Downloads](https://img.shields.io/nuget/dt/MaxRev.Gdal.CLI.osx-arm64)
 
 ## Table Of Contents
 
@@ -55,6 +70,7 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
     + [Universal package](#universal-package)
     + [Separate core and runtime packages](#separate-core-and-runtime-packages)
     + [Initialize libraries in runtime](#initialize-libraries-in-runtime)
+    + [CLI Tools packages](#cli-tools-packages)
   * [Supported runtimes](#supported-runtimes)
   * [**Using GDAL functions**](#using-gdal-functions)
   * [**Development**](#development)
@@ -139,6 +155,61 @@ using MaxRev.Gdal.Core;
 GdalBase.ConfigureAll();
 ```
 4. Profit! Use it in ordinary flow. See the section below for more info.
+
+### CLI Tools packages
+
+The CLI packages provide GDAL command-line utilities (`gdalinfo`, `ogr2ogr`, `gdal_translate`, etc.) that can be invoked from your .NET application. Each CLI package automatically references the corresponding runtime package. You don't have to install the runtime package separately if you are using the CLI package - it includes a package reference to the runtime nugets.
+
+1. Install the CLI package for your target platform along with the runtime:
+```shell
+# Windows
+dotnet add package MaxRev.Gdal.CLI.win-x64
+
+# Linux
+dotnet add package MaxRev.Gdal.CLI.linux-x64
+dotnet add package MaxRev.Gdal.CLI.linux-arm64
+
+# macOS
+dotnet add package MaxRev.Gdal.CLI.osx-x64
+dotnet add package MaxRev.Gdal.CLI.osx-arm64
+```
+
+2. Use the `GdalCli` helper class (automatically included via the package):
+```csharp
+using MaxRev.Gdal.CLI;
+
+// GdalCli.Run calls EnsureEnvironment() automatically on module load.
+// OPTIONAL - You can also call it explicitly if needed:
+// GdalCli.EnsureEnvironment();
+
+// Run a GDAL tool and capture output
+var exitCode = GdalCli.Run("gdalinfo", new[] { "--version" },
+    stdout: Console.Write,
+    stderr: Console.Error.Write);
+
+// Run with file arguments
+var result = GdalCli.Run("ogr2ogr",
+    new[] { "-f", "GeoJSON", "output.geojson", "input.shp" });
+
+// Get the path to a GDAL tool
+var toolPath = GdalCli.GetToolPath("gdalinfo");
+```
+
+See [tests/MaxRev.Gdal.Core.Tests.CLI](tests/MaxRev.Gdal.Core.Tests.CLI/) for more examples.
+
+#### How it works
+
+The CLI package includes two source files (`GdalCli` helper and `PathInitializer`) that are compiled directly into your project via `buildTransitive` targets. There is no extra assembly dependency - these become part of your application.
+
+On startup, a `[ModuleInitializer]` automatically configures the process environment so the native GDAL tools can locate their shared libraries:
+- **Windows**: prepends the native runtime directory to `PATH`
+- **Linux**: prepends to `LD_LIBRARY_PATH`
+- **macOS**: prepends to `DYLD_LIBRARY_PATH`
+- **All platforms**: sets `GDAL_DATA` and `PROJ_LIB` to the bundled data directories
+
+When you call `GdalCli.Run(...)`, it spawns the tool as a child process which inherits these environment variables. The initialization is idempotent - `GdalCli.EnsureEnvironment()` can be called explicitly but will only run once.
+
+You can disable the automatic source inclusion by setting `MaxRevGdalCliEnablePathInitializer` to `false` in your project file if you want to manage environment setup yourself.
 
 ## Supported runtimes
 - Windows x64 (.NET Framework 4.6.1+, .NET Standard 2.0+, .NET 6/7/8+)
@@ -256,4 +327,8 @@ Enjoy!
 
 ## Acknowledgements
 
-As the maintainer of this repository, I want to express my heartfelt thanks to [Verge Agriculture Inc.](https://vergeag.com/). They generously provided the necessary resources that made compiling the **macOS** bindings and the latest versions of GDAL possible.
+As the maintainer of this repository, I would like to express my heartfelt thanks to everyone who has supported the development, especially:
+
+[<img height="50" alt="Verge Agriculture Inc." src="https://github.com/user-attachments/assets/c5fe571e-b920-48c5-af31-840b9cc48c4a" />](https://vergeag.com/)
+&nbsp;&nbsp;&nbsp;
+[<img height="50" alt="StatMap Ltd" src="https://github.com/user-attachments/assets/85701812-9f7b-46f7-849b-11d1edcc2bf8" />](https://www.evo.statmap.co.uk/)

@@ -4,6 +4,7 @@ include ../shared/GdalCore.opt
 TARGETS=$(wildcard $(NUGET_DIR)/MaxRev.Gdal.*Runtime.Minimal*.nupkg)
 
 TARGETS+=$(wildcard $(NUGET_DIR)/MaxRev.Gdal.Universal*.nupkg)
+TARGETS+=$(wildcard $(NUGET_DIR)/MaxRev.Gdal.CLI.*.nupkg)
 
 ifneq ($(INCLUDE_CORE),)
 TARGETS+=$(wildcard $(NUGET_DIR)/MaxRev.Gdal.Core.*.nupkg)

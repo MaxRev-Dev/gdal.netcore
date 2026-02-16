@@ -226,4 +226,4 @@ Combining these abbreviations, you get:
 | XYZ             | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | ZMap            | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | Zarr            | rw+uvs         | rw+uvs          | rw+uvs         | ✗              | ✗               | ✗              |
-| netCDF          | rw+us          | rw+uvs          | rw+us          | rw+us          | rw+uvs          | rw+us          |
+| netCDF          | rw+us          | rw+us           | rw+us          | rw+us          | rw+us           | rw+us          |

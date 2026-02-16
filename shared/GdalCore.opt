@@ -9,14 +9,14 @@ BUILD_NUMBER_TAIL=100
 ### build (drivers) root
 BUILD_ROOT=$(ROOT_DIR)/build-$(BASE_RID)
 
-# Nov 8, 2025
-GDAL_VERSION=3.12.0
+# Dec 18, 2025
+GDAL_VERSION=3.12.2
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 GDAL_REPO=https://github.com/OSGeo/gdal.git
 GDAL_COMMIT_VER=v$(GDAL_VERSION)
 
-# Sep 15, 2025
-PROJ_VERSION=9.7.0
+# Dec 1, 2025
+PROJ_VERSION=9.7.1
 PROJ_ROOT=$(BUILD_ROOT)/proj-source
 PROJ_REPO=https://github.com/OSGeo/PROJ.git
 PROJ_COMMIT_VER=$(PROJ_VERSION)
@@ -70,8 +70,8 @@ LIBSHARED=$(PACKAGE_BUILD_ROOT)/$(LIB_SHARED_NAME)/$(RID)/$(LIB_SHARED_NAME)
 ##### GDAL source extended location
 GDAL_ROOT=$(BUILD_ROOT)/gdal-source
 ##### Dotnet version for GDAL
-DOTNET_VERSION=9.0
-GDAL_CSHARP_VERSION=net9.0
+DOTNET_VERSION=10.0
+GDAL_CSHARP_VERSION=net10.0
 
 ##### SWIG executable and interface
 SWIG_BASE=$(GDAL_ROOT)/swig
@@ -108,6 +108,9 @@ RUNTIME_PROJECT_WIN=$(ROOT_DIR)/shared/templates/gdalcore.windowsruntime.csproj.
 RUNTIME_PROJECT_BUNDLE=$(ROOT_DIR)/shared/templates/gdalcore.bundle.csproj.in
 RUNTIME_PROJECT_BUNDLE_UNIX=$(ROOT_DIR)/shared/templates/gdalcore.linuxruntime.bundle.csproj.in
 RUNTIME_PROJECT_BUNDLE_OSX=$(ROOT_DIR)/shared/templates/gdalcore.macosruntime.bundle.csproj.in
+TOOLS_PROJECT_UNIX=$(ROOT_DIR)/shared/templates/gdalcore.cli.unix.csproj.in
+TOOLS_PROJECT_OSX=$(ROOT_DIR)/shared/templates/gdalcore.cli.osx.csproj.in
+TOOLS_PROJECT_WIN=$(ROOT_DIR)/shared/templates/gdalcore.cli.win.csproj.in
 
 # Generated project files
 GDALCORE_PROJECT_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.loader.final.csproj
@@ -117,13 +120,18 @@ RUNTIME_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.windowsruntime.final.cs
 RUNTIME_PROJECT_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.bundle.final.csproj
 RUNTIME_PROJECT_BUNDLE_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.linuxruntime.bundle.final.csproj
 RUNTIME_PROJECT_BUNDLE_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.macosruntime.bundle.final.csproj
+TOOLS_PROJECT_UNIX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.cli.unix.final.csproj
+TOOLS_PROJECT_OSX_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.cli.osx.final.csproj
+TOOLS_PROJECT_WIN_FINAL=$(PACKAGE_BUILD_ROOT)/gdalcore.cli.win.final.csproj
 
 PACKAGE_NAME_CORE=MaxRev.Gdal.Core
 PACKAGE_NAME_RUNTIME=MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal
+PACKAGE_NAME_CLI=MaxRev.Gdal.CLI
 RUNTIME_TARGET_BUNDLE=$(ROOT_DIR)/shared/msbuild/default.targets.in
 RUNTIME_TARGET_BUNDLE_FINAL=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).$(BUILD_ARCH).targets
 RUNTIME_TARGET_BUNDLE_FINAL_WIN=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_RUNTIME).targets
 RUNTIME_TARGET_BUNDLE_FINAL_CORE=$(PACKAGE_BUILD_ROOT)/$(PACKAGE_NAME_CORE).targets
+CLI_TARGET_TEMPLATE=$(ROOT_DIR)/shared/msbuild/cli.targets.in
 
 GIT=git
 GIT_CLEAN=$(GIT) clean -fqdx

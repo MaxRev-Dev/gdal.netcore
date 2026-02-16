@@ -31,7 +31,20 @@ ifneq ($(filter $(TARGET_CLEAN),$(VCPKG_REQUIRE_UNIX)),'')
 	@if [[ "$(TARGET_LOWER)" == *"-force"* ]] ; then \
 		$(MAKE) -f vcpkg-makefile upgrade; \
 		$(VCPKG) remove $(TARGET_CLEAN):$(VCPKG_RID) --recurse; \
-		$(VCPKG) install $(TARGET_CLEAN):$(VCPKG_RID) --recurse --clean-after-build; \
+		$(VCPKG) install $(TARGET_CLEAN):$(VCPKG_RID) --recurse --clean-after-build || { \
+			echo "$(TARGET_PREFIX) ERROR: Failed to install $(TARGET_CLEAN):$(VCPKG_RID)" >&2; \
+			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
+				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
+				$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
+			else \
+				echo "$(TARGET_PREFIX) Searching for issue_body.md for $(TARGET_CLEAN)..." >&2; \
+				find $(VCPKG_ROOT)/installed -path "*/$(TARGET_CLEAN)*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+					echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
+					cat "$$issue_file" >&2; \
+				done; \
+			fi; \
+			exit 1; \
+		}; \
 	else \
 		echo "To rebuild add {key}-force"; \
 		$(VCPKG) list; \
@@ -41,11 +54,11 @@ else
 endif
 
 pull: ## pull the package
-	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
+	@if [ ! -d "$(VCPKG_ROOT)/.git" ]; then \
 		git clone $(VCPKG_REPO) $(VCPKG_ROOT); \
 	fi;
 
-bootstrap: checkout_ver
+bootstrap: pull checkout_ver
 	@if [ ! -f "$(VCPKG_ROOT)/vcpkg" ]; then \
 		cd $(VCPKG_ROOT) && ./bootstrap-vcpkg.sh || exit 1; \
 	fi;
@@ -72,7 +85,7 @@ update: checkout_ver
 
 $(VCPKG_CLEANUP):
 	@if [ -d "$(VCPKG_ROOT)/$@/" ]; then \
-		 rm -rf "$(VCPKG_ROOT)/$@"; \
+		rm -rf "$(VCPKG_ROOT)/$@" >/dev/null 2>&1 || true; \
 	fi;
 
 build_cleanup: $(VCPKG_CLEANUP)
@@ -106,10 +119,38 @@ patch_vcpkg_triplets:
 
 install_packages:
 	@for pack in $(VCPKG_REQUIRE_UNIX); do \
-		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || exit 1; \
+		echo "$(TARGET_PREFIX) Installing $$pack:$(VCPKG_RID)..."; \
+		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || { \
+			echo "$(TARGET_PREFIX) ERROR: Failed to install $$pack:$(VCPKG_RID)" >&2; \
+			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
+				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
+				$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
+			else \
+				echo "$(TARGET_PREFIX) Searching for issue_body.md for $$pack..." >&2; \
+				find $(VCPKG_ROOT)/installed -path "*/$$pack*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+					echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
+					cat "$$issue_file" >&2; \
+				done; \
+			fi; \
+			exit 1; \
+		}; \
 	done
 	@for pack in $(VCPKG_REQUIRE_UNIX_DYNAMIC); do \
-		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || exit 1; \
+		echo "$(TARGET_PREFIX) Installing $$pack:$(VCPKG_RID)-dynamic..."; \
+		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || { \
+			echo "$(TARGET_PREFIX) ERROR: Failed to install $$pack:$(VCPKG_RID)-dynamic" >&2; \
+			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
+				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
+				$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
+			else \
+				echo "$(TARGET_PREFIX) Searching for issue_body.md for $$pack..." >&2; \
+				find $(VCPKG_ROOT)/installed -path "*/$$pack*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+					echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
+					cat "$$issue_file" >&2; \
+				done; \
+			fi; \
+			exit 1; \
+		}; \
 	done
 
 remove_packages:

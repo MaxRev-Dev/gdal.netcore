@@ -2,7 +2,7 @@ Supported Formats: (ro:read-only, rw:read-write, +:write from scratch, u:update,
   MEM -raster,multidimensional raster,vector- (rw+): In Memory raster, vector and multidimensional raster
   FITS -raster,vector- (rw+): Flexible Image Transport System (*.fits)
   PCIDSK -raster,vector- (rw+uv): PCIDSK Database File (*.pix)
-  netCDF -raster,multidimensional raster,vector- (rw+uvs): Network Common Data Format (*.nc)
+  netCDF -raster,multidimensional raster,vector- (rw+us): Network Common Data Format (*.nc)
   PDS4 -raster,vector- (rw+uvs): NASA Planetary Data System 4 (*.xml)
   VICAR -raster,vector- (rw+v): MIPL VICAR file
   JP2OpenJPEG -raster,vector- (rwv): JPEG-2000 driver based on JP2OpenJPEG library (*.jp2, *.j2k)

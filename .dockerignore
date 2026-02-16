@@ -1,5 +1,8 @@
+# Exclude test outputs and built packages
 !tests/**
 !nuget/**
+
+# Exclude Docker and git files
 **/.dockerignore
 **/.env
 **/.git
@@ -7,24 +10,50 @@
 **/.vs
 **/.vscode
 **/*.*proj.user
+
+# Exclude k8s and docker compose
 **/azds.yaml
 **/charts
-**/bin
-**/obj
 **/Dockerfile
 **/Dockerfile.develop
 **/docker-compose.yml
 **/docker-compose.*.yml
+
+# Exclude build artifacts
+**/bin
+**/obj
+**/bindings
 **/*.dbmdl
 **/*.jfm
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/.toolstarget
-!**/build-*
-!**/build-*/**/.git
+
+# IMPORTANT: Allow build cache directories but exclude their contents except .git
+!**/build-unix
+!**/build-osx
+!**/build-unix/**/.git
+!**/build-osx/**/.git
+build-unix/**
+build-osx/**
+!build-unix/.gitkeep
+!build-osx/.gitkeep
+
+# Allow CI cache directories structure
+!**/ci/cache
 !**/ci/cache/**/.git
-!**/ci/cache/**
-!**/ci/cache/vcpkg/**
-**/bin
-**/obj
-**/bindings
+ci/cache/**
+!ci/cache/.gitkeep
+
+# Exclude documentation and other non-essential files
+*.md
+!README.md
+LICENSE
+.github/
+
+# Exclude IDE and OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

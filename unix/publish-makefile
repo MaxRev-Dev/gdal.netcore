@@ -36,16 +36,19 @@ update-targets:
 			--no-restore -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
 
 pack-core: generate-projects
-	dotnet pack -c Release -o $(NUGET_DIR) $(GDALCORE_PROJECT_FINAL)
+	dotnet pack -c Release -o $(NUGET_DIR) --ignore-failed-sources $(GDALCORE_PROJECT_FINAL)
 
 pack-runtime: generate-projects
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_DIR) $(RUNTIME_PROJECT_FINAL)
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Release -o $(NUGET_DIR) --ignore-failed-sources $(RUNTIME_PROJECT_FINAL)
+
+pack-tools: generate-projects
+	dotnet pack -c Release -o $(NUGET_DIR) --ignore-failed-sources $(TOOLS_PROJECT_$(CAT_NAME_UP)_FINAL)
 
 pack-bundle: generate-projects pack-bundle-only
 	@exit 0
 
 pack-bundle-only: update-targets
-	dotnet pack -c Release -o $(NUGET_DIR) $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
+	dotnet pack -c Release -o $(NUGET_DIR) --ignore-failed-sources $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
 pack-bundle-final:
 	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=unix RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BUILD_ARCH=x64
@@ -57,21 +60,24 @@ pack-bundle-final:
 	cd $(PACKAGE_BUILD_ROOT) && \
 		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.Core -s $(NUGET_DIR) --no-restore
 	
-	dotnet pack -c Release -o $(NUGET_DIR) $(RUNTIME_PROJECT_BUNDLE_FINAL)
+	dotnet pack -c Release -o $(NUGET_DIR) --ignore-failed-sources $(RUNTIME_PROJECT_BUNDLE_FINAL)
 
-pack: pack-core pack-runtime
+pack: pack-core pack-runtime pack-tools
 	@exit 0
 
 pack-core-dev: generate-projects
-	dotnet pack -c Debug -o $(NUGET_DIR) $(GDALCORE_PROJECT_FINAL)
+	dotnet pack -c Debug -o $(NUGET_DIR) --ignore-failed-sources $(GDALCORE_PROJECT_FINAL)
 
 pack-runtime-dev: generate-projects
-	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_DIR) $(RUNTIME_PROJECT_FINAL)
+	BUILD_ARCH=$(BUILD_ARCH) dotnet pack -c Debug -o $(NUGET_DIR) --ignore-failed-sources $(RUNTIME_PROJECT_FINAL)
+
+pack-tools-dev: generate-projects
+	dotnet pack -c Debug -o $(NUGET_DIR) --ignore-failed-sources $(TOOLS_PROJECT_$(CAT_NAME_UP)_FINAL)
 
 pack-bundle-dev: generate-projects
-	dotnet pack -c Debug -o $(NUGET_DIR) $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
+	dotnet pack -c Debug -o $(NUGET_DIR) --ignore-failed-sources $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
-pack-dev: pack-core-dev pack-runtime-dev
+pack-dev: pack-core-dev pack-runtime-dev pack-tools-dev
 	@exit 0
 
 

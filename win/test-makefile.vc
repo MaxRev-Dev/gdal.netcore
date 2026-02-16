@@ -6,6 +6,8 @@
 !INCLUDE ../shared/GdalCore.opt
 
 all: test
+CLI_TEST_DIR=$(MAKEDIR)\\..\\tests\\MaxRev.Gdal.Core.Tests.CLI
+CLI_RID=win-x64
 
 test-restore:
 	-cd $(TEST_DIR)
@@ -37,4 +39,13 @@ test-only: test-restore
 !ENDIF
 	-cd $(MAKEDIR)
 
-test: test-restore test-update test-only
+test-cli:
+	@pwsh -NoProfile -File "$(MAKEDIR)\\cli-smoke.ps1" \
+		-CliTestDir "$(CLI_TEST_DIR)" \
+		-CliRid "$(CLI_RID)" \
+		-GdalVersion "$(GDAL_VERSION)" \
+		-PackageBuildNumber "$(PACKAGE_BUILD_NUMBER)" \
+		-NugetPath "$(NUGET_)" \
+		-RuntimePackage "MaxRev.Gdal.WindowsRuntime.Minimal"
+
+test: test-restore test-update test-only test-cli

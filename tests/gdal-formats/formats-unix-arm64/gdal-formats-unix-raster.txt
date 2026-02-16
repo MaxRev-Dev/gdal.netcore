@@ -40,7 +40,7 @@ Supported Formats: (ro:read-only, rw:read-write, +:write from scratch, u:update,
   SRTMHGT -raster- (rwv): SRTMHGT File Format (*.hgt)
   Leveller -raster- (rw+v): Leveller heightfield (*.ter)
   Terragen -raster- (rw+v): Terragen heightfield (*.ter)
-  netCDF -raster,multidimensional raster,vector- (rw+uvs): Network Common Data Format (*.nc)
+  netCDF -raster,multidimensional raster,vector- (rw+us): Network Common Data Format (*.nc)
   HDF4 -raster,multidimensional raster- (ros): Hierarchical Data Format Release 4 (*.hdf)
   HDF4Image -raster- (rw+): HDF4 Dataset
   ISIS3 -raster- (rw+v): USGS Astrogeology ISIS cube (Version 3) (*.lbl, *.cub)
