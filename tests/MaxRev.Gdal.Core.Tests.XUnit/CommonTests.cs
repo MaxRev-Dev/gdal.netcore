@@ -23,8 +23,8 @@ namespace GdalCore_XUnit
         }
 
         [Theory]
-        [MemberData(nameof(DriversInCurrentVersion))]
-        public void AllDriversAvailable(string driver)
+        [MemberData(nameof(RasterDriversInCurrentVersion), DisableDiscoveryEnumeration = true)]
+        public void AllRasterDriversAvailable(string driver)
         {
             var driverByName = Gdal.GetDriverByName(driver);
             _outputHelper.WriteLine(
@@ -33,7 +33,17 @@ namespace GdalCore_XUnit
         }
 
         [Theory]
-        [MemberData(nameof(ValidTestData))]
+        [MemberData(nameof(VectorDriversInCurrentVersion), DisableDiscoveryEnumeration = true)]
+        public void AllVectorDriversAvailable(string driver)
+        {
+            var driverByName = Ogr.GetDriverByName(driver);
+            _outputHelper.WriteLine(
+                driverByName != default ? $"{driver} loaded successfully" : $"Failed to load {driver}");
+            Assert.NotNull(driverByName);
+        }
+
+        [Theory]
+        [MemberData(nameof(ValidTestData), DisableDiscoveryEnumeration = true)]
         public void GetProjString(string file)
         {
             using var dataset = Gdal.Open(file, Access.GA_ReadOnly);
@@ -49,7 +59,7 @@ namespace GdalCore_XUnit
 
 
         [Theory]
-        [MemberData(nameof(ValidTestData))]
+        [MemberData(nameof(ValidTestData), DisableDiscoveryEnumeration = true)]
         public void GetGdalInfoRaster(string file)
         {
             using var inputDataset = Gdal.Open(file, Access.GA_ReadOnly);
@@ -61,7 +71,7 @@ namespace GdalCore_XUnit
 
 
         [Theory]
-        [MemberData(nameof(ValidTestDataVector))]
+        [MemberData(nameof(ValidTestDataVector), DisableDiscoveryEnumeration = true)]
         public void GetGdalInfoVector(string file)
         {
             var f = OSGeo.OGR.Ogr.Open(file, 0);
@@ -85,7 +95,7 @@ namespace GdalCore_XUnit
         }
 
         [Theory]
-        [MemberData(nameof(ValidTestDataVector))]
+        [MemberData(nameof(ValidTestDataVector), DisableDiscoveryEnumeration = true)]
         public void ConvertShapeToParquet(string shapefile)
         {
             using var ds = Gdal.OpenEx(shapefile, 0, null, null, null);
@@ -100,7 +110,7 @@ namespace GdalCore_XUnit
         }
 
         [Theory]
-        [MemberData(nameof(ValidTestDataVector))]
+        [MemberData(nameof(ValidTestDataVector), DisableDiscoveryEnumeration = true)]
         public void ConvertShapeToArrow(string shapefile)
         { 
             using var ds = Gdal.OpenEx(shapefile, 0, null, null, null);
@@ -115,7 +125,7 @@ namespace GdalCore_XUnit
         }
 
         [Theory]
-        [MemberData(nameof(ValidTestDataVectorParquet))]
+        [MemberData(nameof(ValidTestDataVectorParquet), DisableDiscoveryEnumeration = true)]
         public void GetGdalInfoVectorParquet(string file)
         {
             using var f = Ogr.Open(file, 0);
@@ -127,7 +137,7 @@ namespace GdalCore_XUnit
         }
 
         [Theory]
-        [MemberData(nameof(ValidTestDataVectorArrow))]
+        [MemberData(nameof(ValidTestDataVectorArrow), DisableDiscoveryEnumeration = true)]
         public void GetGdalInfoVectorArrow(string file)
         {
             using var f = Ogr.Open(file, 0);
@@ -166,37 +176,43 @@ namespace GdalCore_XUnit
             };
         }
 
-        public static IEnumerable<object[]> DriversInCurrentVersion
+        public static IEnumerable<object[]> RasterDriversInCurrentVersion
         {
-            get => GetDriversInCurrentVersion();
+            get => GetDriverNamesFromFormatFile("raster");
         }
 
-        private static IEnumerable<object[]> GetDriversInCurrentVersion()
+        public static IEnumerable<object[]> VectorDriversInCurrentVersion
+        {
+            get => GetDriverNamesFromFormatFile("vector");
+        }
+
+        private static IEnumerable<object[]> GetDriverNamesFromFormatFile(string type)
         {
             var folder = Extensions.GetTestDataFolder("../gdal-formats");
             var rid = GetEnvRID();
             var ridTrimmed = rid.Contains('-') ? rid.Substring(0, rid.IndexOf('-')) : rid;
-            var formats = new List<string>();
-            foreach (var type in new[] { "raster", "vector" })
+
+            var ciFolder = Path.Combine(folder, $"formats-{rid}");
+            // check if the folder exists in CI environment
+            if (!Directory.Exists(ciFolder))
             {
-                var ciFolder = Path.Combine(folder, $"formats-{rid}");
-                // check if the folder exists in CI environment
-                if (!Directory.Exists(ciFolder))
-                {
-                    ciFolder = folder; // fallback to the default path
-                }
-                var file = Path.Combine(ciFolder, $"gdal-formats-{ridTrimmed}-{type}.txt");
-                if (!File.Exists(file))
-                {
-                    throw new FileNotFoundException($"File not found: {file}");
-                }
-                formats.AddRange(File.ReadAllLines(file)
-                   .Where(x => x.Contains(type))
-                   .Select(x => x[..x.IndexOf('-')].Trim())
-                   .Where(x => !string.IsNullOrWhiteSpace(x))
-                   .ToArray());
+                ciFolder = folder; // fallback to the default path
             }
-            return formats.Distinct().Select(x => new[] { x });
+
+            var file = Path.Combine(ciFolder, $"gdal-formats-{ridTrimmed}-{type}.txt");
+            if (!File.Exists(file))
+            {
+                throw new FileNotFoundException($"File not found: {file}");
+            }
+
+            var formats = File.ReadAllLines(file)
+                .Where(x => x.Contains(type))
+                .Select(x => x[..x.IndexOf('-')].Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct()
+                .Select(x => new[] { x });
+
+            return formats;
         }
 
         public static IEnumerable<object[]> ValidTestDataVector
