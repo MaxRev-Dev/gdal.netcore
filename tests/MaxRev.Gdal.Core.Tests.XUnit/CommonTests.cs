@@ -11,6 +11,7 @@ using Xunit.Abstractions;
 
 namespace GdalCore_XUnit
 {
+    [Collection("Sequential")]
     public class CommonTests
     {
         private readonly ITestOutputHelper _outputHelper;
