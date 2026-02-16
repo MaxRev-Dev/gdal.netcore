@@ -5,7 +5,6 @@ using Xunit;
 
 namespace GdalCore_XUnit
 {
-    [Collection("Sequential")]
     public class FunctionsTests
     {
         [Fact]
