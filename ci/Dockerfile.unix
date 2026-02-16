@@ -111,6 +111,7 @@ RUN --mount=type=cache,target=/build/ci/cache/vcpkg-archives \
 # Stage: Build dependencies (HDF, PROJ)
 FROM vcpkg-packages AS deps-build
 COPY unix/gdal-makefile /build/unix/
+COPY shared/common.mk /build/shared/common.mk
 
 # Initialize sources
 RUN --mount=type=cache,target=/build/build-unix/hdf-source \
