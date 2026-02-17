@@ -111,6 +111,13 @@ build_%:
 	@echo "$(TARGET_PREFIX) $(TARGET_LOWER) Building with $(NPROC) parallel jobs..."
 	@date +%s > /tmp/build_timer_$(TARGET_LOWER).txt
 	@cd "$(BUILD_ROOT)/$(TARGET_LOWER)-cmake-temp" && cmake --build . -j$(NPROC) --target install || exit 1
+	@if [ "$(TARGET_LOWER)" = "gdal" ] && [ -d "$(GDAL_CMAKE_TMP)/swig/csharp" ]; then \
+		echo "$(TARGET_PREFIX) Persisting SWIG C# bindings to install dir..."; \
+		mkdir -p $(GDAL_BUILD)/swig/csharp; \
+		cd $(GDAL_CMAKE_TMP)/swig/csharp && \
+		find . gdal ogr osr const -type f \( -name "*.$(LIB_EXT)" -o -name "*.cs" \) ! -path "*/bin/*" ! -path "*/obj/*" \
+			-exec sh -c 'mkdir -p "$(GDAL_BUILD)/swig/csharp/$$(dirname "{}")" && cp "{}" "$(GDAL_BUILD)/swig/csharp/{}"' \; ; \
+	fi
 	@START=$$(cat /tmp/build_timer_$(TARGET_LOWER).txt 2>/dev/null || echo 0); \
 	END=$$(date +%s); \
 	DURATION=$$((END - START)); \
