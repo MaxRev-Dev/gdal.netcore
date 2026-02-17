@@ -11,7 +11,7 @@ CMD_TYPE=dotnet run --tl:off
 endif
 
 MISSING_PACKAGES=MaxRev.Gdal.MacosRuntime.Minimal MaxRev.Gdal.WindowsRuntime.Minimal MaxRev.Gdal.Universal
-CLI_TEST_DIR=$(ROOTDIR_)/tests/MaxRev.Gdal.Core.Tests.CLI
+CLI_TEST_DIR=$(ROOT_DIR)/tests/MaxRev.Gdal.Core.Tests.CLI
 CLI_RID=linux-$(BUILD_ARCH)
 
 all: test
@@ -43,11 +43,11 @@ test-only: test-restore
 test-cli:
 	rm -rf $(CLI_TEST_DIR)/bin $(CLI_TEST_DIR)/obj
 	cd $(CLI_TEST_DIR) && \
-		dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) --no-restore
+		dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR) --no-restore
 	cd $(CLI_TEST_DIR) && \
-		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_) --no-restore
+		dotnet add package MaxRev.Gdal.LinuxRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR) --no-restore
 	cd $(CLI_TEST_DIR) && \
-		dotnet restore --ignore-failed-sources -s $(NUGET_)
+		dotnet restore --ignore-failed-sources -s $(NUGET_DIR)
 	cd $(CLI_TEST_DIR) && \
 		dotnet build -c Release --no-restore
 	cd $(CLI_TEST_DIR) && \
