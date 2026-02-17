@@ -4,7 +4,8 @@ param(
     [Parameter(Mandatory = $true)][string] $GdalVersion,
     [Parameter(Mandatory = $true)][string] $PackageBuildNumber,
     [Parameter(Mandatory = $true)][string] $NugetPath,
-    [Parameter(Mandatory = $true)][string] $RuntimePackage
+    [Parameter(Mandatory = $true)][string] $RuntimePackage,
+    [string] $VersionSep = "."
 )
 
 $ErrorActionPreference = 'Stop'
@@ -24,9 +25,9 @@ if (Test-Path -Path $objPath) {
 
 Push-Location $CliTestDir
 try {
-    dotnet add package "MaxRev.Gdal.CLI.$CliRid" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
-    dotnet add package "$RuntimePackage" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
-    dotnet add package "MaxRev.Gdal.Core" -v "$GdalVersion.$PackageBuildNumber" -s "$NugetPath" --no-restore
+    dotnet add package "MaxRev.Gdal.CLI.$CliRid" -v "$GdalVersion$VersionSep$PackageBuildNumber" -s "$NugetPath" --no-restore
+    dotnet add package "$RuntimePackage" -v "$GdalVersion$VersionSep$PackageBuildNumber" -s "$NugetPath" --no-restore
+    dotnet add package "MaxRev.Gdal.Core" -v "$GdalVersion$VersionSep$PackageBuildNumber" -s "$NugetPath" --no-restore
     dotnet restore -s "$NugetPath" --ignore-failed-sources
     dotnet build -c Release --no-restore
     dotnet run -c Release --no-build

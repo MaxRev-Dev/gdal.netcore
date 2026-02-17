@@ -28,13 +28,13 @@ test-restore:
 
 test-update:
 	-cd $(TEST_DIR_APP) && \
-		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)$(VERSION_SUFFIX)" -s $(NUGET_DIR)
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
 	-cd $(TEST_TARGET_AZ) && \
-		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)$(VERSION_SUFFIX)" -s $(NUGET_DIR)
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
 	-cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)$(VERSION_SUFFIX)" -s $(NUGET_DIR)
+		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_DIR)
 	-cd $(TEST_TARGET) && \
-		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)$(VERSION_SUFFIX)" -s $(NUGET_DIR)
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_DIR)
 
 test-only: test-restore
 	cd $(TEST_TARGET) && \
@@ -43,11 +43,11 @@ test-only: test-restore
 test-cli:
 	rm -rf $(CLI_TEST_DIR)/bin $(CLI_TEST_DIR)/obj
 	cd $(CLI_TEST_DIR) && \
-		dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)$(VERSION_SUFFIX)" -s $(NUGET_DIR) --no-restore
+		dotnet add package MaxRev.Gdal.CLI.$(CLI_RID) -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_DIR) --no-restore
 	cd $(CLI_TEST_DIR) && \
-		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)$(VERSION_SUFFIX)" -s $(NUGET_DIR) --no-restore
+		dotnet add package MaxRev.Gdal.MacosRuntime.Minimal.$(BUILD_ARCH) -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_DIR) --no-restore
 	cd $(CLI_TEST_DIR) && \
-		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER_OSX)$(VERSION_SUFFIX)" -s $(NUGET_DIR) --no-restore
+		dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER_OSX)" -s $(NUGET_DIR) --no-restore
 	cd $(CLI_TEST_DIR) && \
 		dotnet restore --ignore-failed-sources -s $(NUGET_DIR)
 	cd $(CLI_TEST_DIR) && \

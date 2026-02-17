@@ -20,8 +20,8 @@ TARGET_OUT=$(TARGET_OUT_DIR)/$(CAT_NAME).opt
 # enable prerelease flag if any of the following is true:
 ifeq (,$(filter $(PRERELEASE),true 1 yes))
 PRERELEASE_ARG=
-VERSION_SUFFIX=
+VERSION_SEP=.
 else
 PRERELEASE_ARG=--prerelease
-VERSION_SUFFIX=-dev
+VERSION_SEP=-dev.
 endif

@@ -6,9 +6,9 @@
 !INCLUDE ../shared/GdalCore.opt
 
 !IF "$(PRERELEASE)" == "1" || "$(PRERELEASE)" == "true" || "$(PRERELEASE)" == "yes"
-VERSION_SUFFIX=-dev
+VERSION_SEP=-dev.
 !ELSE
-VERSION_SUFFIX=
+VERSION_SEP=.
 !ENDIF
 
 all: test
@@ -28,12 +28,12 @@ test-restore:
 
 test-update:
 	-cd $(TEST_TARGET_AZ)
-	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)$(VERSION_SUFFIX)" -s $(NUGET_DIR)
+	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
 	-cd $(TEST_DIR_APP)
-	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)$(VERSION_SUFFIX)" -s $(NUGET_DIR)
+	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
 	-cd $(TEST_DIR)
-	-dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)$(VERSION_SUFFIX)" -s $(NUGET_DIR)
-	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION).$(PACKAGE_BUILD_NUMBER)$(VERSION_SUFFIX)" -s $(NUGET_DIR)
+	-dotnet add package MaxRev.Gdal.WindowsRuntime.Minimal -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
+	-dotnet add package MaxRev.Gdal.Core -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
 	-cd $(MAKEDIR)
 
 test-only: test-restore
@@ -50,7 +50,8 @@ test-cli:
 		-CliTestDir "$(CLI_TEST_DIR)" \
 		-CliRid "$(CLI_RID)" \
 		-GdalVersion "$(GDAL_VERSION)" \
-		-PackageBuildNumber "$(PACKAGE_BUILD_NUMBER)$(VERSION_SUFFIX)" \
+		-PackageBuildNumber "$(PACKAGE_BUILD_NUMBER)" \
+		-VersionSep "$(VERSION_SEP)" \
 		-NugetPath "$(NUGET_DIR)" \
 		-RuntimePackage "MaxRev.Gdal.WindowsRuntime.Minimal"
 
