@@ -51,7 +51,7 @@ reset_%: clone_%
 remove_cache_%:
 	@echo "$(TARGET_PREFIX) Removing build cache..."
 	@if [[ -d "$($(TARGET_UPPER)_CMAKE_TMP)" ]]; then \
-		rm -r $($(TARGET_UPPER)_CMAKE_TMP); \
+		rm -rf $($(TARGET_UPPER)_CMAKE_TMP) 2>/dev/null || rm -rf $($(TARGET_UPPER)_CMAKE_TMP)/* 2>/dev/null || true; \
 	fi;
 
 init_%: reset_% remove_cache_%
