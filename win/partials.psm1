@@ -295,31 +295,35 @@ function Build-Gdal {
 
 function Build-GenerateProjectFiles {
     param (
-        [string] $packageVersion
+        [string] $packageVersion,
+        [bool] $preRelease = $false
     )
     Set-GdalVariables
-    Set-Location "$PSScriptRoot/../unix" 
+    Set-Location "$PSScriptRoot/../unix"
     $vcpkgInstalled = Get-PathRelative -inputPath:$env:VCPKG_INSTALLED_PKGCONFIG -relativePath:"../build-win"
     $geosVersion = (& $env:GitBash -c "make -f generate-projects-makefile get-version IN_FILE=$("$vcpkgInstalled/geos.pc")")
 
+    $preReleaseVal = if ($preRelease) { "true" } else { "false" }
+
     # generate project files for C# bindings
     Write-BuildStep "Generating project files for GDAL C# bindings"
-    exec { & $env:GitBash -c "make -f generate-projects-makefile CAT_NAME=win RUNTIME_PACKAGE_PARTIAL=WindowsRuntime TARGET_OS=win BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE" }
+    exec { & $env:GitBash -c "make -f generate-projects-makefile CAT_NAME=win RUNTIME_PACKAGE_PARTIAL=WindowsRuntime TARGET_OS=win BUILD_NUMBER_TAIL=$packageVersion GEOS_VERSION=$geosVersion BUILD_ARCH=$env:CMAKE_ARCHITECTURE PRERELEASE=$preReleaseVal" }
     Write-BuildStep "Done generating project files"
 }
 
-function Build-CsharpBindings {   
+function Build-CsharpBindings {
     param (
         [bool] $isDebug = $false,
+        [bool] $preRelease = $false,
         [string] $packageVersion
     )
     Set-GdalVariables
     Write-BuildStep "Building GDAL C# bindings"
-    
+
     Get-VisualStudioVars
 
     Set-Location $PSScriptRoot
-    
+
     Write-GdalFormats
 
     Set-Location $PSScriptRoot
@@ -329,8 +333,8 @@ function Build-CsharpBindings {
     exec { & nmake -f collect-deps-makefile.vc }
 
     Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
-    
-    Build-GenerateProjectFiles -packageVersion $packageVersion 
+
+    Build-GenerateProjectFiles -packageVersion $packageVersion -preRelease $preRelease
 
     Set-Location $PSScriptRoot
     if ($isDebug) {

@@ -48,7 +48,7 @@ try {
     Build-Gdal -cleanGdalBuild $cleanGdalBuild -cleanGdalIntermediate $cleanGdalIntermediate -fetchGdal $fetchGdal
 
     $env:GDAL_VERSION = Get-GdalVersion
-    Build-CsharpBindings -isDebug $preRelease -packageVersion $buildNumberTail
+    Build-CsharpBindings -isDebug $preRelease -preRelease $preRelease -packageVersion $buildNumberTail
 }
 catch
 {

@@ -30,7 +30,8 @@ try {
         $env:GDAL_VERSION = Get-GdalVersion
     }
     $buildNumber = $buildNumberTail + 100
-    $env:GDAL_PACKAGE_VERSION = "$env:GDAL_VERSION.$buildNumber"
+    $versionSuffix = if ($preRelease) { "-dev" } else { "" }
+    $env:GDAL_PACKAGE_VERSION = "$env:GDAL_VERSION.$buildNumber$versionSuffix"
     Write-BuildStep "Executing tests for $env:GDAL_PACKAGE_VERSION"
     $essentialOnlyVal = $essentialOnly ? "1" : "0"
     nmake -f "$PSScriptRoot/test-makefile.vc" $preReleaseArg GDAL_VERSION=$env:GDAL_VERSION PACKAGE_BUILD_NUMBER=$buildNumber ESSENTIAL_ONLY=$essentialOnlyVal
