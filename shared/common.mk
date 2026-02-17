@@ -34,7 +34,7 @@ TARGET_PREFIX = $(LOG_PREFIX) ${TARGET_UPPER} |
 # Shared target definitions
 
 clone_%:
-	@if [ ! -d "$($(TARGET_UPPER)_ROOT)" ]; then \
+	@if [ ! -d "$($(TARGET_UPPER)_ROOT)/.git" ]; then \
 		$(GIT) clone $(GIT_CLONE_DEPTH) --single-branch -b $($(TARGET_UPPER)_COMMIT_VER) $($(TARGET_UPPER)_REPO) $($(TARGET_UPPER)_ROOT); \
 	fi;
 
