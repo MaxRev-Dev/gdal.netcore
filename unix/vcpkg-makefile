@@ -72,7 +72,7 @@ install_requirements_only: patch_vcpkg_triplets install_packages
 
 checkout_ver:
 	@echo "$(TARGET_PREFIX) Checking for remote changes..."
-	@cd $(VCPKG_ROOT) && git fetch || exit 1
+	@cd $(VCPKG_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force || exit 1
 	@echo "$(TARGET_PREFIX) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
 	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force || exit 1
 

@@ -51,7 +51,8 @@ else
 endif
 
 pull:
-	@if [ ! -d "$(VCPKG_ROOT)" ]; then \
+	@if [ ! -d "$(VCPKG_ROOT)/.git" ]; then \
+		rm -rf "$(VCPKG_ROOT)" 2>/dev/null || true; \
 		git clone $(VCPKG_REPO) $(VCPKG_ROOT); \
 	fi;
 	@cd $(VCPKG_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force
@@ -72,7 +73,7 @@ install_requirements: install_vcpkg checkout_ver install_requirements_only
 
 checkout_ver:
 	@echo "$(TARGET_PREFIX) Checking for remote changes..."
-	@cd $(VCPKG_ROOT) && git fetch || exit 1
+	@cd $(VCPKG_ROOT) && git fetch origin 'refs/tags/*:refs/tags/*' --force || exit 1
 	@echo "$(TARGET_PREFIX) Restoring VCPKG sources version to $(VCPKG_COMMIT_VER)"
 	@cd $(VCPKG_ROOT) && git checkout -q $(VCPKG_COMMIT_VER) --force || exit 1
 
