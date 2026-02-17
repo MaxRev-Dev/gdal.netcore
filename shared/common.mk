@@ -7,6 +7,7 @@
 
 ifndef COMMON_MK_INCLUDED
 COMMON_MK_INCLUDED := 1
+unexport COMMON_MK_INCLUDED
 
 SHELL=/bin/bash
 
