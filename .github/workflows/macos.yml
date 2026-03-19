@@ -76,7 +76,7 @@ jobs:
             build-osx/vcpkg/installed/
             build-osx/.build-state.json
             build-osx/.build-times.txt
-          key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/gdal-makefile') }}
+          key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/gdal-makefile', 'shared/common.mk') }}
           restore-keys: |
             builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt') }}-
 
