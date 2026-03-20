@@ -7,7 +7,13 @@ endif
 
 BUILD_BASE_LIB=$(GDAL_BUILD)/lib
 SHELL=/bin/bash
+# Prefer persisted bindings in gdal-build (survives cache restore)
+# Fall back to cmake-temp for fresh builds where gdal-build/swig doesn't exist yet
+ifneq ($(wildcard $(GDAL_BUILD)/swig/csharp/.),)
+BINDINGS_SOURCE=$(GDAL_BUILD)/swig/csharp
+else
 BINDINGS_SOURCE=$(BUILD_ROOT)/gdal-cmake-temp/swig/csharp
+endif
 
 # codesining requires paid certificate, so we will use ad-hoc signing to avoid issues with macOS Gatekeeper
 CODESIGN_IDENTITY?=-
