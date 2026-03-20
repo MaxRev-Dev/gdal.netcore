@@ -102,8 +102,8 @@ save_state_%:
 			--arg ver "$$CURRENT_VER" \
 			--arg hash "$$CURRENT_HASH" \
 			--arg time "$$TIMESTAMP" \
-			'.[\$$comp] = {version: \$$ver, hash: \$$hash, built: \$$time}' \
-			> $(STATE_FILE).tmp && mv $(STATE_FILE).tmp $(STATE_FILE); \
+			'.[$$comp] = {version: $$ver, hash: $$hash, built: $$time}' \
+			> $(STATE_FILE).tmp && mv $(STATE_FILE).tmp $(STATE_FILE) && \
 		echo "$(LOG_PREFIX) 💾 Saved state for $$COMPONENT (v$$CURRENT_VER)"; \
 	fi
 
