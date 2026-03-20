@@ -68,13 +68,14 @@ check_state_%:
 		else \
 			CURRENT_HASH="not-cloned"; \
 		fi; \
-		if [ "$$LAST_VER" = "$$CURRENT_VER" ] && [ "$$LAST_HASH" = "$$CURRENT_HASH" ] && [ -d "$(BUILD_ROOT)/$$COMPONENT-build" ]; then \
+		if [ "$$LAST_VER" = "$$CURRENT_VER" ] && [ -d "$(BUILD_ROOT)/$$COMPONENT-build" ] && \
+		   ( [ "$$CURRENT_HASH" = "not-cloned" ] || [ "$$LAST_HASH" = "$$CURRENT_HASH" ] ); then \
 			echo "$(LOG_PREFIX) ✓ $$COMPONENT is up to date (v$$CURRENT_VER), skipping build"; \
 			exit 0; \
 		else \
 			echo "$(LOG_PREFIX) ⚠️  $$COMPONENT needs rebuild"; \
 			[ "$$LAST_VER" != "$$CURRENT_VER" ] && echo "$(LOG_PREFIX)    Version: $$LAST_VER → $$CURRENT_VER"; \
-			[ "$$LAST_HASH" != "$$CURRENT_HASH" ] && echo "$(LOG_PREFIX)    Hash: $${LAST_HASH:0:8} → $${CURRENT_HASH:0:8}"; \
+			[ "$$CURRENT_HASH" != "not-cloned" ] && [ "$$LAST_HASH" != "$$CURRENT_HASH" ] && echo "$(LOG_PREFIX)    Hash: $${LAST_HASH:0:8} → $${CURRENT_HASH:0:8}"; \
 			exit 1; \
 		fi; \
 	else \
