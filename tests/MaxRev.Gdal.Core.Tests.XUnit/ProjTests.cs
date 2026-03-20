@@ -1,6 +1,5 @@
 using MaxRev.Gdal.Core;
 using OSGeo.OSR;
-using System.IO;
 using Xunit;
 
 namespace GdalCore_XUnit
