@@ -1,0 +1,252 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "maxrev-gdal-netcore-dependencies",
+  "version-string": "1.0.0",
+  "features": {
+    "linux-dynamic": {
+      "description": "Linux runtime dependency set installed through the dynamic overlay triplet.",
+      "dependencies": [
+        "geos",
+        {
+          "name": "tiff",
+          "features": [
+            "zstd",
+            "zip",
+            "jpeg",
+            "tools",
+            "lzma",
+            "cxx",
+            "webp"
+          ]
+        },
+        {
+          "name": "curl",
+          "features": [
+            "tool",
+            "openssl"
+          ]
+        },
+        {
+          "name": "poppler",
+          "features": [
+            "cairo",
+            "cms",
+            "zlib",
+            "glib",
+            "curl",
+            "private-api"
+          ]
+        },
+        "unixodbc",
+        "openssl",
+        "zlib",
+        "expat",
+        "xerces-c",
+        "libxml2",
+        "libpq",
+        "openjpeg",
+        "cfitsio",
+        {
+          "name": "openexr",
+          "features": [
+            "tools"
+          ]
+        },
+        "libwebp",
+        "giflib",
+        "hdf5",
+        "pcre",
+        "freexl",
+        "libkml",
+        "libpng",
+        {
+          "name": "libjxl",
+          "features": [
+            "tools"
+          ]
+        },
+        "netcdf-c",
+        {
+          "name": "libgeotiff",
+          "features": [
+            "tools"
+          ]
+        },
+        {
+          "name": "sqlite3",
+          "features": [
+            "tool",
+            "rtree"
+          ]
+        },
+        "cryptopp",
+        "blosc",
+        {
+          "name": "arrow",
+          "features": [
+            "parquet"
+          ]
+        }
+      ]
+    },
+    "osx-static-tools": {
+      "description": "macOS static sqlite tool pass used to build proj.db.",
+      "dependencies": [
+        {
+          "name": "sqlite3",
+          "features": [
+            "tool",
+            "rtree"
+          ]
+        }
+      ]
+    },
+    "osx-dynamic": {
+      "description": "macOS dynamic runtime dependency set while preserving the separate sqlite tool pass.",
+      "dependencies": [
+        "unixodbc",
+        "openssl",
+        "zlib",
+        "expat",
+        "xerces-c",
+        "libxml2",
+        "libpq",
+        "openjpeg",
+        "cfitsio",
+        {
+          "name": "openexr",
+          "features": [
+            "tools"
+          ]
+        },
+        "libwebp",
+        "giflib",
+        "hdf5",
+        "pcre",
+        "freexl",
+        "libkml",
+        "libpng",
+        {
+          "name": "libjxl",
+          "features": [
+            "tools"
+          ]
+        },
+        "netcdf-c",
+        {
+          "name": "libgeotiff",
+          "features": [
+            "tools"
+          ]
+        },
+        {
+          "name": "sqlite3",
+          "features": [
+            "tool",
+            "rtree"
+          ]
+        },
+        "cryptopp",
+        "blosc",
+        {
+          "name": "arrow",
+          "features": [
+            "parquet"
+          ]
+        },
+        "geos",
+        {
+          "name": "tiff",
+          "features": [
+            "zstd",
+            "zip",
+            "jpeg",
+            "tools",
+            "lzma",
+            "cxx",
+            "webp"
+          ]
+        },
+        {
+          "name": "curl",
+          "features": [
+            "tool",
+            "openssl"
+          ]
+        },
+        {
+          "name": "poppler",
+          "features": [
+            "cairo",
+            "cms",
+            "zlib",
+            "glib",
+            "curl",
+            "private-api"
+          ]
+        },
+        "libmysql"
+      ]
+    },
+    "windows-dynamic": {
+      "description": "Windows runtime dependency set kept authoritative in the repo-root manifest.",
+      "dependencies": [
+        "geos",
+        {
+          "name": "tiff",
+          "features": [
+            "zstd",
+            "zip",
+            "jpeg",
+            "tools",
+            "lzma",
+            "cxx",
+            "webp"
+          ]
+        },
+        {
+          "name": "curl",
+          "features": [
+            "tool",
+            "openssl"
+          ]
+        },
+        {
+          "name": "poppler",
+          "features": [
+            "cairo",
+            "cms",
+            "zlib",
+            "glib",
+            "curl",
+            "private-api"
+          ]
+        },
+        {
+          "name": "sqlite3",
+          "features": [
+            "tool",
+            "rtree"
+          ]
+        },
+        "libiconv",
+        "lz4",
+        "liblzma",
+        {
+          "name": "libjxl",
+          "features": [
+            "tools"
+          ]
+        },
+        "blosc",
+        "cryptopp",
+        {
+          "name": "arrow",
+          "features": [
+            "parquet"
+          ]
+        }
+      ]
+    }
+  }
+}

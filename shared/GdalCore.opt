@@ -24,8 +24,9 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 # ---------------------- VCPKG ----------------------
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
+VCPKG_MANIFEST_ROOT=$(ROOT_DIR)
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=2026.03.18
+VCPKG_COMMIT_VER := 2026.03.18
 
 # base requirements for all runtimes
 VCPKG_REQUIRE=geos "tiff[zstd,zip,jpeg,tools,lzma,cxx,webp]" "curl[tool,openssl]" "poppler[cairo,cms,zlib,glib,curl,private-api]"
@@ -82,6 +83,9 @@ SWIG_INCLUDE=$(SWIG_BASE)/include
 HDF_BUILD=$(BUILD_ROOT)/hdf-build
 HDF_CMAKE_TMP=$(BUILD_ROOT)/hdf-cmake-temp
 HDF_VERSION=4.3.1
+HDF_ROOT=$(BUILD_ROOT)/hdf-source
+HDF_REPO=https://github.com/HDFGroup/hdf4.git
+HDF_COMMIT_VER=hdf$(HDF_VERSION)
 
 ##### PROJ build location
 PROJ_BUILD=$(BUILD_ROOT)/proj-build
