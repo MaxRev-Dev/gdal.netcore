@@ -26,7 +26,10 @@ function Set-GdalVariables {
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
     $env:SDK_BIN = "$env:SDK_PREFIX\bin"
     $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
-    $env:VCPKG_INSTALLED = "$env:BUILD_ROOT\vcpkg\installed\x64-windows"
+    $env:VCPKG_MANIFEST_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..")
+    $env:VCPKG_INSTALL_ROOT = "$env:BUILD_ROOT\vcpkg\installed"
+    $env:VCPKG_LOCKFILE = "$env:VCPKG_MANIFEST_ROOT\vcpkg-lock.json"
+    $env:VCPKG_INSTALLED = "$env:VCPKG_INSTALL_ROOT\x64-windows"
     $env:VCPKG_INSTALLED_PKGCONFIG = "$env:VCPKG_INSTALLED\lib\pkgconfig"   
     
     $env:WEBP_ROOT = Get-ForceResolvePath("$env:BUILD_ROOT\sdk\libwebp*")
@@ -122,6 +125,7 @@ function Install-VcpkgPackagesSharedConfig {
     )
     
     if ($installVcpkgPackages) {
+        Write-BuildInfo "Installing Windows dependencies from repo-root manifest $env:VCPKG_MANIFEST_ROOT\vcpkg.json with lock $env:VCPKG_LOCKFILE"
         exec { & nmake -f ./vcpkg-makefile.vc install_requirements }
     }
 }

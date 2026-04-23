@@ -61,9 +61,9 @@ jobs:
         with:
           path: |
             vcpkg-archives/
-          key: vcpkg-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/vcpkg-makefile') }}
+          key: vcpkg-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/vcpkg-makefile', 'vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-lock.json') }}
           restore-keys: |
-            vcpkg-${{ matrix.os }}-${{ matrix.arch }}-
+            vcpkg-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/vcpkg-makefile', 'vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-lock.json') }}-
 
       # Layer 2: Build outputs (HDF, PROJ, GDAL)
       - name: Cache build outputs
@@ -77,9 +77,9 @@ jobs:
             build-osx/vcpkg/installed/
             build-osx/.build-state.json
             build-osx/.build-times.txt
-          key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/gdal-makefile', 'shared/common.mk') }}
+          key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/gdal-makefile', 'shared/common.mk', 'osx/vcpkg-makefile', 'vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-lock.json') }}
           restore-keys: |
-            builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt') }}-
+            builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/gdal-makefile', 'shared/common.mk', 'osx/vcpkg-makefile', 'vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-lock.json') }}-
 
       # Layer 3: .NET SDK packages
       - name: Cache .NET packages

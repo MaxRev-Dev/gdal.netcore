@@ -15,6 +15,11 @@ VCPKG_CLEANUP = buildtrees downloads packages installed
 
 VCPKG_ROOT = $(BUILD_ROOT)\vcpkg
 VCPKG = "$(VCPKG_ROOT)\vcpkg.exe"
+VCPKG_INSTALL_ROOT = $(VCPKG_ROOT)\installed
+VCPKG_MANIFEST_ROOT = $(MAKEDIR)\..
+VCPKG_MANIFEST_LOCK = $(VCPKG_MANIFEST_ROOT)\vcpkg-lock.json
+VCPKG_MANIFEST_LOCK_INSTALLED = $(VCPKG_INSTALL_ROOT)\vcpkg\vcpkg-lock.json
+VCPKG_MANIFEST_ARGS = --x-manifest-root="$(VCPKG_MANIFEST_ROOT)" --x-install-root="$(VCPKG_INSTALL_ROOT)" $(VCPKG_TRIPLETS_OVERLAY) --no-print-usage
 
 install_vcpkg:
 	@IF NOT EXIST "$(VCPKG_ROOT)\" git clone $(VCPKG_REPO) $(VCPKG_ROOT)
@@ -28,7 +33,7 @@ checkout_ver:
 bootstrap: 
 	call "$(VCPKG_ROOT)/bootstrap-vcpkg.bat"; 
 
-install_requirements: install_vcpkg checkout_ver bootstrap patch_vcpkg_triplets install_packages   
+install_requirements: install_vcpkg checkout_ver bootstrap patch_vcpkg_triplets sync_manifest_lock_to_install_root install_packages sync_manifest_lock_from_install_root   
 
 VCPKG_WINDOWS_DEFAULT_TRIPLET = "$(VCPKG_CUSTOM_TRIPLETS)/x64-windows.cmake"
 
@@ -40,6 +45,13 @@ patch_vcpkg_triplets:
 	@echo set(VCPKG_CRT_LINKAGE dynamic) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
 	@echo set(VCPKG_LIBRARY_LINKAGE dynamic) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
 	@echo set(VCPKG_BUILD_TYPE release) >> $(VCPKG_WINDOWS_DEFAULT_TRIPLET)
+
+sync_manifest_lock_to_install_root:
+	@if not exist "$(VCPKG_INSTALL_ROOT)\vcpkg" md "$(VCPKG_INSTALL_ROOT)\vcpkg"
+	@if exist "$(VCPKG_MANIFEST_LOCK)" copy /Y "$(VCPKG_MANIFEST_LOCK)" "$(VCPKG_MANIFEST_LOCK_INSTALLED)" >nul
+
+sync_manifest_lock_from_install_root:
+	@if exist "$(VCPKG_MANIFEST_LOCK_INSTALLED)" copy /Y "$(VCPKG_MANIFEST_LOCK_INSTALLED)" "$(VCPKG_MANIFEST_LOCK)" >nul
 
 upgrade: checkout_ver
 	$(VCPKG) upgrade $(VCPKG_TRIPLETS_OVERLAY)
@@ -54,15 +66,9 @@ $(VCPKG_CLEANUP):
 build_cleanup: $(VCPKG_CLEANUP) 
 
 install_packages:
-	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
-	 do $(VCPKG) install %p:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED)
-	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
-	 do $(VCPKG) install %p:$(VCPKG_RID)-static $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED)
+	@echo "$(LOG_PREFIX) Installing manifest feature windows-dynamic for $(VCPKG_RID)"
+	@$(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet $(VCPKG_RID) --x-feature=windows-dynamic $(VCPKG_ENSURE_INSTALLED)
 remove:  
 	$(VCPKG) remove $(r):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE)
 remove_packages:
-	@for %p in ( $(VCPKG_REQUIRE_WIN) ) \
-	 do $(VCPKG) remove %p:$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE)
-	@for %p in ( $(VCPKG_REQUIRE_WIN_STATIC) ) \
-	 do $(VCPKG) remove %p:$(VCPKG_RID)-static $(VCPKG_PARAMS_REMOVE)
-
+	@echo "$(LOG_PREFIX) Manifest mode owns package inventory; use build_cleanup to remove installed trees."
