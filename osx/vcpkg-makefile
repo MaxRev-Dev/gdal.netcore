@@ -115,55 +115,51 @@ endef
 export VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE
 export VCPKG_TRIPLET_OSX_STATIC_RELEASE
 
+VCPKG_MANIFEST_ARGS=--x-manifest-root=$(ROOT_DIR) --x-install-root=$(VCPKG_ROOT)/installed $(VCPKG_TRIPLETS_OVERLAY) --no-print-usage
+VCPKG_MANIFEST_LOCK=$(ROOT_DIR)/vcpkg-lock.json
+VCPKG_MANIFEST_LOCK_INSTALLED=$(VCPKG_ROOT)/installed/vcpkg/vcpkg-lock.json
+
 patch_vcpkg_triplets:
 	@(cd $(VCPKG_ROOT) && mkdir -p custom-triplets)
 	@echo "$$VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE" > $(VCPKG_ROOT)/custom-triplets/$(VCPKG_RID)-dynamic.cmake
 	@echo "$$VCPKG_TRIPLET_OSX_STATIC_RELEASE" > $(VCPKG_ROOT)/custom-triplets/$(VCPKG_RID).cmake
 
-install_packages:
-	@for pack in $(VCPKG_REQUIRE_OSX); do \
-		echo "$(TARGET_PREFIX) Installing $$pack:$(VCPKG_RID)..."; \
-		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID) $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || \
-		{ \
-			echo "$(TARGET_PREFIX) ERROR: Failed to install $$pack:$(VCPKG_RID)" >&2; \
+sync_manifest_lock_to_install_root:
+	@mkdir -p $(VCPKG_ROOT)/installed/vcpkg
+	@if [ -f "$(VCPKG_MANIFEST_LOCK)" ]; then \
+		cp "$(VCPKG_MANIFEST_LOCK)" "$(VCPKG_MANIFEST_LOCK_INSTALLED)"; \
+	fi
+
+sync_manifest_lock_from_install_root:
+	@if [ -f "$(VCPKG_MANIFEST_LOCK_INSTALLED)" ]; then \
+		cmp -s "$(VCPKG_MANIFEST_LOCK_INSTALLED)" "$(VCPKG_MANIFEST_LOCK)" || cp "$(VCPKG_MANIFEST_LOCK_INSTALLED)" "$(VCPKG_MANIFEST_LOCK)"; \
+	fi
+
+install_packages: sync_manifest_lock_to_install_root
+	@run_manifest_install() { \
+		triplet="$$1"; \
+		feature="$$2"; \
+		echo "$(TARGET_PREFIX) Installing manifest feature $$feature for $$triplet..."; \
+		MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet "$$triplet" --x-feature="$$feature" --clean-after-build || { \
+			echo "$(TARGET_PREFIX) ERROR: Failed to install manifest feature $$feature for $$triplet" >&2; \
 			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
 				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
 				$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
 			else \
-				echo "$(TARGET_PREFIX) Searching for issue_body.md for $$pack..." >&2; \
-				find $(VCPKG_ROOT)/installed -path "*/$$pack*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+				echo "$(TARGET_PREFIX) Searching for issue_body.md for $$feature..." >&2; \
+				find $(VCPKG_ROOT)/installed -path "*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
 					echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
 					cat "$$issue_file" >&2; \
 				done; \
 				echo "$(TARGET_PREFIX) Checking build logs..." >&2; \
-				cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log 2>/dev/null || true; \
-				cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log 2>/dev/null || true; \
+				find $(VCPKG_ROOT)/buildtrees -name '*err.log' -o -name '*out.log' | while read -r build_log; do cat "$$build_log" >&2; done; \
 			fi; \
 			exit 1; \
 		}; \
-	done
-	@for pack in $(VCPKG_REQUIRE_OSX_DYNAMIC); do \
-		echo "$(TARGET_PREFIX) Installing $$pack:$(VCPKG_RID)-dynamic..."; \
-		MAKELEVEL=0 $(VCPKG) install $$pack:$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_INSTALL) $(VCPKG_ENSURE_INSTALLED) || \
-		{ \
-			echo "$(TARGET_PREFIX) ERROR: Failed to install $$pack:$(VCPKG_RID)-dynamic" >&2; \
-			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
-				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
-				$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
-			else \
-				echo "$(TARGET_PREFIX) Searching for issue_body.md for $$pack..." >&2; \
-				find $(VCPKG_ROOT)/installed -path "*/$$pack*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
-					echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
-					cat "$$issue_file" >&2; \
-				done; \
-				echo "$(TARGET_PREFIX) Checking build logs..." >&2; \
-				cat $(VCPKG_ROOT)/buildtrees/$$pack/*err.log 2>/dev/null || true; \
-				cat $(VCPKG_ROOT)/buildtrees/$$pack/*out.log 2>/dev/null || true; \
-			fi; \
-			exit 1; \
-		}; \
-	done
+	}; \
+	run_manifest_install "$(VCPKG_RID)" "osx-static-tools"; \
+	run_manifest_install "$(VCPKG_RID)-dynamic" "osx-dynamic"
+	@$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root
 
 remove_packages:
-	@$(foreach pack,$(VCPKG_REQUIRE_OSX), $(VCPKG) remove $(pack):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE);)
-	@$(foreach pack,$(VCPKG_REQUIRE_OSX_DYNAMIC), $(VCPKG) remove $(pack):$(VCPKG_RID)-dynamic $(VCPKG_PARAMS_REMOVE);)
+	@echo "$(TARGET_PREFIX) Manifest mode owns package inventory; use build_cleanup to remove installed trees."
