@@ -33,7 +33,7 @@ configure_hdf:
 	@if [[ -d "$(BUILD_ROOT)/hdf-cmake-temp" ]]; then rm -r "$(BUILD_ROOT)/hdf-cmake-temp" >/dev/null 2>&1 || true; fi;
 
 	-mkdir -p $(HDF_CMAKE_TMP)
-	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE) \
+	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_ROOT) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build \
 		-DCMAKE_MESSAGE_LOG_LEVEL=ERROR \
 		-DCMAKE_BUILD_TYPE=Release \

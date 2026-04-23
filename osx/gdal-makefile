@@ -34,7 +34,7 @@ configure_hdf:
 	@if [[ -d "$(BUILD_ROOT)/hdf-build" ]]; then rm -r "$(BUILD_ROOT)/hdf-build"; fi;
 
 	-mkdir -p $(HDF_CMAKE_TMP)
-	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_SOURCE) \
+	@cd $(HDF_CMAKE_TMP) && cmake $(HDF_ROOT) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/hdf-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_C_FLAGS="-fPIC -w" \
