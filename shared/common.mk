@@ -148,27 +148,8 @@ else
 	@echo "$(LOG_PREFIX) Can not make $(TARGET_CLEAN)"
 endif
 
-# HDF download targets
-init_hdf: check_hdf_sources
-	@echo "$(TARGET_PREFIX) HDF sources restore complete"
-
-HDF_ZIP=hdf$(HDF_VERSION).zip
-HDF_SOURCE=$(BUILD_ROOT)/hdf4-hdf$(HDF_VERSION)
-
-download_hdf:
-	@echo "$(TARGET_PREFIX) Downloading HDF source ${HDF_ZIP}..."
-	$(LIB_PATH_VAR)="" curl -JL "https://github.com/HDFGroup/hdf4/archive/refs/tags/$(HDF_ZIP)" -o "$(BUILD_ROOT)/$(HDF_ZIP)"
-	@echo "$(TARGET_PREFIX) HDF source downloaded!"
-	@echo "$(TARGET_PREFIX) Extracting HDF source..."
-	cd "$(BUILD_ROOT)"; unzip -oq "$(BUILD_ROOT)/$(HDF_ZIP)" -d .
-
-check_hdf_sources:
-	@if [[ ! -f "$(BUILD_ROOT)/$(HDF_ZIP)" ]] || [[ ! -d "$(HDF_SOURCE)" ]]; then \
-		$(MAKE) -f gdal-makefile download_hdf; \
-	fi;
-
 # Convenience target for resetting all repositories
-reset: reset_proj reset_gdal
+reset: reset_hdf reset_proj reset_gdal
 	@echo "$(TARGET_PREFIX) Reset ALL is complete"
 
 endif
