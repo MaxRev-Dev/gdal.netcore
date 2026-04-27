@@ -91,7 +91,7 @@ jobs:
         id: compile-source
         run: |
           git config --system core.longpaths true
-          $maxAttempts = 3
+          $maxAttempts = 5
           for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ inputs.is-pre-release }}
             if ($LASTEXITCODE -eq 0) {
