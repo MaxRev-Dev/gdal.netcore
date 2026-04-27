@@ -15,7 +15,7 @@ export MSBUILDSINGLELOADCONTEXT = 1
 export LD_LIBRARY_PATH=$$LD_LIBRARY_PATH:${VCPKG_INSTALLED_DYNAMIC}/lib
 
 RUNTIME_PROJECT_FINAL=$(RUNTIME_PROJECT_UNIX_FINAL)
-GEOS_VERSION=$(shell $(MAKE) -f ../unix/generate-projects-makefile get-version IN_FILE=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/geos.pc)
+GEOS_VERSION=$(shell $(MAKE) --no-print-directory -s -f ../unix/generate-projects-makefile get-version IN_FILE=$(VCPKG_INSTALLED_DYNAMIC)/lib/pkgconfig/geos.pc)
 CAT_NAME=unix
 RUNTIME_PACKAGE_PARTIAL=LinuxRuntime
 BUILD_ARCH_SUFFIX=.$(BUILD_ARCH)
