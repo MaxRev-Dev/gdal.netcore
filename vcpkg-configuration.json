@@ -3,6 +3,5 @@
     "kind": "git",
     "repository": "https://github.com/microsoft/vcpkg",
     "baseline": "c3867e714dd3a51c272826eea77267876517ed99"
-  },
-  "builtin-baseline": "c3867e714dd3a51c272826eea77267876517ed99"
+  }
 }

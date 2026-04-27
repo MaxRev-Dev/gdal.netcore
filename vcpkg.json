@@ -2,6 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "maxrev-gdal-netcore-dependencies",
   "version-string": "1.0.0",
+  "builtin-baseline": "c3867e714dd3a51c272826eea77267876517ed99",
   "features": {
     "linux-dynamic": {
       "description": "Linux runtime dependency set installed through the dynamic overlay triplet.",

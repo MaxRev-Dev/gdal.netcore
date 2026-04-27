@@ -136,11 +136,12 @@ sync_manifest_lock_from_install_root:
 	fi
 
 install_packages: sync_manifest_lock_to_install_root
-	@run_manifest_install() { \
+	@sanitize_env='env -u PKG_CONFIG_PATH -u CMAKE_PREFIX_PATH -u CPATH -u LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH'; \
+	run_manifest_install() { \
 		triplet="$$1"; \
 		feature="$$2"; \
 		echo "$(TARGET_PREFIX) Installing manifest feature $$feature for $$triplet..."; \
-		MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet "$$triplet" --x-feature="$$feature" --clean-after-build || { \
+		$$sanitize_env MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet "$$triplet" --x-feature="$$feature" --clean-after-build || { \
 			echo "$(TARGET_PREFIX) ERROR: Failed to install manifest feature $$feature for $$triplet" >&2; \
 			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
 				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
