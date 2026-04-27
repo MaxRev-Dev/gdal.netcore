@@ -134,20 +134,28 @@ sync_manifest_lock_from_install_root:
 
 install_packages: sync_manifest_lock_to_install_root
 	@echo "$(TARGET_PREFIX) Installing manifest feature linux-dynamic for $(VCPKG_RID)-dynamic..."
-	@MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet $(VCPKG_RID)-dynamic --x-feature=linux-dynamic --clean-after-build || { \
-		echo "$(TARGET_PREFIX) ERROR: Failed to install manifest feature linux-dynamic for $(VCPKG_RID)-dynamic" >&2; \
-		if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
-			chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
-			$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
-		else \
-			echo "$(TARGET_PREFIX) Searching for issue_body.md for manifest install..." >&2; \
-			find $(VCPKG_ROOT)/installed -path "*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
-				echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
-				cat "$$issue_file" >&2; \
-			done; \
+	@attempt=1; \
+	max_attempts=2; \
+	until MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet $(VCPKG_RID)-dynamic --x-feature=linux-dynamic --clean-after-build; do \
+		status=$$?; \
+		if [ $$attempt -ge $$max_attempts ]; then \
+			echo "$(TARGET_PREFIX) ERROR: Failed to install manifest feature linux-dynamic for $(VCPKG_RID)-dynamic" >&2; \
+			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
+				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
+				$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
+			else \
+				echo "$(TARGET_PREFIX) Searching for issue_body.md for manifest install..." >&2; \
+				find $(VCPKG_ROOT)/installed -path "*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+					echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
+					cat "$$issue_file" >&2; \
+				done; \
+			fi; \
+			exit $$status; \
 		fi; \
-		exit 1; \
-	}
+		attempt=$$((attempt + 1)); \
+		echo "$(TARGET_PREFIX) Retrying manifest feature linux-dynamic for $(VCPKG_RID)-dynamic (attempt $$attempt/$$max_attempts)..." >&2; \
+		sleep 15; \
+	done
 	@$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root
 
 remove_packages:

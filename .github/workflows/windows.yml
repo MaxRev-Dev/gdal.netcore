@@ -91,7 +91,18 @@ jobs:
         id: compile-source
         run: |
           git config --system core.longpaths true
-          ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ inputs.is-pre-release }}
+          $maxAttempts = 2
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            ./install.ps1 -buildNumberTail ${{ github.run_number }} -preRelease $${{ inputs.is-pre-release }}
+            if ($LASTEXITCODE -eq 0) {
+              break
+            }
+            if ($attempt -ge $maxAttempts) {
+              exit $LASTEXITCODE
+            }
+            Write-Host "Retrying Windows package build after a transient failure..."
+            Start-Sleep -Seconds 15
+          }
           echo "GDAL_VERSION=$env:GDAL_VERSION" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Store metadata as artifact

@@ -140,23 +140,31 @@ install_packages: sync_manifest_lock_to_install_root
 	run_manifest_install() { \
 		triplet="$$1"; \
 		feature="$$2"; \
+		attempt=1; \
+		max_attempts=2; \
 		echo "$(TARGET_PREFIX) Installing manifest feature $$feature for $$triplet..."; \
-		$$sanitize_env MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet "$$triplet" --x-feature="$$feature" --clean-after-build || { \
-			echo "$(TARGET_PREFIX) ERROR: Failed to install manifest feature $$feature for $$triplet" >&2; \
-			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
-				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
-				$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
-			else \
-				echo "$(TARGET_PREFIX) Searching for issue_body.md for $$feature..." >&2; \
-				find $(VCPKG_ROOT)/installed -path "*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
-					echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
-					cat "$$issue_file" >&2; \
-				done; \
-				echo "$(TARGET_PREFIX) Checking build logs..." >&2; \
-				find $(VCPKG_ROOT)/buildtrees -name '*err.log' -o -name '*out.log' | while read -r build_log; do cat "$$build_log" >&2; done; \
+		until $$sanitize_env MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet "$$triplet" --x-feature="$$feature" --clean-after-build; do \
+			status=$$?; \
+			if [ $$attempt -ge $$max_attempts ]; then \
+				echo "$(TARGET_PREFIX) ERROR: Failed to install manifest feature $$feature for $$triplet" >&2; \
+				if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
+					chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
+					$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
+				else \
+					echo "$(TARGET_PREFIX) Searching for issue_body.md for $$feature..." >&2; \
+					find $(VCPKG_ROOT)/installed -path "*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
+						echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
+						cat "$$issue_file" >&2; \
+					done; \
+					echo "$(TARGET_PREFIX) Checking build logs..." >&2; \
+					find $(VCPKG_ROOT)/buildtrees -name '*err.log' -o -name '*out.log' | while read -r build_log; do cat "$$build_log" >&2; done; \
+				fi; \
+				exit $$status; \
 			fi; \
-			exit 1; \
-		}; \
+			attempt=$$((attempt + 1)); \
+			echo "$(TARGET_PREFIX) Retrying manifest feature $$feature for $$triplet (attempt $$attempt/$$max_attempts)..." >&2; \
+			sleep 15; \
+		done; \
 	}; \
 	run_manifest_install "$(VCPKG_RID)" "osx-static-tools"; \
 	run_manifest_install "$(VCPKG_RID)-dynamic" "osx-dynamic"
