@@ -135,7 +135,7 @@ sync_manifest_lock_from_install_root:
 install_packages: sync_manifest_lock_to_install_root
 	@echo "$(TARGET_PREFIX) Installing manifest feature linux-dynamic for $(VCPKG_RID)-dynamic..."
 	@attempt=1; \
-	max_attempts=2; \
+	max_attempts=3; \
 	until MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet $(VCPKG_RID)-dynamic --x-feature=linux-dynamic --clean-after-build; do \
 		status=$$?; \
 		if [ $$attempt -ge $$max_attempts ]; then \

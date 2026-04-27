@@ -141,7 +141,7 @@ install_packages: sync_manifest_lock_to_install_root
 		triplet="$$1"; \
 		feature="$$2"; \
 		attempt=1; \
-		max_attempts=2; \
+		max_attempts=3; \
 		echo "$(TARGET_PREFIX) Installing manifest feature $$feature for $$triplet..."; \
 		until $$sanitize_env MAKELEVEL=0 $(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet "$$triplet" --x-feature="$$feature" --clean-after-build; do \
 			status=$$?; \
