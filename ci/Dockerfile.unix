@@ -30,7 +30,13 @@ RUN echo 'deb http://deb.debian.org/debian bookworm main' > /etc/apt/sources.lis
 
 # Install newer autoconf (2.71) from source since Debian 11 has older version
 RUN cd /tmp && \
-    wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz && \
+    for url in \
+        https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz \
+        https://mirrors.kernel.org/gnu/autoconf/autoconf-2.71.tar.gz; do \
+        if curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors "$url" -o autoconf-2.71.tar.gz; then \
+            break; \
+        fi; \
+    done && \
     tar -xzf autoconf-2.71.tar.gz && \
     cd autoconf-2.71 && \
     ./configure --prefix=/usr/local && \
