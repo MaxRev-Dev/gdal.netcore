@@ -118,8 +118,39 @@ jobs:
 
       - uses: actions/download-artifact@v6.0.0
         with:
-          pattern: packages-*
+          name: packages-core
           path: nuget
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-unix-x64
+          path: nuget
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-unix-arm64
+          path: nuget
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-win-x64
+          path: nuget
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-osx-x64
+          path: nuget
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-osx-arm64
+          path: nuget
+          merge-multiple: true
 
       - name: Remove old formats
         run: |
