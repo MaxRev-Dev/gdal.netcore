@@ -112,6 +112,24 @@ sync_manifest_lock_from_install_root:
 
 install_packages: sync_manifest_lock_to_install_root
 	@sanitize_env='env -u PKG_CONFIG_PATH -u CMAKE_PREFIX_PATH -u CPATH -u LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH'; \
+	prefetch_boost_rational() { \
+		downloads_dir="$(VCPKG_ROOT)/downloads"; \
+		distfile="boostorg-rational-boost-1.90.0.tar.gz"; \
+		if [ -f "$$downloads_dir/$$distfile" ]; then \
+			return 0; \
+		fi; \
+		mkdir -p "$$downloads_dir"; \
+		for url in \
+			"https://github.com/boostorg/rational/archive/refs/tags/boost-1.90.0.tar.gz" \
+			"https://codeload.github.com/boostorg/rational/tar.gz/refs/tags/boost-1.90.0"; do \
+			echo "$(TARGET_PREFIX) Prefetching $$distfile from $$url..."; \
+			if curl -fsSL --retry 3 --retry-all-errors "$$url" -o "$$downloads_dir/$$distfile.tmp"; then \
+				mv "$$downloads_dir/$$distfile.tmp" "$$downloads_dir/$$distfile"; \
+				return 0; \
+			fi; \
+		done; \
+		rm -f "$$downloads_dir/$$distfile.tmp"; \
+	}; \
 	run_manifest_install() { \
 		triplet="$$1"; \
 		feature="$$2"; \
@@ -141,6 +159,7 @@ install_packages: sync_manifest_lock_to_install_root
 			sleep 15; \
 		done; \
 	}; \
+	prefetch_boost_rational; \
 	run_manifest_install "$(VCPKG_RID)" "osx-static-tools"; \
 	run_manifest_install "$(VCPKG_RID)-dynamic" "osx-dynamic"
 	@$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root
