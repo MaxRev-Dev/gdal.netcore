@@ -24,34 +24,9 @@ force: $(addsuffix -force, $(TARGETS))
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-# accepts any params to install/uninstall package
+# Manifest mode owns package inventory in repo-root vcpkg.json.
 % :
-ifneq ($(filter $(TARGET_CLEAN),$(VCPKG_REQUIRE_UNIX)),'')
-	@echo "'vcpkg make' > trying to make stuff for => $(TARGET_CLEAN)"
-	@if [[ "$(TARGET_LOWER)" == *"-force"* ]] ; then \
-		$(MAKE) -f vcpkg-makefile upgrade; \
-		$(VCPKG) remove $(TARGET_CLEAN):$(VCPKG_RID) --recurse; \
-		$(VCPKG) install $(TARGET_CLEAN):$(VCPKG_RID) --recurse --clean-after-build || { \
-			echo "$(TARGET_PREFIX) ERROR: Failed to install $(TARGET_CLEAN):$(VCPKG_RID)" >&2; \
-			if [ -f $(ROOT_DIR)/ci/vcpkg-error-handler.sh ]; then \
-				chmod +x $(ROOT_DIR)/ci/vcpkg-error-handler.sh; \
-				$(ROOT_DIR)/ci/vcpkg-error-handler.sh $(BUILD_ROOT) $(ROOT_DIR)/vcpkg-error-artifacts; \
-			else \
-				echo "$(TARGET_PREFIX) Searching for issue_body.md for $(TARGET_CLEAN)..." >&2; \
-				find $(VCPKG_ROOT)/installed -path "*/$(TARGET_CLEAN)*/issue_body.md" -type f 2>/dev/null | while read -r issue_file; do \
-					echo "$(TARGET_PREFIX) Found issue file: $$issue_file" >&2; \
-					cat "$$issue_file" >&2; \
-				done; \
-			fi; \
-			exit 1; \
-		}; \
-	else \
-		echo "To rebuild add {key}-force"; \
-		$(VCPKG) list; \
-	fi;
-else
-	@echo "Can not make $(TARGET_CLEAN)"
-endif
+	@echo "$(TARGET_PREFIX) Manifest mode owns package inventory; use 'make -f vcpkg-makefile' to install declared features."
 
 pull: ## pull the package
 	@if [ ! -d "$(VCPKG_ROOT)/.git" ]; then \

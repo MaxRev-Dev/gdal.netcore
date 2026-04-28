@@ -11,8 +11,7 @@ TARGETS = hdf proj gdal
 
 all: $(TARGETS)
 	@echo "$(LOG_PREFIX) Everything looks good. Linux libraries for GDAL is ready to packaging!"
-	@echo "$(LOG_PREFIX) Installed libraries (vcpkg static): $(VCPKG_REQUIRE_OSX)"
-	@echo "$(LOG_PREFIX) Installed libraries (vcpkg dynamic): $(VCPKG_REQUIRE_OSX_DYNAMIC)"
+	@echo "$(LOG_PREFIX) Installed libraries (vcpkg): repo-root manifest features"
 	@echo "$(LOG_PREFIX) Compiled libraries: $(TARGETS)"
 
 pre_vcpkg:
