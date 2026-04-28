@@ -114,6 +114,17 @@ RUN chmod +x /build/ci/vcpkg-error-handler.sh
 RUN --mount=type=cache,target=/build/ci/cache/vcpkg-archives \
     --mount=type=cache,target=/build/build-unix/vcpkg/buildtrees \
     --mount=type=cache,target=/build/build-unix/vcpkg/downloads \
+    mkdir -p /build/build-unix/vcpkg/downloads && \
+    if [ ! -f /build/build-unix/vcpkg/downloads/thrift-0.22.0.tar.gz ]; then \
+        for url in \
+            https://downloads.apache.org/thrift/0.22.0/thrift-0.22.0.tar.gz \
+            https://dlcdn.apache.org/thrift/0.22.0/thrift-0.22.0.tar.gz \
+            https://archive.apache.org/dist/thrift/0.22.0/thrift-0.22.0.tar.gz; do \
+            if curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors "$url" -o /build/build-unix/vcpkg/downloads/thrift-0.22.0.tar.gz; then \
+                break; \
+            fi; \
+        done; \
+    fi && \
     set -a && . /tmp/gdal-netcore-env && set +a; \
     make -f vcpkg-makefile $(cat /tmp/gdal-netcore-arch) || { /build/ci/vcpkg-error-handler.sh /build/build-unix /build/vcpkg-error-artifacts; exit 1; }
 
