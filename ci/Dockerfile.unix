@@ -91,9 +91,9 @@ ARG VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
 RUN mkdir -p $VCPKG_DEFAULT_BINARY_CACHE
 COPY --from=base /tmp/gdal-netcore-env /tmp/gdal-netcore-env
 COPY --from=base /tmp/gdal-netcore-arch /tmp/gdal-netcore-arch
-COPY vcpkg.json /build/vcpkg.json
-COPY vcpkg-configuration.json /build/vcpkg-configuration.json
-COPY vcpkg-lock.json /build/vcpkg-lock.json
+COPY shared/vcpkg.json /build/shared/vcpkg.json
+COPY shared/vcpkg-configuration.json /build/shared/vcpkg-configuration.json
+COPY shared/vcpkg-lock.json /build/shared/vcpkg-lock.json
 COPY shared/GdalCore.opt /build/shared/
 COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/

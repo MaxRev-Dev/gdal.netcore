@@ -52,9 +52,9 @@ jobs:
         with:
           path: |
             vcpkg-archives/
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-lock.json') }}
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
           restore-keys: |
-            vcpkg-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-lock.json') }}-
+            vcpkg-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}-
 
       # Layer 2: Build outputs (PROJ, GDAL, VCPKG installed, SDK)
       # Windows caches entire build-win/ because install.ps1 manages all
@@ -68,9 +68,9 @@ jobs:
         with:
           path: |
             build-win/
-          key: builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-lock.json') }}
+          key: builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
           restore-keys: |
-            builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'vcpkg.json', 'vcpkg-configuration.json', 'vcpkg-lock.json') }}-
+            builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}-
 
       # Layer 3: .NET SDK packages
       - name: Cache .NET packages

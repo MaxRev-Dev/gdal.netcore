@@ -189,7 +189,7 @@
       ]
     },
     "windows-dynamic": {
-      "description": "Windows runtime dependency set kept authoritative in the repo-root manifest.",
+      "description": "Windows runtime dependency set kept authoritative in the shared manifest.",
       "dependencies": [
         "geos",
         {

@@ -16,7 +16,7 @@ VCPKG_CLEANUP = buildtrees downloads packages installed
 VCPKG_ROOT = $(BUILD_ROOT)\vcpkg
 VCPKG = "$(VCPKG_ROOT)\vcpkg.exe"
 VCPKG_INSTALL_ROOT = $(VCPKG_ROOT)\installed
-VCPKG_MANIFEST_ROOT = $(MAKEDIR)\..
+VCPKG_MANIFEST_ROOT = $(MAKEDIR)\..\shared
 VCPKG_MANIFEST_LOCK = $(VCPKG_MANIFEST_ROOT)\vcpkg-lock.json
 VCPKG_MANIFEST_LOCK_INSTALLED = $(VCPKG_INSTALL_ROOT)\vcpkg\vcpkg-lock.json
 VCPKG_MANIFEST_ARGS = --x-manifest-root="$(VCPKG_MANIFEST_ROOT)" --x-install-root="$(VCPKG_INSTALL_ROOT)" $(VCPKG_TRIPLETS_OVERLAY) --no-print-usage

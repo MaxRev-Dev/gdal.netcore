@@ -26,7 +26,7 @@ function Set-GdalVariables {
     $env:SDK_LIB = "$env:SDK_PREFIX\lib"
     $env:SDK_BIN = "$env:SDK_PREFIX\bin"
     $env:GDAL_INSTALL_DIR = "$env:BUILD_ROOT\gdal-build"
-    $env:VCPKG_MANIFEST_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..")
+    $env:VCPKG_MANIFEST_ROOT = (Get-ForceResolvePath "$PSScriptRoot\..\shared")
     $env:VCPKG_INSTALL_ROOT = "$env:BUILD_ROOT\vcpkg\installed"
     $env:VCPKG_LOCKFILE = "$env:VCPKG_MANIFEST_ROOT\vcpkg-lock.json"
     $env:VCPKG_INSTALLED = "$env:VCPKG_INSTALL_ROOT\x64-windows"
@@ -125,7 +125,7 @@ function Install-VcpkgPackagesSharedConfig {
     )
     
     if ($installVcpkgPackages) {
-        Write-BuildInfo "Installing Windows dependencies from repo-root manifest $env:VCPKG_MANIFEST_ROOT\vcpkg.json with lock $env:VCPKG_LOCKFILE"
+        Write-BuildInfo "Installing Windows dependencies from shared manifest $env:VCPKG_MANIFEST_ROOT\vcpkg.json with lock $env:VCPKG_LOCKFILE"
         exec { & nmake -f ./vcpkg-makefile.vc install_requirements }
     }
 }

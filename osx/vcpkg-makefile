@@ -21,7 +21,7 @@ all: install_vcpkg install_requirements
 force: $(addsuffix -force, $(TARGETS))
 	@exit 0
 
-# Manifest mode owns package inventory in repo-root vcpkg.json.
+# Manifest mode owns package inventory in shared/vcpkg.json.
 % :
 	@echo "$(TARGET_PREFIX) Manifest mode owns package inventory; use 'make -f vcpkg-makefile' to install declared features."
 
@@ -90,8 +90,8 @@ endef
 export VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE
 export VCPKG_TRIPLET_OSX_STATIC_RELEASE
 
-VCPKG_MANIFEST_ARGS=--x-manifest-root=$(ROOT_DIR) --x-install-root=$(VCPKG_ROOT)/installed $(VCPKG_TRIPLETS_OVERLAY) --no-print-usage
-VCPKG_MANIFEST_LOCK=$(ROOT_DIR)/vcpkg-lock.json
+VCPKG_MANIFEST_ARGS=--x-manifest-root=$(VCPKG_MANIFEST_ROOT) --x-install-root=$(VCPKG_ROOT)/installed $(VCPKG_TRIPLETS_OVERLAY) --no-print-usage
+VCPKG_MANIFEST_LOCK=$(VCPKG_MANIFEST_ROOT)/vcpkg-lock.json
 VCPKG_MANIFEST_LOCK_INSTALLED=$(VCPKG_ROOT)/installed/vcpkg/vcpkg-lock.json
 
 patch_vcpkg_triplets:

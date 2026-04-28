@@ -24,10 +24,11 @@ PROJ_COMMIT_VER=$(PROJ_VERSION)
 # ---------------------- VCPKG ----------------------
 
 VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
-VCPKG_MANIFEST_ROOT=$(ROOT_DIR)
+VCPKG_MANIFEST_DIR=$(ROOT_DIR)/shared
+VCPKG_MANIFEST_ROOT=$(VCPKG_MANIFEST_DIR)
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
 VCPKG_COMMIT_VER=2026.03.18
-# Package inventory now lives in repo-root vcpkg.json and vcpkg-configuration.json.
+# Package inventory now lives in shared/vcpkg.json and shared/vcpkg-configuration.json.
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
