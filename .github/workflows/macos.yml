@@ -63,7 +63,7 @@ jobs:
             vcpkg-archives/
           key: vcpkg-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
           restore-keys: |
-            vcpkg-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}-
+            vcpkg-${{ matrix.os }}-${{ matrix.arch }}-
 
       # Layer 2: Build outputs (HDF, PROJ, GDAL)
       - name: Cache build outputs

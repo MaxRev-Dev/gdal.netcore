@@ -54,7 +54,7 @@ jobs:
             vcpkg-archives/
           key: vcpkg-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
           restore-keys: |
-            vcpkg-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}-
+            vcpkg-${{ runner.os }}-
 
       # Layer 2: Build outputs (PROJ, GDAL, VCPKG installed, SDK)
       # Windows caches entire build-win/ because install.ps1 manages all
