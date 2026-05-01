@@ -59,18 +59,17 @@ jobs:
       # Layer 2: Build outputs (PROJ, GDAL, VCPKG installed, SDK)
       # Windows caches entire build-win/ because install.ps1 manages all
       # subdirectories internally (gdal-build/, proj-build/, vcpkg/, sdk/, downloads/)
-      # Note: Windows install.ps1 does not use build state tracking.
-      # Cache hit avoids re-downloading but does not skip compilation.
-      # Build state integration for Windows is deferred to Phase 2.
+      # Build state stamps inside build-win/ let cache hits skip the
+      # expensive VCPKG/PROJ/GDAL rebuild path when inputs still match.
       - name: Cache build outputs
         id: cache-builds
         uses: actions/cache@v4
         with:
           path: |
             build-win/
-          key: builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
+          key: builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/functions.psm1', 'win/partials.psm1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
           restore-keys: |
-            builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}-
+            builds-${{ runner.os }}-
 
       # Layer 3: .NET SDK packages
       - name: Cache .NET packages
