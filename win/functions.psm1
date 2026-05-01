@@ -276,3 +276,94 @@ function Get-PathRelative {
     $path = $inputPath -replace [regex]::escape($env:BUILD_ROOT), $relativePath ;
     return $path -replace '\\', '/'
 }
+
+function Get-BuildStateStampPath {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Component,
+        [string] $BuildRoot = $env:BUILD_ROOT
+    )
+
+    if ([string]::IsNullOrWhiteSpace($BuildRoot)) {
+        throw "BUILD_ROOT is not set"
+    }
+
+    return Join-Path $BuildRoot ".build-state-$Component.txt"
+}
+
+function Get-FileSignatures {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string[]] $Paths
+    )
+
+    $signatures = @()
+    foreach ($path in $Paths) {
+        $resolvedPath = Get-ForceResolvePath $path
+        if (Test-Path -Path $resolvedPath) {
+            $hash = (Get-FileHash -Path $resolvedPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            $signatures += "$resolvedPath=$hash"
+        }
+        else {
+            $signatures += "$resolvedPath=missing"
+        }
+    }
+
+    return $signatures
+}
+
+function Get-GitHeadOrDefault {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $RepositoryPath,
+        [Parameter(Mandatory = $true)]
+        [string] $DefaultValue
+    )
+
+    if (Test-Path -Path (Join-Path $RepositoryPath ".git") -PathType Container) {
+        $head = & git -C $RepositoryPath rev-parse HEAD 2>$null
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($head)) {
+            return $head.Trim()
+        }
+    }
+
+    return $DefaultValue
+}
+
+function Test-BuildStateStamp {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Component,
+        [Parameter(Mandatory = $true)]
+        [string] $Signature,
+        [string[]] $RequiredPaths = @()
+    )
+
+    foreach ($path in $RequiredPaths) {
+        $resolvedPath = Get-ForceResolvePath $path
+        if (-Not (Test-Path -Path $resolvedPath)) {
+            return $false
+        }
+    }
+
+    $stampPath = Get-BuildStateStampPath -Component $Component
+    if (-Not (Test-Path -Path $stampPath -PathType Leaf)) {
+        return $false
+    }
+
+    $savedSignature = (Get-Content -Path $stampPath -Raw).Trim()
+    return $savedSignature -eq $Signature.Trim()
+}
+
+function Save-BuildStateStamp {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Component,
+        [Parameter(Mandatory = $true)]
+        [string] $Signature
+    )
+
+    New-FolderIfNotExists $env:BUILD_ROOT
+    $stampPath = Get-BuildStateStampPath -Component $Component
+    Set-Content -Path $stampPath -Value $Signature -NoNewline
+}

@@ -1,4 +1,15 @@
 function Set-GdalVariables {
+    $sharedConfig = Get-ForceResolvePath "$PSScriptRoot\..\shared\GdalCore.opt"
+    $gdalVersion = (Select-String -Path $sharedConfig -Pattern '^GDAL_VERSION=(.+)$' | Select-Object -First 1).Matches.Groups[1].Value.Trim()
+    $projVersion = (Select-String -Path $sharedConfig -Pattern '^PROJ_VERSION=(.+)$' | Select-Object -First 1).Matches.Groups[1].Value.Trim()
+    $vcpkgCommit = (Select-String -Path $sharedConfig -Pattern '^VCPKG_COMMIT_VER=(.+)$' | Select-Object -First 1).Matches.Groups[1].Value.Trim()
+
+    $env:GDAL_VERSION = $gdalVersion
+    $env:GDAL_COMMIT_VER = "v$gdalVersion"
+    $env:PROJ_VERSION = $projVersion
+    $env:PROJ_COMMIT_VER = $projVersion
+    $env:VCPKG_COMMIT_VER = $vcpkgCommit
+
     $env:VS_VERSION = "Visual Studio 17 2022"
     $env:SDK = "release-1930-x64" #2022 x64
     $env:SDK_ZIP = "$env:SDK" + "-dev.zip"
@@ -38,6 +49,84 @@ function Set-GdalVariables {
     Add-EnvPath $env:7Z_ROOT
     $env:VCPKG_ROOT_GDAL = (Get-ForceResolvePath "$env:BUILD_ROOT\vcpkg")
     Add-EnvPath $env:VCPKG_ROOT_GDAL -Prepend
+}
+
+function Get-WindowsBuildSignature {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Component
+    )
+
+    Set-GdalVariables
+
+    $root = Get-ForceResolvePath "$PSScriptRoot\.."
+    $commonInputs = Get-FileSignatures -Paths @(
+        "$root\shared\GdalCore.opt",
+        "$root\win\install.ps1",
+        "$root\win\partials.psm1",
+        "$root\win\vcpkg-makefile.vc",
+        "$root\shared\vcpkg.json",
+        "$root\shared\vcpkg-configuration.json",
+        "$root\shared\vcpkg-lock.json",
+        "$root\shared\patch\CMakeLists.txt.patch"
+    )
+
+    switch ($Component) {
+        "vcpkg" {
+            $componentData = @(
+                "component=vcpkg",
+                "vcpkgCommit=$env:VCPKG_COMMIT_VER",
+                "triplet=x64-windows"
+            )
+        }
+        "proj" {
+            $componentData = @(
+                "component=proj",
+                "projVersion=$env:PROJ_VERSION",
+                "projSource=$(Get-GitHeadOrDefault -RepositoryPath $env:PROJ_SOURCE -DefaultValue $env:PROJ_COMMIT_VER)"
+            )
+        }
+        "gdal" {
+            $componentData = @(
+                "component=gdal",
+                "gdalVersion=$env:GDAL_VERSION",
+                "gdalSource=$(Get-GitHeadOrDefault -RepositoryPath $env:GDAL_SOURCE -DefaultValue $env:GDAL_COMMIT_VER)"
+            )
+        }
+        default {
+            throw "Unknown build component: $Component"
+        }
+    }
+
+    return (@($componentData) + @($commonInputs)) -join "`n"
+}
+
+function Test-WindowsBuildReuse {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Component,
+        [Parameter(Mandatory = $true)]
+        [string[]] $RequiredPaths,
+        [Parameter(Mandatory = $true)]
+        [string] $Message
+    )
+
+    $signature = Get-WindowsBuildSignature -Component $Component
+    if (Test-BuildStateStamp -Component $Component -Signature $signature -RequiredPaths $RequiredPaths) {
+        Write-BuildStep $Message
+        return $true
+    }
+
+    return $false
+}
+
+function Save-WindowsBuildReuse {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Component
+    )
+
+    Save-BuildStateStamp -Component $Component -Signature (Get-WindowsBuildSignature -Component $Component)
 }
 
 function Get-7ZipInstallation {   
@@ -106,6 +195,16 @@ function Get-VcpkgInstallation {
     }
     New-FolderIfNotExists $env:VCPKG_DEFAULT_BINARY_CACHE
 
+    if (Test-WindowsBuildReuse -Component "vcpkg" `
+            -RequiredPaths @(
+                "$env:VCPKG_ROOT_GDAL\vcpkg.exe",
+                "$env:VCPKG_INSTALLED\include",
+                "$env:VCPKG_INSTALLED\lib"
+            ) `
+            -Message "Reusing cached VCPKG installation and installed packages") {
+        return
+    }
+
     Write-BuildStep "Checking for VCPKG installation"    
     if ($bootstrapVcpkg) {
         Get-CloneAndCheckoutCleanGitRepo https://github.com/Microsoft/vcpkg.git master $env:VCPKG_ROOT_GDAL
@@ -125,8 +224,19 @@ function Install-VcpkgPackagesSharedConfig {
     )
     
     if ($installVcpkgPackages) {
+        if (Test-WindowsBuildReuse -Component "vcpkg" `
+                -RequiredPaths @(
+                    "$env:VCPKG_ROOT_GDAL\vcpkg.exe",
+                    "$env:VCPKG_INSTALLED\include",
+                    "$env:VCPKG_INSTALLED\lib"
+                ) `
+                -Message "Skipping VCPKG manifest install because cached packages are up to date") {
+            return
+        }
+
         Write-BuildInfo "Installing Windows dependencies from shared manifest $env:VCPKG_MANIFEST_ROOT\vcpkg.json with lock $env:VCPKG_LOCKFILE"
         exec { & nmake -f ./vcpkg-makefile.vc install_requirements }
+        Save-WindowsBuildReuse -Component "vcpkg"
     }
 }
 
@@ -135,6 +245,16 @@ function Install-Proj {
         [bool] $cleanProjBuild = $true,
         [bool] $cleanProjIntermediate = $true
     )
+
+    if (Test-WindowsBuildReuse -Component "proj" `
+            -RequiredPaths @(
+                "$env:PROJ_INSTALL_DIR\include\proj.h",
+                "$env:PROJ_INSTALL_DIR\lib\proj.lib"
+            ) `
+            -Message "Skipping PROJ rebuild because cached outputs are up to date") {
+        return
+    }
+
     Write-BuildStep "Building PROJ"
     if ($cleanProjBuild) {
         Write-BuildInfo "Cleaning PROJ build folder"
@@ -174,6 +294,7 @@ function Install-Proj {
 
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
     Write-BuildStep "Done building PROJ"
+    Save-WindowsBuildReuse -Component "proj"
 }
 
 function Get-GdalVersion {
@@ -214,6 +335,15 @@ function Build-Gdal {
     $env:Poppler_LIBRARY = "-DPoppler_LIBRARY=$env:VCPKG_INSTALLED\lib\poppler.lib"
     $env:TIFF_INCLUDE_DIR = "-DTIFF_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\tiff"
     $env:TIFF_LIBRARY = "-DTIFF_LIBRARY_RELEASE=$env:VCPKG_INSTALLED\lib\tiff.lib"
+
+    if (Test-WindowsBuildReuse -Component "gdal" `
+            -RequiredPaths @(
+                "$env:GDAL_INSTALL_DIR\bin\gdal.dll",
+                "$env:GdalCmakeBuild\swig\csharp"
+            ) `
+            -Message "Skipping GDAL rebuild because cached outputs are up to date") {
+        return
+    }
 
     Write-BuildStep "Configuring GDAL"
     Set-Location "$env:BUILD_ROOT"
@@ -295,6 +425,7 @@ function Build-Gdal {
     # remove source. this was added by GDAL
     exec { dotnet nuget remove source local }
     Write-BuildStep "GDAL was built successfully"
+    Save-WindowsBuildReuse -Component "gdal"
 }
 
 function Build-GenerateProjectFiles {

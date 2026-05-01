@@ -93,6 +93,7 @@ export VCPKG_TRIPLET_OSX_STATIC_RELEASE
 VCPKG_MANIFEST_ARGS=--x-manifest-root=$(VCPKG_MANIFEST_ROOT) --x-install-root=$(VCPKG_ROOT)/installed $(VCPKG_TRIPLETS_OVERLAY) --no-print-usage
 VCPKG_MANIFEST_LOCK=$(VCPKG_MANIFEST_ROOT)/vcpkg-lock.json
 VCPKG_MANIFEST_LOCK_INSTALLED=$(VCPKG_ROOT)/installed/vcpkg/vcpkg-lock.json
+VCPKG_STATE_STAMP=$(BUILD_ROOT)/.build-state-vcpkg-$(BUILD_ARCH).txt
 
 patch_vcpkg_triplets:
 	@(cd $(VCPKG_ROOT) && mkdir -p custom-triplets)
@@ -111,7 +112,30 @@ sync_manifest_lock_from_install_root:
 	fi
 
 install_packages: sync_manifest_lock_to_install_root
-	@sanitize_env='env -u PKG_CONFIG_PATH -u CMAKE_PREFIX_PATH -u CPATH -u LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH'; \
+	@current_signature="$$( { \
+		printf '%s\n' \
+			'component=vcpkg' \
+			'triplet=$(VCPKG_RID)' \
+			'vcpkg=$(VCPKG_COMMIT_VER)' \
+			"build_arch=$(BUILD_ARCH)" \
+			"xcode=$$(xcodebuild -version 2>/dev/null | tr '\n' ' ')" \
+			"clang=$$(clang --version 2>/dev/null | head -n 1)"; \
+		shasum -a 256 \
+			'$(ROOT_DIR)/shared/GdalCore.opt' \
+			'$(ROOT_DIR)/osx/vcpkg-makefile' \
+			'$(ROOT_DIR)/shared/vcpkg.json' \
+			'$(ROOT_DIR)/shared/vcpkg-configuration.json' \
+			'$(ROOT_DIR)/shared/vcpkg-lock.json'; \
+	} | shasum -a 256 | awk '{print $$1}' )"; \
+	if [ -f '$(VCPKG_STATE_STAMP)' ] && \
+	   [ -d '$(VCPKG_ROOT)/installed/$(VCPKG_RID)' ] && \
+	   [ -d '$(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic' ] && \
+	   [ "$$(cat '$(VCPKG_STATE_STAMP)')" = "$$current_signature" ]; then \
+		echo "$(TARGET_PREFIX) Cached manifest outputs for $(BUILD_ARCH) are up to date, skipping install."; \
+		$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root; \
+		exit 0; \
+	fi; \
+	sanitize_env='env -u PKG_CONFIG_PATH -u CMAKE_PREFIX_PATH -u CPATH -u LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH'; \
 	run_manifest_install() { \
 		triplet="$$1"; \
 		feature="$$2"; \
@@ -142,8 +166,9 @@ install_packages: sync_manifest_lock_to_install_root
 		done; \
 	}; \
 	run_manifest_install "$(VCPKG_RID)" "osx-static-tools"; \
-	run_manifest_install "$(VCPKG_RID)-dynamic" "osx-dynamic"
-	@$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root
+	run_manifest_install "$(VCPKG_RID)-dynamic" "osx-dynamic"; \
+	$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root; \
+	printf '%s' "$$current_signature" > '$(VCPKG_STATE_STAMP)'
 
 remove_packages:
 	@echo "$(TARGET_PREFIX) Manifest mode owns package inventory; use build_cleanup to remove installed trees."
