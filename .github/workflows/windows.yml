@@ -57,16 +57,23 @@ jobs:
             vcpkg-${{ runner.os }}-
 
       # Layer 2: Build outputs (PROJ, GDAL, VCPKG installed, SDK)
-      # Windows caches entire build-win/ because install.ps1 manages all
-      # subdirectories internally (gdal-build/, proj-build/, vcpkg/, sdk/, downloads/)
-      # Build state stamps inside build-win/ let cache hits skip the
-      # expensive VCPKG/PROJ/GDAL rebuild path when inputs still match.
+      # Keep this cache narrow enough that the separate VCPKG archive cache
+      # is less likely to be evicted. Source clones and downloads are rebuilt
+      # on demand, but the installed outputs/state stamps stay reusable.
       - name: Cache build outputs
         id: cache-builds
         uses: actions/cache@v4
         with:
           path: |
-            build-win/
+            build-win/.build-state-*.txt
+            build-win/gdal-build/
+            build-win/proj-build/
+            build-win/gdal-cmake-temp/swig/csharp/
+            build-win/sdk/release-1930-x64/
+            build-win/vcpkg/
+            !build-win/vcpkg/buildtrees/
+            !build-win/vcpkg/downloads/
+            !build-win/vcpkg/packages/
           key: builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/functions.psm1', 'win/partials.psm1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
           restore-keys: |
             builds-${{ runner.os }}-
