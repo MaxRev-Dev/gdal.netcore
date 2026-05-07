@@ -17,6 +17,12 @@ In this folder contains Powershell and NMake scripts for building Windows runtim
 
 2. [.NET Core SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages respectively.
 
+The Windows build uses the same shared VCPKG manifest authority as Unix and macOS:
+
+- `shared/vcpkg.json`
+- `shared/vcpkg-configuration.json`
+- `shared/vcpkg-lock.json`
+
 ### Building: (in PowerShell)
 
 1. Call `./install.ps1` to install all required packages and tools. <br/>
@@ -35,6 +41,8 @@ Possible options:
    ./install.ps1 -cleanGdalBuild:$true -cleanGdalIntermediate:$true -isDebug:$true
    ```
 This will install all required VCPKG packages and tools, build GDAL and PROJ, and build runtime and core packages.
+
+On CI, cache-warm runs restore the VCPKG archive cache separately from the Windows build-output cache. When the manifest/build inputs match, the build-state stamps allow the workflow to reuse cached VCPKG, PROJ, and GDAL outputs instead of recompiling them from scratch.
 
 2. Call `./test.ps1` to test runtime and core packages. <br/> 
 If everything runs smoothly, you can use a local nuget feed to include packages in your project.

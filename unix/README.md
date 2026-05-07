@@ -31,8 +31,16 @@ https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-11.
 ### 4. **Installing libraries**. 
 Libraries can be installed in two ways.
 
-1. **VPKG** - recommended. Latest versions, no collisions with other dynamic libraries.
+1. **VCPKG** - recommended. Latest versions, no collisions with other dynamic libraries.
 2. **APT package manager** - if vcpkg does not provide any. Can create conficts with other library dependencies. 
+
+The Unix build uses the shared manifest bundle in `../shared/`:
+
+- `shared/vcpkg.json`
+- `shared/vcpkg-configuration.json`
+- `shared/vcpkg-lock.json`
+
+That same bundle is also used by macOS and Windows so the dependency graph stays aligned across all runtimes.
 
 Each library enables one driver
 ```bash 
@@ -67,6 +75,8 @@ make -f publish-makefile pack  BUILD_ARCH=arm64
 # > optional APP_RUN=1 - testing via console app run (quick, to ensure deps were loaded correctly)
 make -f test-makefile test  BUILD_ARCH=arm64
 ```
+
+On CI, cache-warm runs reuse both the VCPKG binary cache and the Docker Buildx layer cache for the selected architecture.
 
 ### 6. **How to check dependencies:**
 Run tests. If everything loads correctly - you're good.

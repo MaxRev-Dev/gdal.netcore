@@ -246,6 +246,14 @@ The package configuration is marked as **minimal**. That means you don't have to
 
 Drivers included PROJ, GEOS, and more than 200 other drivers.
 
+The native dependency definition is shared across platforms through the manifest bundle in `shared/`:
+
+- `shared/vcpkg.json`
+- `shared/vcpkg-configuration.json`
+- `shared/vcpkg-lock.json`
+
+Unix, macOS, and Windows build wrappers all consume that same manifest authority instead of keeping separate package lists per platform. That keeps driver selection and dependency versions aligned between local builds and CI.
+
 To view the complete list of drivers, see: [tests/gdal-formats/supported_drivers.md](tests/gdal-formats/supported_drivers.md).
 
 
@@ -258,6 +266,12 @@ Starting version 3.9.0 the packages can be compiled and run on .NET Framework 4.
 Each runtime has to be build separately, but this can be done concurrently as they are using different contexts (build folders). Primary operating bindings (in gdal.core package) are build from **windows**. Still, the resulting core bindings are the same on each runtime package (OS).
 
 To make everything work smoothly, each configuration targets the same drivers and their versions, respectively.
+
+CI now layers cache reuse on top of those per-platform build contexts:
+
+- Linux reuses Docker Buildx cache scopes per architecture.
+- macOS restores both VCPKG archives and build outputs, then reuses build-state markers on cache-warm runs.
+- Windows restores VCPKG archives separately from build outputs so cache-warm runs can reuse VCPKG, PROJ, and GDAL artifacts without recompiling from scratch.
 
 To start building for a specific runtime, see the **README.md** in a respective directory.
 
