@@ -18,7 +18,13 @@ There two types of builds **arm64** (Apple Silicon M1 & M2 chipsets) and **x86_6
 This build was compiled using a `ubuntu-24.04-arm` runner (arm64).
  
 ### **2. Check for required libraries**
- **VPKG** will install all requirements defined in `shared/GdalCore.opt` file. Latest versions, no collisions with other dynamic libraries.
+ **VCPKG** will install all requirements defined in the shared manifest bundle and `shared/GdalCore.opt`. Latest versions, no collisions with other dynamic libraries.
+
+The macOS build consumes the same manifest authority as the other platforms:
+
+- `shared/vcpkg.json`
+- `shared/vcpkg-configuration.json`
+- `shared/vcpkg-lock.json`
 
 ### **3. Compiling**
 
@@ -44,6 +50,8 @@ make -f publish-makefile pack BUILD_ARCH=arm64
 # > optional APP_RUN=1 - testing via console app run (quick, to ensure deps were loaded correctly)
 make -f test-makefile test BUILD_ARCH=arm64
 ```
+
+CI cache-warm runs restore the macOS VCPKG archive cache and build outputs per runner/architecture, then reuse build-state markers when the manifest inputs still match.
 
 ### **How to check dependencies:**
 Run tests from the latest step. If everything loads correctly - you're good.
