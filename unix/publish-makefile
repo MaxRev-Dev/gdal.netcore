@@ -25,9 +25,10 @@ all: pack
 generate-projects:
 	$(MAKE) -f ../unix/generate-projects-makefile RUNTIME_PACKAGE_PARTIAL=${RUNTIME_PACKAGE_PARTIAL} CAT_NAME=$(CAT_NAME) GEOS_VERSION=$(GEOS_VERSION) PACKAGE_BUILD_NUMBER=$(PACKAGE_BUILD_NUMBER)
 
-update-targets-no-ver:
+update-targets-bundle-final:
 	cd $(PACKAGE_BUILD_ROOT) && \
-		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal$(BUILD_ARCH_SUFFIX) -s $(NUGET_DIR) --no-restore
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.$(RUNTIME_PACKAGE_PARTIAL).Minimal$(BUILD_ARCH_SUFFIX) \
+			--no-restore -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
 
 
 update-targets:
@@ -51,14 +52,15 @@ pack-bundle-only: update-targets
 	dotnet pack -c Release -o $(NUGET_DIR) --ignore-failed-sources $(RUNTIME_PROJECT_BUNDLE_$(CAT_NAME_UP)_FINAL)
 
 pack-bundle-final:
-	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=unix RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BUILD_ARCH=x64
-	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=unix RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BUILD_ARCH=arm64
-	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=osx RUNTIME_PACKAGE_PARTIAL=MacosRuntime BUILD_ARCH=x64
-	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=osx RUNTIME_PACKAGE_PARTIAL=MacosRuntime BUILD_ARCH=arm64
-	$(MAKE) -f $(THIS_FILE) update-targets-no-ver CAT_NAME=win BUILD_ARCH_SUFFIX= RUNTIME_PACKAGE_PARTIAL=WindowsRuntime
+	$(MAKE) -f $(THIS_FILE) update-targets-bundle-final CAT_NAME=unix RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BUILD_ARCH=x64
+	$(MAKE) -f $(THIS_FILE) update-targets-bundle-final CAT_NAME=unix RUNTIME_PACKAGE_PARTIAL=LinuxRuntime BUILD_ARCH=arm64
+	$(MAKE) -f $(THIS_FILE) update-targets-bundle-final CAT_NAME=osx RUNTIME_PACKAGE_PARTIAL=MacosRuntime BUILD_ARCH=x64
+	$(MAKE) -f $(THIS_FILE) update-targets-bundle-final CAT_NAME=osx RUNTIME_PACKAGE_PARTIAL=MacosRuntime BUILD_ARCH=arm64
+	$(MAKE) -f $(THIS_FILE) update-targets-bundle-final CAT_NAME=win BUILD_ARCH_SUFFIX= RUNTIME_PACKAGE_PARTIAL=WindowsRuntime
 	
 	cd $(PACKAGE_BUILD_ROOT) && \
-		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.Core -s $(NUGET_DIR) --no-restore
+		dotnet add $(RUNTIME_PROJECT_BUNDLE_FINAL) package MaxRev.Gdal.Core \
+			--no-restore -v "$(GDAL_VERSION)$(VERSION_SEP)$(PACKAGE_BUILD_NUMBER)" -s $(NUGET_DIR)
 	
 	dotnet pack -c Release -o $(NUGET_DIR) --ignore-failed-sources $(RUNTIME_PROJECT_BUNDLE_FINAL)
 
