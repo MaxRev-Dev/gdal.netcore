@@ -19,9 +19,9 @@ In this folder contains Powershell and NMake scripts for building Windows runtim
 
 The Windows build uses the same shared VCPKG manifest authority as Unix and macOS:
 
-- `shared/vcpkg.json`
-- `shared/vcpkg-configuration.json`
-- `shared/vcpkg-lock.json`
+- `../shared/vcpkg.json`
+- `../shared/vcpkg-configuration.json`
+- `../shared/vcpkg-lock.json`
 
 ### Building: (in PowerShell)
 

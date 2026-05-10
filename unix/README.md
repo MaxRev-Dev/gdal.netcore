@@ -32,13 +32,13 @@ https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-11.
 Libraries can be installed in two ways.
 
 1. **VCPKG** - recommended. Latest versions, no collisions with other dynamic libraries.
-2. **APT package manager** - if vcpkg does not provide any. Can create conficts with other library dependencies. 
+2. **APT package manager** - if vcpkg does not provide any. Can create conflicts with other library dependencies. 
 
 The Unix build uses the shared manifest bundle in `../shared/`:
 
-- `shared/vcpkg.json`
-- `shared/vcpkg-configuration.json`
-- `shared/vcpkg-lock.json`
+- `../shared/vcpkg.json`
+- `../shared/vcpkg-configuration.json`
+- `../shared/vcpkg-lock.json`
 
 That same bundle is also used by macOS and Windows so the dependency graph stays aligned across all runtimes.
 
