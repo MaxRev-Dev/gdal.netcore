@@ -101,7 +101,8 @@ namespace MaxRev.Gdal.CLI
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                rid = RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "win-arm64" : "win-x64";
+                // No win-arm64 native runtime is shipped; Windows on ARM64 runs the win-x64 build via emulation.
+                rid = "win-x64";
             }
 
             if (string.IsNullOrEmpty(rid))
