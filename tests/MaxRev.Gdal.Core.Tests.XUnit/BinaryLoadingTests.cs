@@ -2,6 +2,7 @@ using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
 using OSGeo.OGR;
 using OSGeo.OSR;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -119,7 +120,10 @@ namespace GdalCore_XUnit
                 tasks[i] = Task.Run(() =>
                 {
                     // Maximize contention: all threads call ConfigureAll at the same instant.
-                    barrier.SignalAndWait();
+                    // Timeout prevents an indefinite hang (CI timeout) if a task dies before
+                    // reaching the barrier; instead the test fails deterministically.
+                    if (!barrier.SignalAndWait(TimeSpan.FromSeconds(30)))
+                        throw new TimeoutException("Not all threads reached the barrier within the timeout.");
                     GdalBase.ConfigureAll();
                 });
             }

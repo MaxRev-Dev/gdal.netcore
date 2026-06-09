@@ -13,6 +13,7 @@ namespace MaxRev.Gdal.Core
     {
         private static readonly object _initLock = new object();
         private static volatile bool _isConfigured;
+        private static volatile bool _isFullyConfigured;
 
         /// <summary>
         /// Shows if gdal is already initialized.
@@ -77,16 +78,22 @@ namespace MaxRev.Gdal.Core
         /// </summary>
         public static void ConfigureAll()
         {
-            if (_isConfigured)
+            // Use a dedicated flag so concurrent callers do not return on the
+            // fast-path while the first thread is still inside the lock running
+            // Proj.Configure(). _isConfigured is set by ConfigureGdalDrivers()
+            // before PROJ search paths are configured, so it cannot gate this method.
+            if (_isFullyConfigured)
                 return;
 
             lock (_initLock)
             {
-                if (_isConfigured)
+                if (_isFullyConfigured)
                     return;
 
                 ConfigureGdalDrivers();
                 Proj.Configure();
+                // set flag only after PROJ is configured
+                _isFullyConfigured = true;
             }
         }
     }
