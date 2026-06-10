@@ -135,9 +135,14 @@ namespace MaxRev.Gdal.CLI
                 throw new InvalidOperationException("Failed to start CLI tool.");
             }
 
-            var output = process.StandardOutput.ReadToEnd();
-            var error = process.StandardError.ReadToEnd();
+            // Read both streams concurrently to avoid a deadlock when one pipe buffer
+            // fills while we are blocked reading the other (mirrors RunAsync).
+            var outputTask = process.StandardOutput.ReadToEndAsync();
+            var errorTask = process.StandardError.ReadToEndAsync();
             process.WaitForExit();
+
+            var output = outputTask.GetAwaiter().GetResult();
+            var error = errorTask.GetAwaiter().GetResult();
 
             if (!string.IsNullOrWhiteSpace(output))
             {
