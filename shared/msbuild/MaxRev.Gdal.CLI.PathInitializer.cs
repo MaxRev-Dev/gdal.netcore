@@ -101,7 +101,11 @@ namespace MaxRev.Gdal.CLI
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                rid = RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "win-arm64" : "win-x64";
+                // No win-arm64 native runtime is shipped, so always use win-x64 on Windows
+                // (consistent with GdalCli.GetRuntimeRid). win-x64 natives load only in an x64
+                // process - including an x64-emulated process on Windows ARM64, but not a
+                // natively-running ARM64 process.
+                rid = "win-x64";
             }
 
             if (string.IsNullOrEmpty(rid))

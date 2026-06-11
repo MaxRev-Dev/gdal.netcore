@@ -11,10 +11,14 @@ namespace MaxRev.Gdal.Core
     /// </summary>
     public static class GdalBase
     {
+        private static readonly object _initLock = new object();
+        private static volatile bool _isConfigured;
+        private static volatile bool _isFullyConfigured;
+
         /// <summary>
         /// Shows if gdal is already initialized.
         /// </summary>
-        public static bool IsConfigured { get; private set; }
+        public static bool IsConfigured => _isConfigured;
 
         /// <summary>
         /// Enable or disable assembly validation. Set it before calling <see cref="ConfigureGdalDrivers"/>, which checks for required native libraries are available.
@@ -25,23 +29,30 @@ namespace MaxRev.Gdal.Core
 
         /// <summary>
         /// Performs search for gdalplugins and calls
-        /// <see cref="OSGeo.GDAL.Gdal.AllRegister"/> and <see cref="OSGeo.OGR.Ogr.RegisterAll"/>
+        /// <see cref="OSGeo.GDAL.Gdal.AllRegister"/> and <see cref="OSGeo.OGR.Ogr.RegisterAll"/>.
+        /// Safe to call concurrently from multiple threads.
         /// <param name="gdalDataFolder">path to set as GDAL_DATA option</param>
         /// </summary>
         public static void ConfigureGdalDrivers(string? gdalDataFolder = null)
         {
-            if (IsConfigured) 
+            if (_isConfigured)
                 return;
 
-            if (EnableRuntimeValidation) 
-                AssemblyValidator.AssertRuntimeAvailable();
+            lock (_initLock)
+            {
+                if (_isConfigured)
+                    return;
 
-            OSGeo.GDAL.Gdal.AllRegister();
-            OSGeo.OGR.Ogr.RegisterAll();
+                if (EnableRuntimeValidation)
+                    AssemblyValidator.AssertRuntimeAvailable();
 
-            ConfigureGdalData(gdalDataFolder);
-            // set flag only on success
-            IsConfigured = true;
+                OSGeo.GDAL.Gdal.AllRegister();
+                OSGeo.OGR.Ogr.RegisterAll();
+
+                ConfigureGdalData(gdalDataFolder);
+                // set flag only on success
+                _isConfigured = true;
+            }
         }
 
         /// <summary>
@@ -62,15 +73,28 @@ namespace MaxRev.Gdal.Core
         }
 
         /// <summary>
-        /// Calls <see cref="ConfigureGdalDrivers"/> and <see cref="Proj.Configure"/>
+        /// Calls <see cref="ConfigureGdalDrivers"/> and <see cref="Proj.Configure"/>.
+        /// Safe to call concurrently from multiple threads.
         /// </summary>
         public static void ConfigureAll()
         {
-            if (IsConfigured) return;
+            // Use a dedicated flag so concurrent callers do not return on the
+            // fast-path while the first thread is still inside the lock running
+            // Proj.Configure(). _isConfigured is set by ConfigureGdalDrivers()
+            // before PROJ search paths are configured, so it cannot gate this method.
+            if (_isFullyConfigured)
+                return;
 
-            ConfigureGdalDrivers();
+            lock (_initLock)
+            {
+                if (_isFullyConfigured)
+                    return;
 
-            Proj.Configure();
+                ConfigureGdalDrivers();
+                Proj.Configure();
+                // set flag only after PROJ is configured
+                _isFullyConfigured = true;
+            }
         }
     }
 }

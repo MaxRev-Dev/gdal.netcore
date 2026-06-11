@@ -2,7 +2,10 @@ using MaxRev.Gdal.Core;
 using OSGeo.GDAL;
 using OSGeo.OGR;
 using OSGeo.OSR;
+using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -103,6 +106,35 @@ namespace GdalCore_XUnit
             Assert.Contains("WGS 84", wkt2); // Web Mercator is based on WGS 84
 
             _outputHelper.WriteLine("proj.db verified through successful EPSG imports (4326, 3857)");
+        }
+
+        [Fact]
+        public async Task ConfigureAll_IsThreadSafe()
+        {
+            const int threadCount = 16;
+            using var barrier = new Barrier(threadCount);
+            var tasks = new Task[threadCount];
+
+            for (int i = 0; i < threadCount; i++)
+            {
+                tasks[i] = Task.Run(() =>
+                {
+                    // Maximize contention: all threads call ConfigureAll at the same instant.
+                    // Timeout prevents an indefinite hang (CI timeout) if a task dies before
+                    // reaching the barrier; instead the test fails deterministically.
+                    if (!barrier.SignalAndWait(TimeSpan.FromSeconds(30)))
+                        throw new TimeoutException("Not all threads reached the barrier within the timeout.");
+                    GdalBase.ConfigureAll();
+                });
+            }
+
+            // Should not throw; lock must prevent concurrent native registration.
+            await Task.WhenAll(tasks);
+
+            Assert.True(GdalBase.IsConfigured, "GdalBase.IsConfigured should be true after concurrent ConfigureAll");
+            var driverCount = Gdal.GetDriverCount();
+            Assert.True(driverCount > 0, "Drivers must remain registered after concurrent ConfigureAll calls");
+            _outputHelper.WriteLine($"Concurrent ConfigureAll completed across {threadCount} threads; {driverCount} drivers registered");
         }
 
         [Fact]

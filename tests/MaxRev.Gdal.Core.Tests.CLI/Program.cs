@@ -5,7 +5,7 @@ namespace MaxRev.Gdal.Core.Tests.CLI
 {
     internal static class Program
     {
-        private static int Main()
+        private static async Task<int> Main()
         {
             try
             {
@@ -40,6 +40,21 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                     if (exitCode != 0)
                     {
                         Console.Error.WriteLine($"{tool} failed with exit code {exitCode}");
+                        return exitCode;
+                    }
+                }
+
+                // Verify the async API returns the same successful exit codes.
+                foreach (var tool in toolsToCheck)
+                {
+                    Console.WriteLine($"Running (async) {tool} --version");
+                    var exitCode = await GdalCli.RunAsync(tool, new[] { "--version" },
+                        stdout: s => Console.WriteLine($"[GdalCli async stdout] {s}"),
+                        stderr: s => Console.Error.WriteLine($"[GdalCli async stderr] {s}"));
+
+                    if (exitCode != 0)
+                    {
+                        Console.Error.WriteLine($"{tool} (async) failed with exit code {exitCode}");
                         return exitCode;
                     }
                 }
