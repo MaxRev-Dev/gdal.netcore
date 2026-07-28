@@ -25,7 +25,12 @@ jobs:
     if: ${{ ! inputs.skip }}
     strategy:
       matrix:
-        os: [windows-latest]
+        # Pinned: windows-latest now resolves to the windows-2025-vs2026 image,
+        # which has no VS 2022, so `cmake -G "Visual Studio 17 2022"` fails. The
+        # whole Windows toolchain is tied to VS 2022 (win/partials.psm1 VS_VERSION,
+        # VS_VER, and the prebuilt release-1930-x64 SDK = v143 toolset), so moving
+        # to VS 2026 needs a real migration. windows-2025 still ships VS 2022 17.14.
+        os: [windows-2025]
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -141,7 +146,8 @@ jobs:
   TestPackages-Windows:
     strategy:
       matrix:
-        os: [windows-latest]
+        # Keep in step with BuildNugetPackages-Windows above.
+        os: [windows-2025]
     needs: BuildNugetPackages-Windows
     runs-on: ${{ matrix.os }}
     defaults:
