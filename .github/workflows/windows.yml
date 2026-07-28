@@ -19,6 +19,13 @@ on:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
+  # Fetch vcpkg assets via curl so a rate-limiting host gets real backoff.
+  # vcpkg retries 3 times in ~4s, which loses to an HTTP 429 - gitlab.dkrz.de
+  # (libaec) rejects cold CI builds on that cadence. x-block-origin is not set,
+  # so vcpkg still falls back to its own download path if this command fails.
+  # vcpkg spawns this directly, so `curl` is System32\curl.exe, not the
+  # PowerShell Invoke-WebRequest alias.
+  X_VCPKG_ASSET_SOURCES: "x-script,curl --location --fail --silent --show-error --connect-timeout 30 --retry 8 --retry-delay 15 --retry-all-errors --retry-max-time 480 --create-dirs --output {dst} {url}"
 
 jobs:
   BuildNugetPackages-Windows:

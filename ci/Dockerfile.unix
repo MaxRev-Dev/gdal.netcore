@@ -29,6 +29,15 @@ RUN gcc -dumpversion | awk -F. '{ if ($1 < 12) { print "gcc >= 12 required, got 
 # --break-system-packages: bookworm marks the system Python externally managed (PEP 668)
 RUN pip install cmake --upgrade --break-system-packages
 
+# Route vcpkg's asset downloads through curl with backoff that suits a
+# rate-limiting host. vcpkg's own retry is 3 attempts inside ~4 seconds, which
+# is hopeless against an HTTP 429 - gitlab.dkrz.de (the libaec source) rejects
+# cold CI builds on that cadence and fails the whole install. curl treats 429
+# as transient, honours Retry-After, and actually waits between attempts.
+# x-block-origin is deliberately not set, so vcpkg still falls back to its own
+# download path if this command fails.
+ENV X_VCPKG_ASSET_SOURCES="x-script,curl --location --fail --silent --show-error --connect-timeout 30 --retry 8 --retry-delay 15 --retry-all-errors --retry-max-time 480 --create-dirs --output {dst} {url}"
+
 ARG DOTNET_VERSION
 ARG DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
 
