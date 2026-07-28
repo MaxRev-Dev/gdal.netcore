@@ -32,12 +32,18 @@ jobs:
     if: ${{ ! inputs.skip }}
     strategy:
       matrix:
-        # Pinned: windows-latest now resolves to the windows-2025-vs2026 image,
-        # which has no VS 2022, so `cmake -G "Visual Studio 17 2022"` fails. The
-        # whole Windows toolchain is tied to VS 2022 (win/partials.psm1 VS_VERSION,
-        # VS_VER, and the prebuilt release-1930-x64 SDK = v143 toolset), so moving
-        # to VS 2026 needs a real migration. windows-2025 still ships VS 2022 17.14.
-        os: [windows-2025]
+        # Pinned to windows-2022: it is the only label still serving Visual
+        # Studio 2022. Both windows-latest AND windows-2025 now resolve to the
+        # windows-2025-vs2026 image (VS 18 / MSVC 14.51), where
+        # `cmake -G "Visual Studio 17 2022"` fails with "could not find any
+        # instance of Visual Studio". Note the Windows2025-Readme.md still
+        # advertises VS 2022 17.14 - it does not reflect what the label serves.
+        #
+        # The toolchain is tied to VS 2022 in several places (win/partials.psm1
+        # VS_VERSION and VS_VER, plus SDK=release-1930-x64, the GISInternals SDK
+        # prebuilt against MSVC 19.30 / v143), so adopting VS 2026 is a real
+        # migration and deserves its own change.
+        os: [windows-2022]
 
     runs-on: ${{ matrix.os }}
     defaults:
@@ -154,7 +160,7 @@ jobs:
     strategy:
       matrix:
         # Keep in step with BuildNugetPackages-Windows above.
-        os: [windows-2025]
+        os: [windows-2022]
     needs: BuildNugetPackages-Windows
     runs-on: ${{ matrix.os }}
     defaults:
