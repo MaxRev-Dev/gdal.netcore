@@ -86,6 +86,10 @@ COPY shared/vcpkg.json /build/shared/vcpkg.json
 COPY shared/vcpkg-configuration.json /build/shared/vcpkg-configuration.json
 COPY shared/vcpkg-lock.json /build/shared/vcpkg-lock.json
 COPY shared/GdalCore.opt /build/shared/
+# Needed here, not just in the later `COPY shared /build/shared`: GdalCore.opt
+# passes --overlay-ports to every vcpkg call, and vcpkg refuses to start if the
+# directory is missing.
+COPY shared/overlay-ports /build/shared/overlay-ports
 COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
 
