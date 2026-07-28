@@ -1,5 +1,5 @@
 # Builds GDAL.NETCORE on Linux
-FROM debian:11 AS base
+FROM debian:12 AS base
 LABEL org.opencontainers.image.source=https://github.com/MaxRev-Dev/gdal.netcore
 LABEL org.opencontainers.image.description="GDAL.NETCORE unix build image"
 LABEL org.opencontainers.image.licenses=MIT
@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     curl zip unzip tar git wget \
     pkg-config \
     ninja-build \
-    libtool autoconf-archive libudev-dev \
+    autoconf libtool autoconf-archive libudev-dev \
     python3 python3-pip \
     libhdf4-dev libnetcdf-dev linux-libc-dev \
     swig patchelf gettext bison flex \
@@ -17,40 +17,22 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev && \
     rm -rf /var/lib/apt/lists/* && apt-get clean
 
-# Install GCC 11 from Debian bookworm 
-RUN echo 'deb http://deb.debian.org/debian bookworm main' > /etc/apt/sources.list.d/bookworm.list && \
-    echo 'Package: *\nPin: release a=bookworm\nPin-Priority: 50\n\nPackage: gcc-11 g++-11 gcc-11-base libgcc-s1\nPin: release a=bookworm\nPin-Priority: 500' > /etc/apt/preferences.d/bookworm && \
-    apt-get update && \
-    apt-get install -y gcc-11 g++-11 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100 && \
-    rm /etc/apt/sources.list.d/bookworm.list /etc/apt/preferences.d/bookworm && \
-    apt-get update && \
-    rm -rf /var/lib/apt/lists/* && apt-get clean
-
-# Install newer autoconf (2.71) from source since Debian 11 has older version
-RUN cd /tmp && \
-    for url in \
-        https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz \
-        https://mirrors.kernel.org/gnu/autoconf/autoconf-2.71.tar.gz; do \
-        if curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors "$url" -o autoconf-2.71.tar.gz; then \
-            break; \
-        fi; \
-    done && \
-    tar -xzf autoconf-2.71.tar.gz && \
-    cd autoconf-2.71 && \
-    ./configure --prefix=/usr/local && \
-    make && make install && \
-    cd / && rm -rf /tmp/autoconf-2.71* && \
-    hash -r
+# bookworm's archive carries gcc 12 (via build-essential) and autoconf 2.71
+# (explicit in the list above), which is why the old bookworm apt-pin and the
+# autoconf-from-source build are gone. The toolchain floor is now implicit in
+# the base image tag, so assert it here - a future base bump then fails with a
+# clear message instead of deep inside an autoreconf run.
+RUN gcc -dumpversion | awk -F. '{ if ($1 < 12) { print "gcc >= 12 required, got " $0; exit 1 } }' && \
+    autoconf --version | head -1 | awk '{ if ($NF < 2.71) { print "autoconf >= 2.71 required, got " $NF; exit 1 } }'
 
 # install cmake latest
-RUN pip install cmake --upgrade
+# --break-system-packages: bookworm marks the system Python externally managed (PEP 668)
+RUN pip install cmake --upgrade --break-system-packages
 
 ARG DOTNET_VERSION
 ARG DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
 
-ENV PATH="/usr/local/bin:/usr/local/gcc-11/bin:${PATH}:/usr/share/dotnet"
+ENV PATH="/usr/local/bin:${PATH}:/usr/share/dotnet"
 # install dotnet with cache mount
 # Strip .x suffix from DOTNET_VERSION for the install script (e.g., 10.0.x -> 10.0)
 RUN --mount=type=cache,target=/tmp/dotnet-cache \

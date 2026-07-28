@@ -278,11 +278,11 @@ To start building for a specific runtime, see the **README.md** in a respective 
 ## FAQ
 
 #### Q: Packages does not work on CentOS 7, Ubuntu 18.04
-A: These are old distros and are out of support (EOL). Use docker (see [this Dockerfile](tests/MaxRev.Gdal.Core.Tests/Dockerfile) how to package your app) or a newer distro (GLIBC 2.31+). Packages for older systems are difficult to maintain. From 3.6.x version the Debian 11 distro is used. See [this](https://github.com/MaxRev-Dev/gdal.netcore/issues/87#issuecomment-1377995387) for more info.
+A: These are old distros and are out of support (EOL). Use docker (see [this Dockerfile](tests/MaxRev.Gdal.Core.Tests/Dockerfile) how to package your app) or a newer distro - the packages require **GLIBC 2.35+**, i.e. Ubuntu 22.04+ or Debian 12+. Packages for older systems are difficult to maintain. Packages are currently built on Debian 12 (Debian 11 from 3.6.x, CentOS before that). See [this](https://github.com/MaxRev-Dev/gdal.netcore/issues/87#issuecomment-1377995387) for more info.
 
 #### Q: Can I compile it on Ubuntu or another Unix-based system?
 
-A: Yes, you can (see [unix](/unix/) folder for readme). All you have to do, is to choose one of the latest distros like Ubuntu 22.04 or Debian 11 (recommended). From the 3.6.x version the Debian 11 distro is used by default. It was changed because of EOL of the previous distro (see answer above). Prior to 3.6.x version packages were built on CentOS - glibc of version 2.17. It's the lowest version [(in my opinion)](https://github.com/MaxRev-Dev/gdal.netcore/issues/1#issuecomment-522817778) that suits all common systems (Ubuntu, Debian, Fedora).
+A: Yes, you can (see [unix](/unix/) folder for readme). All you have to do, is to choose one of the latest distros like Ubuntu 22.04 or Debian 12 (recommended). The build image is currently Debian 12. It moved off Debian 11 to match the GLIBC 2.35+ floor the toolchain already required, and because Debian 11 LTS ends 2026-08-31. Prior to 3.6.x version packages were built on CentOS - glibc of version 2.17. At the time that was [(in my opinion)](https://github.com/MaxRev-Dev/gdal.netcore/issues/1#issuecomment-522817778) the lowest version that suited all common systems (Ubuntu, Debian, Fedora); that floor no longer applies.
 
 #### Q: Projections are not working as expected
 A: This package only contains the [`proj.db` database](https://proj.org/resource_files.html#proj-db). Make sure you have installed `proj-data` package. It contains aditional grid shifts and other data required for projections. Add path to your data folder with `MaxRev.Gdal.Core.Proj.Configure()`. See [this](https://proj.org/resource_files.html) for more info.

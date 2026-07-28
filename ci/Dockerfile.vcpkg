@@ -1,6 +1,6 @@
 # GDAL.NETCORE Builder - A lightweight test image for vcpkg package installations
 
-FROM debian:11 as base
+FROM debian:12 as base
 
 RUN apt-get update && apt-get install -y \
     build-essential gnupg \
@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install -y \
     swig patchelf
 
 # install cmake latest
-RUN pip install cmake --upgrade
+# --break-system-packages: bookworm marks the system Python externally managed (PEP 668)
+RUN pip install cmake --upgrade --break-system-packages
 
 # vcpkg repo (change to your local clone of vcpkg)
 COPY ci/cache*/vcpkg-archives* /vcpkg-archives/

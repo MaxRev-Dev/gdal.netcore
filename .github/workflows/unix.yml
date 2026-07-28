@@ -90,8 +90,8 @@ jobs:
             DOTNET_VERSION=${{ inputs.dotnet-version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=gdalnetcore-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'unix/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
-          cache-to: type=gha,scope=gdalnetcore-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'unix/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }},mode=max
+          cache-from: type=gha,scope=gdalnetcore-${{ matrix.arch }}-${{ hashFiles('ci/Dockerfile.unix', 'shared/GdalCore.opt', 'unix/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
+          cache-to: type=gha,scope=gdalnetcore-${{ matrix.arch }}-${{ hashFiles('ci/Dockerfile.unix', 'shared/GdalCore.opt', 'unix/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }},mode=max
 
       - name: Build and push on local runner
         uses: docker/build-push-action@v5
@@ -109,8 +109,8 @@ jobs:
             DOTNET_VERSION=${{ inputs.dotnet-version }}
             DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
             VCPKG_DEFAULT_BINARY_CACHE=/build/ci/cache/vcpkg-archives/
-          cache-from: type=gha,scope=gdalnetcore-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'unix/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
-          cache-to: type=gha,scope=gdalnetcore-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'unix/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }},mode=max
+          cache-from: type=gha,scope=gdalnetcore-${{ matrix.arch }}-${{ hashFiles('ci/Dockerfile.unix', 'shared/GdalCore.opt', 'unix/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
+          cache-to: type=gha,scope=gdalnetcore-${{ matrix.arch }}-${{ hashFiles('ci/Dockerfile.unix', 'shared/GdalCore.opt', 'unix/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }},mode=max
 
       - name: Extract artifacts
         run: |
