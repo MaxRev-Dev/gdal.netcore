@@ -37,7 +37,13 @@ VCPKG_INSTALLED_STATIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-static
 VCPKG_INSTALLED_DYNAMIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
 # triplets
 VCPKG_CUSTOM_TRIPLETS=$(VCPKG_ROOT)/custom-triplets
-VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets
+# Local port overlays. libaec is overlaid so its source comes from GitHub
+# rather than gitlab.dkrz.de, which serves CI runners HTTP 429 for minutes at
+# a time. Drop the overlay once the baseline carries the GitHub-based port
+# (libaec >= 1.1.7). Appended to the triplet overlay so that every existing
+# vcpkg invocation picks both up.
+VCPKG_OVERLAY_PORTS=--overlay-ports=$(ROOT_DIR)/shared/overlay-ports
+VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets $(VCPKG_OVERLAY_PORTS)
 VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --no-print-usage
 VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
 
