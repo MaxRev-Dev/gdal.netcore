@@ -27,7 +27,8 @@ VCPKG_ROOT=$(BUILD_ROOT)/vcpkg
 VCPKG_MANIFEST_DIR=$(ROOT_DIR)/shared
 VCPKG_MANIFEST_ROOT=$(VCPKG_MANIFEST_DIR)
 VCPKG_REPO=https://github.com/microsoft/vcpkg.git
-VCPKG_COMMIT_VER=2026.03.18
+# Jul 27, 2026 - past 2026.06.24; needed for libaec 1.1.7 (GitHub source)
+VCPKG_COMMIT_VER=9942fb5f996ea431c5ed8fb8d2a53f31d08df62e
 # Package inventory now lives in shared/vcpkg.json and shared/vcpkg-configuration.json.
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
@@ -37,9 +38,7 @@ VCPKG_INSTALLED_STATIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-static
 VCPKG_INSTALLED_DYNAMIC=$(VCPKG_ROOT)/installed/$(VCPKG_RID)-dynamic
 # triplets
 VCPKG_CUSTOM_TRIPLETS=$(VCPKG_ROOT)/custom-triplets
-# port overlays
-VCPKG_OVERLAY_PORTS=--overlay-ports=$(ROOT_DIR)/shared/overlay-ports
-VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets $(VCPKG_OVERLAY_PORTS)
+VCPKG_TRIPLETS_OVERLAY=--overlay-triplets=$(VCPKG_ROOT)/custom-triplets
 VCPKG_PARAMS_INSTALL=$(VCPKG_TRIPLETS_OVERLAY) --recurse --no-print-usage
 VCPKG_PARAMS_REMOVE=$(VCPKG_TRIPLETS_OVERLAY) --recurse
 

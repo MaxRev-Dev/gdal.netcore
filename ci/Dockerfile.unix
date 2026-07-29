@@ -77,7 +77,6 @@ COPY shared/vcpkg.json /build/shared/vcpkg.json
 COPY shared/vcpkg-configuration.json /build/shared/vcpkg-configuration.json
 COPY shared/vcpkg-lock.json /build/shared/vcpkg-lock.json
 COPY shared/GdalCore.opt /build/shared/
-COPY shared/overlay-ports /build/shared/overlay-ports
 COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
 
