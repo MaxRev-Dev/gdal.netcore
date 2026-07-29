@@ -1,19 +1,6 @@
-# Overlay of the upstream libaec port, identical to the pinned baseline
-# (vcpkg c3867e71, libaec 1.1.6) except that the source is fetched from GitHub
-# instead of gitlab.dkrz.de.
-#
-# Why: gitlab.dkrz.de answers CI runners with HTTP 429 for minutes at a time,
-# which fails the whole vcpkg install on linux-arm64 and both macOS jobs. The
-# host is fine from a normal IP, so this is rate limiting aimed at cloud CI
-# ranges; retry tuning does not get past it.
-#
-# Deutsches-Klimarechenzentrum/libaec is the same project - vcpkg upstream has
-# itself since moved this port to vcpkg_from_github against that repo. The v1.1.6
-# tag there is byte-identical in content to the GitLab archive; only the archive
-# hash differs, because GitHub and GitLab generate tarballs differently.
-#
-# Remove this overlay once the vcpkg baseline is new enough to carry the
-# GitHub-based port (libaec >= 1.1.7).
+# Baseline libaec 1.1.6 port, but fetched from GitHub: gitlab.dkrz.de returns
+# HTTP 429 for this archive. Drop once the baseline carries libaec >= 1.1.7,
+# which upstream already fetches from GitHub.
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO Deutsches-Klimarechenzentrum/libaec

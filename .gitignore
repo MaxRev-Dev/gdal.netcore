@@ -522,7 +522,6 @@ roadmap/
 .planning/
 
 # AI assistant tooling
-# Anchored to the repo root so a shared CLAUDE.md in a subdirectory is still possible
 /CLAUDE.md
 /.copilot-worktree/
 /.claude/settings.local.json

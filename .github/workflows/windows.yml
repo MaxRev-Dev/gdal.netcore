@@ -19,12 +19,9 @@ on:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet
   VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
-  # Fetch vcpkg assets via curl so a rate-limiting host gets real backoff.
-  # vcpkg retries 3 times in ~4s, which loses to an HTTP 429 - gitlab.dkrz.de
-  # (libaec) rejects cold CI builds on that cadence. x-block-origin is not set,
-  # so vcpkg still falls back to its own download path if this command fails.
-  # vcpkg spawns this directly, so `curl` is System32\curl.exe, not the
-  # PowerShell Invoke-WebRequest alias.
+  # Fetch vcpkg assets via curl; its own retry is 3 tries in ~4s, too fast for a
+  # rate-limited host. Spawned directly, so this is System32\curl.exe, not the
+  # PowerShell alias. Origin fallback stays on (no x-block-origin).
   X_VCPKG_ASSET_SOURCES: "x-script,curl --location --fail --silent --show-error --connect-timeout 30 --retry 8 --retry-delay 15 --retry-all-errors --retry-max-time 480 --create-dirs --output {dst} {url}"
 
 jobs:
@@ -32,17 +29,9 @@ jobs:
     if: ${{ ! inputs.skip }}
     strategy:
       matrix:
-        # Pinned to windows-2022: it is the only label still serving Visual
-        # Studio 2022. Both windows-latest AND windows-2025 now resolve to the
-        # windows-2025-vs2026 image (VS 18 / MSVC 14.51), where
-        # `cmake -G "Visual Studio 17 2022"` fails with "could not find any
-        # instance of Visual Studio". Note the Windows2025-Readme.md still
-        # advertises VS 2022 17.14 - it does not reflect what the label serves.
-        #
-        # The toolchain is tied to VS 2022 in several places (win/partials.psm1
-        # VS_VERSION and VS_VER, plus SDK=release-1930-x64, the GISInternals SDK
-        # prebuilt against MSVC 19.30 / v143), so adopting VS 2026 is a real
-        # migration and deserves its own change.
+        # Only label still serving VS 2022; windows-latest and windows-2025 both
+        # resolve to windows-2025-vs2026, breaking -G "Visual Studio 17 2022".
+        # VS 2026 needs a real migration (VS_VER + the v143 SDK in win/).
         os: [windows-2022]
 
     runs-on: ${{ matrix.os }}

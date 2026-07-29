@@ -13,8 +13,7 @@ RUN apt-get update && apt-get install -y \
     libhdf4-dev libnetcdf-dev linux-libc-dev \
     swig patchelf
 
-# install cmake latest
-# --break-system-packages: bookworm marks the system Python externally managed (PEP 668)
+# install cmake latest (--break-system-packages: PEP 668 on bookworm)
 RUN pip install cmake --upgrade --break-system-packages
 
 # vcpkg repo (change to your local clone of vcpkg)

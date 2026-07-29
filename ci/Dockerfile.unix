@@ -17,25 +17,16 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev && \
     rm -rf /var/lib/apt/lists/* && apt-get clean
 
-# bookworm's archive carries gcc 12 (via build-essential) and autoconf 2.71
-# (explicit in the list above), which is why the old bookworm apt-pin and the
-# autoconf-from-source build are gone. The toolchain floor is now implicit in
-# the base image tag, so assert it here - a future base bump then fails with a
-# clear message instead of deep inside an autoreconf run.
+# bookworm ships gcc 12 and autoconf 2.71, so the old apt-pin and the
+# autoconf-from-source build are gone. Assert the floor a base bump would break.
 RUN gcc -dumpversion | awk -F. '{ if ($1 < 12) { print "gcc >= 12 required, got " $0; exit 1 } }' && \
     autoconf --version | head -1 | awk '{ if ($NF < 2.71) { print "autoconf >= 2.71 required, got " $NF; exit 1 } }'
 
-# install cmake latest
-# --break-system-packages: bookworm marks the system Python externally managed (PEP 668)
+# install cmake latest (--break-system-packages: PEP 668 on bookworm)
 RUN pip install cmake --upgrade --break-system-packages
 
-# Route vcpkg's asset downloads through curl with backoff that suits a
-# rate-limiting host. vcpkg's own retry is 3 attempts inside ~4 seconds, which
-# is hopeless against an HTTP 429 - gitlab.dkrz.de (the libaec source) rejects
-# cold CI builds on that cadence and fails the whole install. curl treats 429
-# as transient, honours Retry-After, and actually waits between attempts.
-# x-block-origin is deliberately not set, so vcpkg still falls back to its own
-# download path if this command fails.
+# Fetch vcpkg assets via curl; its own retry is 3 tries in ~4s, too fast for a
+# rate-limited host. Origin fallback stays on (no x-block-origin).
 ENV X_VCPKG_ASSET_SOURCES="x-script,curl --location --fail --silent --show-error --connect-timeout 30 --retry 8 --retry-delay 15 --retry-all-errors --retry-max-time 480 --create-dirs --output {dst} {url}"
 
 ARG DOTNET_VERSION
@@ -86,9 +77,6 @@ COPY shared/vcpkg.json /build/shared/vcpkg.json
 COPY shared/vcpkg-configuration.json /build/shared/vcpkg-configuration.json
 COPY shared/vcpkg-lock.json /build/shared/vcpkg-lock.json
 COPY shared/GdalCore.opt /build/shared/
-# Needed here, not just in the later `COPY shared /build/shared`: GdalCore.opt
-# passes --overlay-ports to every vcpkg call, and vcpkg refuses to start if the
-# directory is missing.
 COPY shared/overlay-ports /build/shared/overlay-ports
 COPY unix/RID.opt /build/unix/RID.opt
 COPY unix/vcpkg-makefile /build/unix/
