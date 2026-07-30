@@ -81,9 +81,9 @@ jobs:
             !build-win/vcpkg/buildtrees/
             !build-win/vcpkg/downloads/
             !build-win/vcpkg/packages/
+          # No restore-keys on purpose: see macos.yml. Restoring build outputs
+          # by prefix mixes them with a different vcpkg baseline.
           key: builds-${{ runner.os }}-${{ hashFiles('shared/GdalCore.opt', 'win/install.ps1', 'win/functions.psm1', 'win/partials.psm1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
-          restore-keys: |
-            builds-${{ runner.os }}-
 
       # Layer 3: .NET SDK packages
       - name: Cache .NET packages
