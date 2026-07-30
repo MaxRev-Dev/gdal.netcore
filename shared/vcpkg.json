@@ -6,6 +6,10 @@
     {
       "name": "arrow",
       "version": "23.0.1"
+    },
+    {
+      "name": "expat",
+      "version": "2.7.4"
     }
   ],
   "features": {
