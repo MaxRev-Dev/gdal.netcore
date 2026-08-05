@@ -31,6 +31,12 @@ VCPKG_REPO=https://github.com/microsoft/vcpkg.git
 VCPKG_COMMIT_VER=9e593bb18ea69cc5095e012465dcd675a822ed0d
 # Package inventory now lives in shared/vcpkg.json and shared/vcpkg-configuration.json.
 
+# Oldest glibc the shipped Linux packages must keep loading on (Ubuntu 22.04).
+# The build base may be newer, so this is a support promise the build has to respect:
+# one dependency pulling in a newer symbol raises the requirement for every package.
+# Enforced per-arch by ci/check-glibc-floor.sh; it is why expat is pinned in vcpkg.json.
+GLIBC_FLOOR=2.35
+
 VCPKG_CLEANUP=buildtrees downloads packages installed
 
 VCPKG_INSTALLED=$(VCPKG_ROOT)/installed/$(VCPKG_RID)

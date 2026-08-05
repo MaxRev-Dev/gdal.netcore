@@ -117,6 +117,15 @@ jobs:
           chmod +x '${{ github.workspace }}/ci/extract-container-artifacts.sh'
           '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }} --formats --package-build --metadata --nuget
 
+      # Gates on the glibc floor in shared/GdalCore.opt before anything is uploaded,
+      # so a dependency that raises the runtime requirement fails here instead of in
+      # a user's loader. readelf reads foreign-arch ELF, so arm64 checks fine here.
+      - name: Verify GLIBC floor
+        run: |
+          chmod +x '${{ github.workspace }}/ci/check-glibc-floor.sh'
+          '${{ github.workspace }}/ci/check-glibc-floor.sh' \
+            nuget/MaxRev.Gdal.LinuxRuntime.Minimal.${{ matrix.arch }}.*.nupkg
+
       - name: Extract error artifacts (on failure)
         if: failure()
         run: |
