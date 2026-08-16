@@ -20,6 +20,7 @@ runtimes/
 gdalplugins/
 nuget/
 build-*
+out/
 libshared/
 maxrev.gdal.core.libshared/
 tmp/
