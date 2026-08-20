@@ -1,5 +1,5 @@
 # Builds GDAL.NETCORE on Linux
-FROM debian:11 AS base
+FROM debian:12 AS base
 LABEL org.opencontainers.image.source=https://github.com/MaxRev-Dev/gdal.netcore
 LABEL org.opencontainers.image.description="GDAL.NETCORE unix build image"
 LABEL org.opencontainers.image.licenses=MIT
@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     curl zip unzip tar git wget \
     pkg-config \
     ninja-build \
-    libtool autoconf-archive libudev-dev \
+    autoconf libtool autoconf-archive libudev-dev \
     python3 python3-pip \
     libhdf4-dev libnetcdf-dev linux-libc-dev \
     swig patchelf gettext bison flex \
@@ -17,40 +17,22 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev && \
     rm -rf /var/lib/apt/lists/* && apt-get clean
 
-# Install GCC 11 from Debian bookworm 
-RUN echo 'deb http://deb.debian.org/debian bookworm main' > /etc/apt/sources.list.d/bookworm.list && \
-    echo 'Package: *\nPin: release a=bookworm\nPin-Priority: 50\n\nPackage: gcc-11 g++-11 gcc-11-base libgcc-s1\nPin: release a=bookworm\nPin-Priority: 500' > /etc/apt/preferences.d/bookworm && \
-    apt-get update && \
-    apt-get install -y gcc-11 g++-11 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 100 && \
-    rm /etc/apt/sources.list.d/bookworm.list /etc/apt/preferences.d/bookworm && \
-    apt-get update && \
-    rm -rf /var/lib/apt/lists/* && apt-get clean
+# bookworm ships gcc 12 and autoconf 2.71, so the old apt-pin and the
+# autoconf-from-source build are gone. Assert the floor a base bump would break.
+RUN gcc -dumpversion | awk -F. '{ if ($1 < 12) { print "gcc >= 12 required, got " $0; exit 1 } }' && \
+    autoconf --version | head -1 | awk '{ if ($NF < 2.71) { print "autoconf >= 2.71 required, got " $NF; exit 1 } }'
 
-# Install newer autoconf (2.71) from source since Debian 11 has older version
-RUN cd /tmp && \
-    for url in \
-        https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz \
-        https://mirrors.kernel.org/gnu/autoconf/autoconf-2.71.tar.gz; do \
-        if curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors "$url" -o autoconf-2.71.tar.gz; then \
-            break; \
-        fi; \
-    done && \
-    tar -xzf autoconf-2.71.tar.gz && \
-    cd autoconf-2.71 && \
-    ./configure --prefix=/usr/local && \
-    make && make install && \
-    cd / && rm -rf /tmp/autoconf-2.71* && \
-    hash -r
+# install cmake latest (--break-system-packages: PEP 668 on bookworm)
+RUN pip install cmake --upgrade --break-system-packages
 
-# install cmake latest
-RUN pip install cmake --upgrade
+# Fetch vcpkg assets via curl; its own retry is 3 tries in ~4s, too fast for a
+# rate-limited host. Origin fallback stays on (no x-block-origin).
+ENV X_VCPKG_ASSET_SOURCES="x-script,curl --location --fail --silent --show-error --connect-timeout 30 --retry 8 --retry-delay 15 --retry-all-errors --retry-max-time 480 --create-dirs --output {dst} {url}"
 
 ARG DOTNET_VERSION
 ARG DOTNET_INSTALL_DIR=/build/ci/cache/.dotnet
 
-ENV PATH="/usr/local/bin:/usr/local/gcc-11/bin:${PATH}:/usr/share/dotnet"
+ENV PATH="/usr/local/bin:${PATH}:/usr/share/dotnet"
 # install dotnet with cache mount
 # Strip .x suffix from DOTNET_VERSION for the install script (e.g., 10.0.x -> 10.0)
 RUN --mount=type=cache,target=/tmp/dotnet-cache \

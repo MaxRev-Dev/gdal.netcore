@@ -520,3 +520,11 @@ test*.vrt
 # Planning and roadmap files
 roadmap/
 .planning/
+
+# AI assistant tooling
+/CLAUDE.md
+/.copilot-worktree/
+/.claude/settings.local.json
+
+# Local NuGet scratch output
+/NuGetScratch/

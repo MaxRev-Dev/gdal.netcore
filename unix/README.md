@@ -17,7 +17,7 @@ First of all, I wish you to be patient & bring your snacks. Compilation from scr
 > C# Bindings (aka Core) are currently build in windows
 
 ### **1. Environment**
-I'm compiling on **Debian 11 with GLIBC 2.31 (2020)**. See CI/CD pipeline for details.
+I'm compiling on **Debian 12 (2023) with GLIBC 2.36 (2022)**. Note that the build host's glibc is not the floor the artifacts require - a binary only requires the highest symbol version it actually references, which is why the packages still run on GLIBC 2.35. See CI/CD pipeline for details.
 
 ### **2. Base packages**. VCPKG and pipeline scripts won't work without them:
 
@@ -26,7 +26,7 @@ sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-head
 ```
 
 ### 3. **Install .NET**
-https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-11. 
+https://learn.microsoft.com/en-us/dotnet/core/install/linux-debian#debian-12. 
 
 ### 4. **Installing libraries**. 
 Libraries can be installed in two ways.

@@ -19,6 +19,9 @@ on:
 env:
   DOTNET_INSTALL_DIR: ${{ github.workspace }}/.dotnet/
   VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-archives/
+  # Fetch vcpkg assets via curl; its own retry is 3 tries in ~4s, too fast for a
+  # rate-limited host. Origin fallback stays on (no x-block-origin).
+  X_VCPKG_ASSET_SOURCES: "x-script,curl --location --fail --silent --show-error --connect-timeout 30 --retry 8 --retry-delay 15 --retry-all-errors --retry-max-time 480 --create-dirs --output {dst} {url}"
 
 jobs:
   BuildNugetPackages-MacOS:
@@ -78,9 +81,11 @@ jobs:
             build-osx/.build-state.json
             build-osx/.build-state-vcpkg-*.txt
             build-osx/.build-times.txt
+          # No restore-keys on purpose: these are outputs linked against a
+          # specific dependency set. A prefix fallback would mix them with a
+          # different vcpkg baseline - that is how liblzma 5.8.2 artifacts ended
+          # up beside a 5.8.3 install and hung dylibbundler on a missing dylib.
           key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/gdal-makefile', 'shared/common.mk', 'osx/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
-          restore-keys: |
-            builds-${{ matrix.os }}-${{ matrix.arch }}-
 
       # Layer 3: .NET SDK packages
       - name: Cache .NET packages
