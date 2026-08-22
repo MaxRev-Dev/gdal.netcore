@@ -203,10 +203,22 @@ jobs:
           author_email: ${{ secrets.COMMIT_EMAIL }}
           message: "List of drivers in current version [ci skip]"
           add: "${{ github.workspace }}/tests/gdal-formats/**"
-          tag: "v${{ env.PACKAGES_VERSION }} --force"
 
       - name: Push packages
         if: ${{  github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || fromJson(needs.env-context.outputs.is-version-branch) }}
         run: |
           make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
             BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
+
+      # Tagging used to ride on the add-and-commit step above, which skips tagging when
+      # there is nothing to commit. The driver list is unchanged on most releases, so
+      # that silently produced untagged published versions (3.12.4.520, 3.13.2.549).
+      # Runs after the push so a release whose packages failed to publish is not tagged.
+      - name: Tag the release build
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        working-directory: ${{ github.workspace }}
+        run: |
+          tag="v${{ env.PACKAGES_VERSION }}"
+          git tag -f "$tag" "${{ github.sha }}"
+          git push -f origin "refs/tags/$tag"
+          echo "tagged $tag at ${{ github.sha }}"

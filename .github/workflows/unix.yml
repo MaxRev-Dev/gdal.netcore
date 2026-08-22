@@ -120,11 +120,13 @@ jobs:
       # Gates on the glibc floor in shared/GdalCore.opt before anything is uploaded,
       # so a dependency that raises the runtime requirement fails here instead of in
       # a user's loader. readelf reads foreign-arch ELF, so arm64 checks fine here.
+      # Every nupkg is passed, not just the runtime one: the CLI package ships native
+      # tools (gdalinfo, ogr2ogr) and is pushed too, so it needs the same gate. Packages
+      # with no ELF inside are simply skipped.
       - name: Verify GLIBC floor
         run: |
           chmod +x '${{ github.workspace }}/ci/check-glibc-floor.sh'
-          '${{ github.workspace }}/ci/check-glibc-floor.sh' \
-            nuget/MaxRev.Gdal.LinuxRuntime.Minimal.${{ matrix.arch }}.*.nupkg
+          '${{ github.workspace }}/ci/check-glibc-floor.sh' nuget/*.nupkg
 
       - name: Extract error artifacts (on failure)
         if: failure()
