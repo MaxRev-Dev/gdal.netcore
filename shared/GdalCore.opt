@@ -34,7 +34,8 @@ VCPKG_COMMIT_VER=9e593bb18ea69cc5095e012465dcd675a822ed0d
 # Oldest glibc the shipped Linux packages must keep loading on (Ubuntu 22.04).
 # The build base may be newer, so this is a support promise the build has to respect:
 # one dependency pulling in a newer symbol raises the requirement for every package.
-# Enforced per-arch by ci/check-glibc-floor.sh; it is why expat is pinned in vcpkg.json.
+# Enforced per-arch by ci/check-glibc-floor.sh; also why vcpkg.json holds expat below
+# 2.8 (see that script's header for the actual mechanism, which is not the version).
 GLIBC_FLOOR=2.35
 
 VCPKG_CLEANUP=buildtrees downloads packages installed
