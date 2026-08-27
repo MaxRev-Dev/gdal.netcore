@@ -85,7 +85,7 @@ jobs:
           # specific dependency set. A prefix fallback would mix them with a
           # different vcpkg baseline - that is how liblzma 5.8.2 artifacts ended
           # up beside a 5.8.3 install and hung dylibbundler on a missing dylib.
-          key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('shared/GdalCore.opt', 'osx/gdal-makefile', 'shared/common.mk', 'osx/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
+          key: builds-${{ matrix.os }}-${{ matrix.arch }}-${{ hashFiles('ci/install-swig-unix.sh', 'osx/before-install.sh', 'shared/GdalCore.opt', 'osx/gdal-makefile', 'shared/common.mk', 'osx/vcpkg-makefile', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
 
       # Layer 3: .NET SDK packages
       - name: Cache .NET packages

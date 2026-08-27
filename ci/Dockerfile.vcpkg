@@ -7,11 +7,15 @@ RUN apt-get update && apt-get install -y \
     curl zip unzip tar git wget \
     pkg-config \
     ninja-build \
-    autoconf libtool autoconf-archive libudev-dev \
+    autoconf libtool autoconf-archive libudev-dev libpcre2-dev \
     python3 python3-pip \
     linux-libc-dev \
     libhdf4-dev libnetcdf-dev linux-libc-dev \
-    swig patchelf
+    patchelf
+
+COPY ci/install-swig-unix.sh /tmp/install-swig-unix.sh
+RUN chmod +x /tmp/install-swig-unix.sh && \
+    SWIG_INSTALL_PREFIX=/usr/local /tmp/install-swig-unix.sh
 
 # install cmake latest (--break-system-packages: PEP 668 on bookworm)
 RUN pip install cmake --upgrade --break-system-packages

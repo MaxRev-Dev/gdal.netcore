@@ -10,7 +10,8 @@
 ## Prerequisites
 
 1. Install [**homebrew**](https://docs.brew.sh/Installation) and [**macports**](https://www.macports.org/install.php) (for hdf4 hdf5 netcdf drivers).
-2. Install base packages with `./before-install.sh`
+2. Install base packages with `./before-install.sh`, then add the pinned SWIG to your shell:
+   `export PATH="$HOME/.local/swig-4.4.1/bin:$PATH"`
 3. Install [dotnet](https://dotnet.microsoft.com/en-us/download) to build Nuget packages
 
 ### **1. Environment**

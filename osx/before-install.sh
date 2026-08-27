@@ -4,7 +4,15 @@ set -e
 
 # requirements for CI runner
 brew install make pkg-config autoconf automake \
-    autoconf-archive swig libtool dylibbundler gsed bison
+    autoconf-archive pcre2 libtool dylibbundler gsed bison
+
+swig_prefix="${RUNNER_TEMP:-$HOME/.local}/swig-4.4.1"
+SWIG_INSTALL_PREFIX="$swig_prefix" "$(dirname "$0")/../ci/install-swig-unix.sh"
+export PATH="$swig_prefix/bin:$PATH"
+
+if [ -n "${GITHUB_PATH:-}" ]; then
+  echo "$swig_prefix/bin" >> "$GITHUB_PATH"
+fi
 
 # Install pipx without upgrading python dependencies
 brew install --ignore-dependencies pipx || python3 -m pip install --user pipx

@@ -9,13 +9,17 @@ RUN apt-get update && apt-get install -y \
     curl zip unzip tar git wget \
     pkg-config \
     ninja-build \
-    autoconf libtool autoconf-archive libudev-dev \
+    autoconf libtool autoconf-archive libudev-dev libpcre2-dev \
     python3 python3-pip \
     libhdf4-dev libnetcdf-dev linux-libc-dev \
-    swig patchelf gettext bison flex \
+    patchelf gettext bison flex \
 # required for gdal
     default-libmysqlclient-dev && \
     rm -rf /var/lib/apt/lists/* && apt-get clean
+
+COPY ci/install-swig-unix.sh /tmp/install-swig-unix.sh
+RUN chmod +x /tmp/install-swig-unix.sh && \
+    SWIG_INSTALL_PREFIX=/usr/local /tmp/install-swig-unix.sh
 
 # bookworm ships gcc 12 and autoconf 2.71, so the old apt-pin and the
 # autoconf-from-source build are gone. Assert the floor a base bump would break.

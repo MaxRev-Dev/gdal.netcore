@@ -22,7 +22,8 @@ I'm compiling on **Debian 12 (2023) with GLIBC 2.36 (2022)**. Note that the buil
 ### **2. Base packages**. VCPKG and pipeline scripts won't work without them:
 
 ```bash
-sudo apt-get install g++ make cmake git curl zip unzip tar pkg-config linux-headers-amd64 autoconf automake python3 autoconf-archive swig patchelf 
+./before-install.sh
+export PATH="$HOME/.local/swig-4.4.1/bin:$PATH"
 ```
 
 ### 3. **Install .NET**

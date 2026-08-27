@@ -180,8 +180,21 @@ function Install-PwshModuleRequirements {
         Install-Module -Name Choco -Scope CurrentUser -Force
     } 
     
-    if (!(Get-Command "swig" -ErrorAction SilentlyContinue)) {
-        exec { choco install -y --no-progress --force swig }
+    $requiredSwigVersion = "4.4.1"
+    $installedSwigVersion = if (Get-Command "swig" -ErrorAction SilentlyContinue) {
+        $versionMatch = (& swig -version | Select-String -Pattern 'SWIG Version ([0-9.]+)').Matches
+        if ($versionMatch.Count -gt 0) {
+            $versionMatch[0].Groups[1].Value
+        }
+    }
+
+    if ($installedSwigVersion -ne $requiredSwigVersion) {
+        exec { choco install -y --no-progress --force --allow-downgrade swig --version $requiredSwigVersion }
+    }
+
+    $installedSwigVersion = (& swig -version | Select-String -Pattern 'SWIG Version ([0-9.]+)').Matches[0].Groups[1].Value
+    if ($installedSwigVersion -ne $requiredSwigVersion) {
+        throw "SWIG $requiredSwigVersion is required, but $installedSwigVersion is active."
     }
 }
 
