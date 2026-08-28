@@ -6,7 +6,7 @@ set -e
 brew install make pkg-config autoconf automake \
     autoconf-archive pcre2 libtool dylibbundler gsed bison
 
-swig_prefix="${RUNNER_TEMP:-$HOME/.local}/swig-4.4.1"
+swig_prefix="${RUNNER_TEMP:-$HOME/.local}/swig"
 SWIG_INSTALL_PREFIX="$swig_prefix" "$(dirname "$0")/../ci/install-swig-unix.sh"
 export PATH="$swig_prefix/bin:$PATH"
 

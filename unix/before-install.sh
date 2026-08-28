@@ -5,7 +5,7 @@ sudo apt-get install g++ make cmake git curl \
       zip unzip tar pkg-config linux-headers-generic libltdl-dev \
       autoconf automake python3 autoconf-archive libpcre2-dev patchelf bison -y
 
-swig_prefix="${RUNNER_TEMP:-$HOME/.local}/swig-4.4.1"
+swig_prefix="${RUNNER_TEMP:-$HOME/.local}/swig"
 SWIG_INSTALL_PREFIX="$swig_prefix" "$(dirname "$0")/../ci/install-swig-unix.sh"
 export PATH="$swig_prefix/bin:$PATH"
 

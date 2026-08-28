@@ -180,7 +180,12 @@ function Install-PwshModuleRequirements {
         Install-Module -Name Choco -Scope CurrentUser -Force
     } 
     
-    $requiredSwigVersion = "4.4.1"
+    $swigLockPath = Join-Path $PSScriptRoot "../shared/swig.lock"
+    $swigLock = (Get-Content -Raw $swigLockPath).Trim() -split '\s+'
+    if ($swigLock.Count -ne 2 -or $swigLock[0] -notmatch '^\d+\.\d+\.\d+$' -or $swigLock[1] -notmatch '^[0-9a-f]{64}$') {
+        throw "Invalid SWIG lock file: $swigLockPath"
+    }
+    $requiredSwigVersion = $swigLock[0]
     $installedSwigVersion = if (Get-Command "swig" -ErrorAction SilentlyContinue) {
         $versionMatch = (& swig -version | Select-String -Pattern 'SWIG Version ([0-9.]+)').Matches
         if ($versionMatch.Count -gt 0) {

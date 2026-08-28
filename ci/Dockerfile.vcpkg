@@ -14,8 +14,9 @@ RUN apt-get update && apt-get install -y \
     patchelf
 
 COPY ci/install-swig-unix.sh /tmp/install-swig-unix.sh
+COPY shared/swig.lock /tmp/swig.lock
 RUN chmod +x /tmp/install-swig-unix.sh && \
-    SWIG_INSTALL_PREFIX=/usr/local /tmp/install-swig-unix.sh
+    SWIG_LOCK_FILE=/tmp/swig.lock SWIG_INSTALL_PREFIX=/usr/local /tmp/install-swig-unix.sh
 
 # install cmake latest (--break-system-packages: PEP 668 on bookworm)
 RUN pip install cmake --upgrade --break-system-packages

@@ -23,7 +23,7 @@ I'm compiling on **Debian 12 (2023) with GLIBC 2.36 (2022)**. Note that the buil
 
 ```bash
 ./before-install.sh
-export PATH="$HOME/.local/swig-4.4.1/bin:$PATH"
+export PATH="$HOME/.local/swig/bin:$PATH"
 ```
 
 ### 3. **Install .NET**

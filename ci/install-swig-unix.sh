@@ -2,9 +2,15 @@
 
 set -eu
 
-SWIG_VERSION=4.4.1
-SWIG_SHA256=40162a706c56f7592d08fd52ef5511cb7ac191f3593cf07306a0a554c6281fcf
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+SWIG_LOCK_FILE=${SWIG_LOCK_FILE:-"$script_dir/../shared/swig.lock"}
 SWIG_INSTALL_PREFIX=${SWIG_INSTALL_PREFIX:-/usr/local}
+
+IFS=' ' read -r SWIG_VERSION SWIG_SHA256 extra < "$SWIG_LOCK_FILE"
+if [ -n "${extra:-}" ] || ! echo "$SWIG_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || ! echo "$SWIG_SHA256" | grep -Eq '^[0-9a-f]{64}$'; then
+    echo "Invalid SWIG lock file: $SWIG_LOCK_FILE" >&2
+    exit 1
+fi
 
 work_dir=$(mktemp -d)
 trap 'rm -rf "$work_dir"' EXIT
