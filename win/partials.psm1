@@ -336,6 +336,14 @@ function Build-Gdal {
     $env:TIFF_INCLUDE_DIR = "-DTIFF_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\tiff"
     $env:TIFF_LIBRARY = "-DTIFF_LIBRARY_RELEASE=$env:VCPKG_INSTALLED\lib\tiff.lib"
 
+    # libpq must resolve from vcpkg, not from the GisInternals SDK: the SDK still
+    # ships PostgreSQL 14.0 (see issue #241). PostgreSQL_ROOT is searched ahead of
+    # CMAKE_PREFIX_PATH. Deliberately not named $env:PostgreSQL_ROOT - CMake also
+    # reads that as an environment variable and would pick up the "-D..." text.
+    # GDAL_USE_POSTGRESQL=ON below only catches "not found at all"; the packaged-DLL
+    # check after Get-CollectDeps is what catches "found the SDK copy instead".
+    $env:PG_ROOT_ARG = "-DPostgreSQL_ROOT=$env:VCPKG_INSTALLED"
+
     if (Test-WindowsBuildReuse -Component "gdal" `
             -RequiredPaths @(
                 "$env:GDAL_INSTALL_DIR\bin\gdal.dll",
@@ -409,6 +417,8 @@ function Build-Gdal {
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY `
         $env:Poppler_INCLUDE_DIR $env:Poppler_LIBRARY `
+        $env:PG_ROOT_ARG `
+        -DGDAL_USE_POSTGRESQL=ON `
         -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
         -DGDAL_CSHARP_APPS=ON `
@@ -468,6 +478,17 @@ function Build-CsharpBindings {
     exec { & nmake -f collect-deps-makefile.vc }
 
     Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
+
+    # Copy-DependentDLLs falls back to $env:SDK_PREFIX\bin, so a failed vcpkg
+    # resolution would silently repackage the SDK's PostgreSQL 14.0 libpq and CI
+    # would still pass. Refuse to ship anything but the vcpkg build (#241).
+    $vcpkgPq = "$env:VCPKG_INSTALLED\bin\libpq.dll"
+    $packagedPq = Join-Path "$outputPath" "libpq.dll"
+    if (-not (Test-Path $vcpkgPq) -or -not (Test-Path $packagedPq) -or
+        (Get-FileHash $packagedPq).Hash -ne (Get-FileHash $vcpkgPq).Hash) {
+        throw "Packaged libpq.dll is not the vcpkg build. Expected a copy of $vcpkgPq (see #241)."
+    }
+    Write-BuildStep "Verified packaged libpq.dll comes from vcpkg"
 
     Build-GenerateProjectFiles -packageVersion $packageVersion -preRelease $preRelease
 

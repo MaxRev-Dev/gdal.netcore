@@ -239,6 +239,7 @@
             "rtree"
           ]
         },
+        "libpq",
         "libiconv",
         "lz4",
         "liblzma",
