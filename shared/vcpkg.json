@@ -243,9 +243,8 @@
         "cfitsio",
         {
           "name": "hdf5",
-          "default-features": false,
           "features": [
-            "zlib"
+            "hl"
           ]
         },
         "netcdf-c",

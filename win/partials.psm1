@@ -346,13 +346,15 @@ function Build-Gdal {
 
     # HDF5, netCDF-C and CFITSIO must resolve from vcpkg, not from the GisInternals
     # SDK (see issue #246). Pin roots so the SDK copies in CMAKE_PREFIX_PATH are not
-    # picked up. HDF4 (hdf.dll, mfhdf.dll, xdr.dll, szip.dll) intentionally stays
-    # from the SDK - it has no vcpkg port.
+    # picked up. HDF4 (hdf.dll, mfhdf.dll, xdr.dll) intentionally stays from the
+    # SDK - it has no vcpkg port.
     #
-    # hdf5 is installed WITHOUT the default szip feature to avoid a DLL name clash:
-    # the SDK ships szip.dll for HDF4, and vcpkg's szip feature pulls libaec which
-    # also produces szip.dll. Keeping szip off lets HDF4 use the SDK's original
-    # szip.dll while HDF5 still compresses via zlib.
+    # hdf5 is installed WITH szip (default feature, via libaec). On MSVC, libaec
+    # produces aec.dll + szip.dll; the latter replaces the SDK's szip.dll in the
+    # package because VCPKG_INSTALLED\bin is searched before SDK_PREFIX\bin. This
+    # is safe: libaec's szip.dll is a drop-in implementing the SZ_* API that the
+    # SDK HDF4 (hdf.dll / mfhdf.dll) imports, matching what Debian does with
+    # libhdf4 + libaec.
     $env:HDF5_ROOT_ARG = "-DHDF5_ROOT=$env:VCPKG_INSTALLED"
     $env:NETCDF_ROOT_ARG = "-DnetCDF_ROOT=$env:VCPKG_INSTALLED"
     $env:CFITSIO_ROOT_ARG = "-DCFITSIO_ROOT=$env:VCPKG_INSTALLED"
@@ -511,7 +513,7 @@ function Build-CsharpBindings {
 
     # Same guard for HDF5, netCDF and CFITSIO (#246). Copy-DependentDLLs falls back
     # to SDK_PREFIX\bin, which still carries the old SDK builds.
-    foreach ($dllName in @("hdf5.dll", "hdf5_hl.dll", "netcdf.dll", "cfitsio.dll")) {
+    foreach ($dllName in @("hdf5.dll", "hdf5_hl.dll", "netcdf.dll", "cfitsio.dll", "szip.dll", "aec.dll")) {
         $vcpkgDll = "$env:VCPKG_INSTALLED\bin\$dllName"
         $packagedDll = Join-Path "$outputPath" $dllName
         if (-not (Test-Path $vcpkgDll) -or -not (Test-Path $packagedDll) -or
