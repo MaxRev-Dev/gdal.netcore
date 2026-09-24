@@ -240,6 +240,7 @@
           ]
         },
         "libpq",
+        "libmysql",
         "libiconv",
         "lz4",
         "liblzma",
