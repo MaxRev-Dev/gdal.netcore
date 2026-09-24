@@ -345,9 +345,8 @@ function Build-Gdal {
     $env:PG_ROOT_ARG = "-DPostgreSQL_ROOT=$env:VCPKG_INSTALLED"
 
     # HDF5, netCDF-C and CFITSIO must resolve from vcpkg, not from the GisInternals
-    # SDK (see issue #246). Pin roots so the SDK copies in CMAKE_PREFIX_PATH are not
-    # picked up. HDF4 (hdf.dll, mfhdf.dll, xdr.dll) intentionally stays from the
-    # SDK - it has no vcpkg port.
+    # SDK (see issue #246). HDF4 (hdf.dll, mfhdf.dll, xdr.dll) intentionally stays
+    # from the SDK - it has no vcpkg port.
     #
     # hdf5 is installed WITH szip (default feature, via libaec). On MSVC, libaec
     # produces aec.dll + szip.dll; the latter replaces the SDK's szip.dll in the
@@ -355,7 +354,13 @@ function Build-Gdal {
     # is safe: libaec's szip.dll is a drop-in implementing the SZ_* API that the
     # SDK HDF4 (hdf.dll / mfhdf.dll) imports, matching what Debian does with
     # libhdf4 + libaec.
-    $env:HDF5_ROOT_ARG = "-DHDF5_ROOT=$env:VCPKG_INSTALLED"
+    #
+    # HDF5_ROOT is deliberately NOT set: CMake's FindHDF5 with HDF5_ROOT finds the
+    # HDF5 2.x config file and reads the version, but does not populate the legacy
+    # HDF5_INCLUDE_DIRS variable, failing GDAL's configure. The linux build has the
+    # same HDF5 2.x from vcpkg and works without HDF5_ROOT, relying on
+    # CMAKE_PREFIX_PATH ordering (vcpkg is listed before the SDK). The packaged-DLL
+    # assertion below catches any accidental SDK resolution.
     $env:NETCDF_ROOT_ARG = "-DnetCDF_ROOT=$env:VCPKG_INSTALLED"
     $env:CFITSIO_ROOT_ARG = "-DCFITSIO_ROOT=$env:VCPKG_INSTALLED"
 
@@ -434,7 +439,6 @@ function Build-Gdal {
         $env:Poppler_INCLUDE_DIR $env:Poppler_LIBRARY `
         $env:PG_ROOT_ARG `
         -DGDAL_USE_POSTGRESQL=ON `
-        $env:HDF5_ROOT_ARG `
         $env:NETCDF_ROOT_ARG `
         $env:CFITSIO_ROOT_ARG `
         -DGDAL_USE_HDF5=ON `
