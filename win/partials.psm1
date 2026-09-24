@@ -344,6 +344,19 @@ function Build-Gdal {
     # check after Get-CollectDeps is what catches "found the SDK copy instead".
     $env:PG_ROOT_ARG = "-DPostgreSQL_ROOT=$env:VCPKG_INSTALLED"
 
+    # HDF5, netCDF-C and CFITSIO must resolve from vcpkg, not from the GisInternals
+    # SDK (see issue #246). Pin roots so the SDK copies in CMAKE_PREFIX_PATH are not
+    # picked up. HDF4 (hdf.dll, mfhdf.dll, xdr.dll, szip.dll) intentionally stays
+    # from the SDK - it has no vcpkg port.
+    #
+    # hdf5 is installed WITHOUT the default szip feature to avoid a DLL name clash:
+    # the SDK ships szip.dll for HDF4, and vcpkg's szip feature pulls libaec which
+    # also produces szip.dll. Keeping szip off lets HDF4 use the SDK's original
+    # szip.dll while HDF5 still compresses via zlib.
+    $env:HDF5_ROOT_ARG = "-DHDF5_ROOT=$env:VCPKG_INSTALLED"
+    $env:NETCDF_ROOT_ARG = "-DnetCDF_ROOT=$env:VCPKG_INSTALLED"
+    $env:CFITSIO_ROOT_ARG = "-DCFITSIO_ROOT=$env:VCPKG_INSTALLED"
+
     if (Test-WindowsBuildReuse -Component "gdal" `
             -RequiredPaths @(
                 "$env:GDAL_INSTALL_DIR\bin\gdal.dll",
@@ -419,6 +432,12 @@ function Build-Gdal {
         $env:Poppler_INCLUDE_DIR $env:Poppler_LIBRARY `
         $env:PG_ROOT_ARG `
         -DGDAL_USE_POSTGRESQL=ON `
+        $env:HDF5_ROOT_ARG `
+        $env:NETCDF_ROOT_ARG `
+        $env:CFITSIO_ROOT_ARG `
+        -DGDAL_USE_HDF5=ON `
+        -DGDAL_USE_NETCDF=ON `
+        -DGDAL_USE_CFITSIO=ON `
         -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
         -DGDAL_CSHARP_APPS=ON `
@@ -489,6 +508,18 @@ function Build-CsharpBindings {
         throw "Packaged libpq.dll is not the vcpkg build. Expected a copy of $vcpkgPq (see #241)."
     }
     Write-BuildStep "Verified packaged libpq.dll comes from vcpkg"
+
+    # Same guard for HDF5, netCDF and CFITSIO (#246). Copy-DependentDLLs falls back
+    # to SDK_PREFIX\bin, which still carries the old SDK builds.
+    foreach ($dllName in @("hdf5.dll", "hdf5_hl.dll", "netcdf.dll", "cfitsio.dll")) {
+        $vcpkgDll = "$env:VCPKG_INSTALLED\bin\$dllName"
+        $packagedDll = Join-Path "$outputPath" $dllName
+        if (-not (Test-Path $vcpkgDll) -or -not (Test-Path $packagedDll) -or
+            (Get-FileHash $packagedDll).Hash -ne (Get-FileHash $vcpkgDll).Hash) {
+            throw "Packaged $dllName is not the vcpkg build. Expected a copy of $vcpkgDll (see #246)."
+        }
+    }
+    Write-BuildStep "Verified packaged HDF5, netCDF and CFITSIO DLLs come from vcpkg"
 
     Build-GenerateProjectFiles -packageVersion $packageVersion -preRelease $preRelease
 

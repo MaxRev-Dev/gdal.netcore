@@ -240,6 +240,15 @@
           ]
         },
         "libpq",
+        "cfitsio",
+        {
+          "name": "hdf5",
+          "default-features": false,
+          "features": [
+            "zlib"
+          ]
+        },
+        "netcdf-c",
         "libiconv",
         "lz4",
         "liblzma",
