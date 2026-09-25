@@ -536,13 +536,21 @@ function Build-CsharpBindings {
 
     # Same guard for HDF5, netCDF and CFITSIO (#246). Copy-DependentDLLs falls back
     # to SDK_PREFIX\bin, which still carries the old SDK builds.
-    foreach ($dllName in @("hdf5.dll", "hdf5_hl.dll", "hdf5_cpp.dll", "netcdf.dll", "cfitsio.dll", "szip.dll", "aec.dll")) {
+    foreach ($dllName in @("hdf5.dll", "hdf5_hl.dll", "netcdf.dll", "cfitsio.dll", "szip.dll", "aec.dll")) {
         $vcpkgDll = "$env:VCPKG_INSTALLED\bin\$dllName"
         $packagedDll = Join-Path "$outputPath" $dllName
         if (-not (Test-Path $vcpkgDll) -or -not (Test-Path $packagedDll) -or
             (Get-FileHash $packagedDll).Hash -ne (Get-FileHash $vcpkgDll).Hash) {
             throw "Packaged $dllName is not the vcpkg build. Expected a copy of $vcpkgDll (see #246)."
         }
+    }
+    # gdal.dll links the HDF5 C++ library but imports nothing from it, so hdf5_cpp.dll
+    # is normally not collected. If it ever is, it must still be the vcpkg build.
+    $vcpkgHdf5Cpp = "$env:VCPKG_INSTALLED\bin\hdf5_cpp.dll"
+    $packagedHdf5Cpp = Join-Path "$outputPath" "hdf5_cpp.dll"
+    if ((Test-Path $packagedHdf5Cpp) -and (-not (Test-Path $vcpkgHdf5Cpp) -or
+        (Get-FileHash $packagedHdf5Cpp).Hash -ne (Get-FileHash $vcpkgHdf5Cpp).Hash)) {
+        throw "Packaged hdf5_cpp.dll is not the vcpkg build. Expected a copy of $vcpkgHdf5Cpp (see #246)."
     }
     Write-BuildStep "Verified packaged HDF5, netCDF and CFITSIO DLLs come from vcpkg"
 
