@@ -459,7 +459,6 @@ function Build-Gdal {
         -DGDAL_USE_HDF5=ON `
         -DGDAL_USE_NETCDF=ON `
         -DGDAL_USE_CFITSIO=ON `
-=======
         -DGDAL_USE_MYSQL=ON `
         -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
@@ -562,7 +561,6 @@ function Build-CsharpBindings {
         throw "Packaged hdf5_cpp.dll is not the vcpkg build. Expected a copy of $vcpkgHdf5Cpp (see #246)."
     }
     Write-BuildStep "Verified packaged HDF5, netCDF and CFITSIO DLLs come from vcpkg"
-=======
     # Same guard for libmysql: the SDK ships MySQL 8.1.0 which is flagged by
     # vulnerability scanners (see #245). Refuse anything but the vcpkg build.
     $vcpkgMysql = "$env:VCPKG_INSTALLED\bin\libmysql.dll"
