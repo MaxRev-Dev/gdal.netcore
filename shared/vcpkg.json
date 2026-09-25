@@ -249,6 +249,7 @@
           ]
         },
         "netcdf-c",
+        "libmysql",
         "libiconv",
         "lz4",
         "liblzma",

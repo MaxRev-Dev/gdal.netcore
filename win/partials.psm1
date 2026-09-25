@@ -327,7 +327,14 @@ function Build-Gdal {
     $env:PATH = "$env:BUILD_ROOT\proj-build\bin;$env:SDK_BIN;$env:PATH" 
     $env:CMAKE_INSTALL_PREFIX = "-DCMAKE_INSTALL_PREFIX=$env:GDAL_INSTALL_DIR"
     $env:PROJ_ROOT = "-DPROJ_ROOT=$env:PROJ_INSTALL_DIR"
-    $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:SDK_LIB\libmysql.lib"
+    # libmysql must resolve from vcpkg, not from the GisInternals SDK: the SDK still
+    # ships MySQL 8.1.0, an EOL "innovation" release (see issue #245). Pin both
+    # MYSQL_LIBRARY and MYSQL_INCLUDE_DIR to the vcpkg prefix so the SDK copy cannot
+    # be picked up via CMAKE_PREFIX_PATH. GDAL_USE_MYSQL=ON below only catches "not
+    # found at all"; the packaged-DLL check after Get-CollectDeps is what catches
+    # "found the SDK copy instead".
+    $env:MYSQL_LIBRARY = "-DMYSQL_LIBRARY=$env:VCPKG_INSTALLED\lib\libmysql.lib"
+    $env:MYSQL_INCLUDE_DIR_ARG = "-DMYSQL_INCLUDE_DIR=$env:VCPKG_INSTALLED\include\mysql"
     $env:WEBP_INCLUDE = "-DWEBP_INCLUDE_DIR=$env:WEBP_ROOT\include"
     $env:WEBP_LIB = "-DWEBP_LIBRARY=$env:WEBP_ROOT\lib\libwebp.lib"
 
@@ -440,7 +447,7 @@ function Build-Gdal {
         -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF `
         -DGDAL_USE_OPENEXR=OFF `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
-        $env:PROJ_ROOT $env:MYSQL_LIBRARY `
+        $env:PROJ_ROOT $env:MYSQL_LIBRARY $env:MYSQL_INCLUDE_DIR_ARG `
         $env:Poppler_INCLUDE_DIR $env:Poppler_LIBRARY `
         $env:PG_ROOT_ARG `
         -DGDAL_USE_POSTGRESQL=ON `
@@ -452,6 +459,8 @@ function Build-Gdal {
         -DGDAL_USE_HDF5=ON `
         -DGDAL_USE_NETCDF=ON `
         -DGDAL_USE_CFITSIO=ON `
+=======
+        -DGDAL_USE_MYSQL=ON `
         -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
         -DGDAL_CSHARP_APPS=ON `
@@ -553,6 +562,16 @@ function Build-CsharpBindings {
         throw "Packaged hdf5_cpp.dll is not the vcpkg build. Expected a copy of $vcpkgHdf5Cpp (see #246)."
     }
     Write-BuildStep "Verified packaged HDF5, netCDF and CFITSIO DLLs come from vcpkg"
+=======
+    # Same guard for libmysql: the SDK ships MySQL 8.1.0 which is flagged by
+    # vulnerability scanners (see #245). Refuse anything but the vcpkg build.
+    $vcpkgMysql = "$env:VCPKG_INSTALLED\bin\libmysql.dll"
+    $packagedMysql = Join-Path "$outputPath" "libmysql.dll"
+    if (-not (Test-Path $vcpkgMysql) -or -not (Test-Path $packagedMysql) -or
+        (Get-FileHash $packagedMysql).Hash -ne (Get-FileHash $vcpkgMysql).Hash) {
+        throw "Packaged libmysql.dll is not the vcpkg build. Expected a copy of $vcpkgMysql (see #245)."
+    }
+    Write-BuildStep "Verified packaged libmysql.dll comes from vcpkg"
 
     Build-GenerateProjectFiles -packageVersion $packageVersion -preRelease $preRelease
 
