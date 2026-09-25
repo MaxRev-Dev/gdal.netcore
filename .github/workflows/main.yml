@@ -152,6 +152,31 @@ jobs:
           path: nuget
           merge-multiple: true
 
+      # Per-platform bundle packages (MaxRev.Gdal.LinuxRuntime.Minimal,
+      # MaxRev.Gdal.MacosRuntime.Minimal) are built by PushPackages-Linux
+      # and PushPackages-Macos in the reusable workflows. Download them so
+      # the centralised push below publishes the complete package set.
+      - uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-unix-final
+          path: nuget
+          merge-multiple: true
+
+      - uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-osx-final
+          path: nuget
+          merge-multiple: true
+
+      # Re-download the canonical Linux-built Core last so it overwrites the
+      # copy that osx/publish-makefile (and win/) also pack under the same
+      # filename into their bundle artifacts.
+      - uses: actions/download-artifact@v6.0.0
+        with:
+          name: packages-core
+          path: nuget
+          merge-multiple: true
+
       - name: Remove old formats
         run: |
           rm -rf ${{ github.workspace }}/tests/gdal-formats
