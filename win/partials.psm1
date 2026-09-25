@@ -351,6 +351,31 @@ function Build-Gdal {
     # check after Get-CollectDeps is what catches "found the SDK copy instead".
     $env:PG_ROOT_ARG = "-DPostgreSQL_ROOT=$env:VCPKG_INSTALLED"
 
+    # HDF5, netCDF-C and CFITSIO must resolve from vcpkg, not from the GisInternals
+    # SDK (see issue #246). HDF4 (hdf.dll, mfhdf.dll, xdr.dll) intentionally stays
+    # from the SDK - it has no vcpkg port.
+    #
+    # hdf5 is installed WITH szip (default feature, via libaec) and the cpp feature
+    # (GDAL requests CXX when KEA is detected, even with GDAL_USE_KEA=OFF). On
+    # MSVC, libaec produces aec.dll + szip.dll; the latter replaces the SDK's
+    # szip.dll because VCPKG_INSTALLED\bin is searched before SDK_PREFIX\bin. This
+    # is safe: libaec's szip.dll is a drop-in implementing the SZ_* API that the
+    # SDK HDF4 (hdf.dll / mfhdf.dll) imports, matching what Debian does with
+    # libhdf4 + libaec.
+    #
+    # HDF5_ROOT restricts FindHDF5 to vcpkg. Without it, FindHDF5 mixes SDK
+    # headers (1.12.0) with vcpkg libraries (2.x) - an ABI-incompatible combination.
+    # HDF5_ROOT alone makes FindHDF5 find the 2.x config file and read the version,
+    # but HDF5 2.x's hdf5-config.cmake sets variables with a lowercase "hdf5_"
+    # prefix that FindHDF5 doesn't map to the expected uppercase "HDF5_INCLUDE_DIR",
+    # leaving HDF5_INCLUDE_DIRS empty. Pre-setting HDF5_C_INCLUDE_DIR and
+    # HDF5_CXX_INCLUDE_DIR as cache variables bypasses the broken extraction.
+    $env:HDF5_ROOT_ARG = "-DHDF5_ROOT=$env:VCPKG_INSTALLED"
+    $env:HDF5_C_INCLUDE_ARG = "-DHDF5_C_INCLUDE_DIR:PATH=$env:VCPKG_INSTALLED\include"
+    $env:HDF5_CXX_INCLUDE_ARG = "-DHDF5_CXX_INCLUDE_DIR:PATH=$env:VCPKG_INSTALLED\include"
+    $env:NETCDF_ROOT_ARG = "-DnetCDF_ROOT=$env:VCPKG_INSTALLED"
+    $env:CFITSIO_ROOT_ARG = "-DCFITSIO_ROOT=$env:VCPKG_INSTALLED"
+
     if (Test-WindowsBuildReuse -Component "gdal" `
             -RequiredPaths @(
                 "$env:GDAL_INSTALL_DIR\bin\gdal.dll",
@@ -426,6 +451,15 @@ function Build-Gdal {
         $env:Poppler_INCLUDE_DIR $env:Poppler_LIBRARY `
         $env:PG_ROOT_ARG `
         -DGDAL_USE_POSTGRESQL=ON `
+        $env:HDF5_ROOT_ARG `
+        $env:HDF5_C_INCLUDE_ARG `
+        $env:HDF5_CXX_INCLUDE_ARG `
+        $env:NETCDF_ROOT_ARG `
+        $env:CFITSIO_ROOT_ARG `
+        -DGDAL_USE_HDF5=ON `
+        -DGDAL_USE_NETCDF=ON `
+        -DGDAL_USE_CFITSIO=ON `
+=======
         -DGDAL_USE_MYSQL=ON `
         -DGDAL_USE_KEA=OFF `
         -DGDAL_USE_ZLIB_INTERNAL=ON `
@@ -436,6 +470,17 @@ function Build-Gdal {
         -DBUILD_JAVA_BINDINGS=OFF `
         -DBUILD_PYTHON_BINDINGS=OFF
 
+    # Fail early if cmake resolved any HDF5, netCDF or CFITSIO path from the SDK
+    # instead of vcpkg (#246). Catches mixed-ABI configurations that the DLL
+    # assertions alone cannot detect (e.g. SDK headers with vcpkg libraries).
+    $cacheFile = "$env:GdalCmakeBuild\CMakeCache.txt"
+    $leaked = Select-String -Path $cacheFile -Pattern "^(HDF5|netCDF|CFITSIO).*=.*$([regex]::Escape($env:SDK))" |
+        Where-Object { $_.Line -notmatch "^#" }
+    if ($leaked) {
+        $leaked | ForEach-Object { Write-BuildError $_.Line }
+        throw "CMake resolved an HDF5/netCDF/CFITSIO path from the SDK (see #246)."
+    }
+    Write-BuildStep "Verified HDF5/netCDF/CFITSIO cache entries point to vcpkg"
 
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
@@ -498,6 +543,26 @@ function Build-CsharpBindings {
     }
     Write-BuildStep "Verified packaged libpq.dll comes from vcpkg"
 
+    # Same guard for HDF5, netCDF and CFITSIO (#246). Copy-DependentDLLs falls back
+    # to SDK_PREFIX\bin, which still carries the old SDK builds.
+    foreach ($dllName in @("hdf5.dll", "hdf5_hl.dll", "netcdf.dll", "cfitsio.dll", "szip.dll", "aec.dll")) {
+        $vcpkgDll = "$env:VCPKG_INSTALLED\bin\$dllName"
+        $packagedDll = Join-Path "$outputPath" $dllName
+        if (-not (Test-Path $vcpkgDll) -or -not (Test-Path $packagedDll) -or
+            (Get-FileHash $packagedDll).Hash -ne (Get-FileHash $vcpkgDll).Hash) {
+            throw "Packaged $dllName is not the vcpkg build. Expected a copy of $vcpkgDll (see #246)."
+        }
+    }
+    # gdal.dll links the HDF5 C++ library but imports nothing from it, so hdf5_cpp.dll
+    # is normally not collected. If it ever is, it must still be the vcpkg build.
+    $vcpkgHdf5Cpp = "$env:VCPKG_INSTALLED\bin\hdf5_cpp.dll"
+    $packagedHdf5Cpp = Join-Path "$outputPath" "hdf5_cpp.dll"
+    if ((Test-Path $packagedHdf5Cpp) -and (-not (Test-Path $vcpkgHdf5Cpp) -or
+        (Get-FileHash $packagedHdf5Cpp).Hash -ne (Get-FileHash $vcpkgHdf5Cpp).Hash)) {
+        throw "Packaged hdf5_cpp.dll is not the vcpkg build. Expected a copy of $vcpkgHdf5Cpp (see #246)."
+    }
+    Write-BuildStep "Verified packaged HDF5, netCDF and CFITSIO DLLs come from vcpkg"
+=======
     # Same guard for libmysql: the SDK ships MySQL 8.1.0 which is flagged by
     # vulnerability scanners (see #245). Refuse anything but the vcpkg build.
     $vcpkgMysql = "$env:VCPKG_INSTALLED\bin\libmysql.dll"

@@ -240,6 +240,15 @@
           ]
         },
         "libpq",
+        "cfitsio",
+        {
+          "name": "hdf5",
+          "features": [
+            "cpp",
+            "hl"
+          ]
+        },
+        "netcdf-c",
         "libmysql",
         "libiconv",
         "lz4",
