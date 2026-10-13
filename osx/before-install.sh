@@ -39,8 +39,10 @@ if [ -n "${GITHUB_PATH:-}" ]; then
   echo "$swig_prefix/bin" >> "$GITHUB_PATH"
 fi
 
-# Install pipx without upgrading python dependencies
-brew install --ignore-dependencies pipx || python3 -m pip install --user pipx
+# Install pipx without upgrading python dependencies. Runner images already ship it,
+# and `brew install` on a present-but-outdated pipx upgrades it (source build on
+# Intel), so only install when it is genuinely missing.
+command -v pipx >/dev/null 2>&1 || brew install --ignore-dependencies pipx || python3 -m pip install --user pipx
 
 # issue with libtool on macOS https://github.com/Homebrew/homebrew-core/issues/180040
 brew_retry reinstall libtool
