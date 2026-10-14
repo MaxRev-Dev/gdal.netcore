@@ -10,6 +10,11 @@
     {
       "name": "expat",
       "version": "2.7.5"
+    },
+    {
+      "name": "curl",
+      "version": "8.22.0",
+      "port-version": 1
     }
   ],
   "features": {
