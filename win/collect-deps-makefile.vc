@@ -18,6 +18,9 @@ all: clean_output collect
 get-output:
 	@echo $(OUTPUT)
 
+get-tools-output:
+	@echo $(TOOLS_OUTPUT)
+
 clean_output:
 	-$(DEL_DIR) "$(OUTPUT)\"
 	-$(DEL_DIR) "$(TOOLS_OUTPUT)\"

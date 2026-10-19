@@ -3,7 +3,10 @@ using OSGeo.GDAL;
 using OSGeo.OGR;
 using OSGeo.OSR;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -135,6 +138,38 @@ namespace GdalCore_XUnit
             var driverCount = Gdal.GetDriverCount();
             Assert.True(driverCount > 0, "Drivers must remain registered after concurrent ConfigureAll calls");
             _outputHelper.WriteLine($"Concurrent ConfigureAll completed across {threadCount} threads; {driverCount} drivers registered");
+        }
+
+        [Fact]
+        public void Windows_LoadsUniquelyNamedOpenSslAndHdf5()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                _outputHelper.WriteLine("Skipped: Windows-only check");
+                return;
+            }
+
+            // The Windows runtime ships OpenSSL and HDF5 as "<name>-maxrev.dll" so a
+            // foreign same-named DLL can't satisfy gdal.dll's imports (see #253).
+            GdalBase.ConfigureAll();
+            var modules = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().ToList();
+            var gdal = modules.FirstOrDefault(m => string.Equals(m.ModuleName, "gdal.dll", StringComparison.OrdinalIgnoreCase));
+            Assert.NotNull(gdal);
+            var nativeDir = Path.GetDirectoryName(gdal.FileName);
+
+            foreach (var pattern in new[] { @"^libcrypto-\d+-x64-maxrev\.dll$", @"^libssl-\d+-x64-maxrev\.dll$", @"^hdf5-maxrev\.dll$", @"^hdf5_hl-maxrev\.dll$" })
+            {
+                var module = modules.FirstOrDefault(m => Regex.IsMatch(m.ModuleName, pattern, RegexOptions.IgnoreCase));
+                Assert.True(module != null, $"No loaded module matches {pattern}");
+                Assert.Equal(nativeDir, Path.GetDirectoryName(module.FileName), StringComparer.OrdinalIgnoreCase);
+                _outputHelper.WriteLine($"Loaded {module.FileName}");
+            }
+
+            var generic = Directory.GetFiles(nativeDir, "*.dll")
+                .Select(Path.GetFileName)
+                .Where(n => Regex.IsMatch(n, @"^(libcrypto-\d+-x64|libssl-\d+-x64|hdf5|hdf5_hl)\.dll$", RegexOptions.IgnoreCase))
+                .ToList();
+            Assert.True(generic.Count == 0, $"Generic DLL names are still packaged: {string.Join(", ", generic)}");
         }
 
         [Fact]

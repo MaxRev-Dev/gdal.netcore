@@ -50,6 +50,8 @@ If everything runs smoothly, you can use a local nuget feed to include packages 
 ### Troubleshooting dependencies:
 Use **dumpbin** or [**dependency walker**](https://www.dependencywalker.com/) to check gdal's dependencies. Please ensure the tests are passing before bringing them to prod.
 
+The packaged OpenSSL and HDF5 DLLs are renamed to `<name>-maxrev.dll` (for example `libcrypto-3-x64-maxrev.dll`, `hdf5-maxrev.dll`), and the import tables of every packaged binary are rewritten to match (`Rename-BundledConflictingDLLs` in `partials.psm1`, `PeImportRenamer.cs`). Windows binds imports by base name, so without this a same-named DLL from another application (already loaded, or found in System32/PATH) could be used instead of ours (see #253). `Confirm-PackagedDllImports` then fails the build if any packaged binary still imports a generic name or a DLL that is neither packaged nor a system DLL.
+
 Have fun)
 
 Contact me: [Telegram - MaxRev](http://t.me/maxrev)

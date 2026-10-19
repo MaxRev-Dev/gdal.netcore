@@ -571,6 +571,12 @@ function Build-CsharpBindings {
     }
     Write-BuildStep "Verified packaged libmysql.dll comes from vcpkg"
 
+    # Ship OpenSSL and HDF5 under unique names (#253). This must run after the vcpkg
+    # hash guards above: it rewrites the import tables of the DLLs they compare.
+    $toolsOutputPath = & nmake -f collect-deps-makefile.vc get-tools-output
+    Rename-BundledConflictingDLLs -nativeDir "$outputPath" -extraDirs @("$toolsOutputPath")
+    Confirm-PackagedDllImports -nativeDir "$outputPath" -extraDirs @("$toolsOutputPath")
+
     Build-GenerateProjectFiles -packageVersion $packageVersion -preRelease $preRelease
 
     Set-Location $PSScriptRoot
@@ -717,6 +723,132 @@ function Get-CollectDeps {
     Copy-DependentDLLs -dllFileInternal $dllFile -destinationDir $destinationDir -dllDirectories $dllDirectories
 
     Write-BuildInfo "All dependent DLLs have been copied to $destinationDir"
+}
+
+# Bundled DLLs whose names are common on user machines (other GIS/HDF stacks,
+# Python/conda, PostgreSQL, System32, ...). Windows binds imports by base name and
+# reuses a same-named module that is already loaded, wherever it came from, so a
+# foreign older copy can satisfy our imports and fail with "procedure could not be
+# found" (#253). These ship as "<name>-maxrev.dll" and every packaged binary imports
+# the new name. Same idea as the patchelf rename of libssl/libcrypto on Linux
+# (unix/collect-deps-makefile, #224). Patterns keep matching across version bumps;
+# Required ones must be present, so a rename that silently stops applying fails.
+$script:BundledDllRenameSuffix = "-maxrev"
+$script:BundledDllRenames = @(
+    @{ Pattern = "libcrypto-*-x64.dll"; Required = $true },
+    @{ Pattern = "libssl-*-x64.dll"; Required = $true },
+    @{ Pattern = "hdf5.dll"; Required = $true },
+    @{ Pattern = "hdf5_hl.dll"; Required = $true },
+    @{ Pattern = "hdf5_cpp.dll"; Required = $false },
+    @{ Pattern = "hdf5_hl_cpp.dll"; Required = $false }
+)
+
+function Import-PeImportRenamer {
+    if (-not ("GdalNetcore.Build.PeImportRenamer" -as [type])) {
+        Add-Type -Path (Join-Path $PSScriptRoot "PeImportRenamer.cs")
+    }
+}
+
+function Get-PackagedPeFiles {
+    param (
+        [string[]] $directories
+    )
+    $directories | Where-Object { $_ -and (Test-Path -Path $_ -PathType Container) } | ForEach-Object {
+        Get-ChildItem -Path $_ -File | Where-Object { $_.Extension -in ".dll", ".exe" }
+    }
+}
+
+function Test-GenericBundledDllName {
+    param (
+        [string] $name
+    )
+    foreach ($entry in $script:BundledDllRenames) {
+        if ($name -like $entry.Pattern) { return $true }
+    }
+    return $false
+}
+
+function Rename-BundledConflictingDLLs {
+    param (
+        [string] $nativeDir,
+        [string[]] $extraDirs = @()
+    )
+    Import-PeImportRenamer
+    Write-BuildStep "Renaming bundled OpenSSL and HDF5 DLLs to unique names (#253)"
+
+    $renames = New-Object 'System.Collections.Generic.Dictionary[string,string]' ([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($entry in $script:BundledDllRenames) {
+        $found = @(Get-ChildItem -Path $nativeDir -File -Filter $entry.Pattern |
+            Where-Object { $_.Name -like $entry.Pattern })
+        if ($found.Count -eq 0 -and $entry.Required) {
+            throw "Expected a packaged DLL matching '$($entry.Pattern)' in $nativeDir. Update `$BundledDllRenames in partials.psm1 if it was renamed upstream (see #253)."
+        }
+        foreach ($dll in $found) {
+            $renames[$dll.Name] = $dll.BaseName + $script:BundledDllRenameSuffix + $dll.Extension
+        }
+    }
+
+    foreach ($file in (Get-PackagedPeFiles -directories (@($nativeDir) + $extraDirs))) {
+        # the renamed DLL also gets its own export directory name updated
+        $exportName = if ($renames.ContainsKey($file.Name)) { $renames[$file.Name] } else { $null }
+        $changed = [GdalNetcore.Build.PeImportRenamer]::RewriteDllNames($file.FullName, $renames, $exportName)
+        if ($changed -gt 0) {
+            Write-BuildInfo "Rewrote $changed DLL name(s) in $($file.Name)"
+        }
+    }
+
+    foreach ($rename in $renames.GetEnumerator()) {
+        Move-Item -Path (Join-Path $nativeDir $rename.Key) -Destination (Join-Path $nativeDir $rename.Value) -Force
+        Write-BuildInfo "Renamed $($rename.Key) => $($rename.Value)"
+    }
+}
+
+# Guards the rename above and the dependency collection in general: every import of
+# every packaged binary must resolve to a DLL shipped in the native folder or to an
+# OS DLL, and nothing may still use the generic OpenSSL/HDF5 names.
+function Confirm-PackagedDllImports {
+    param (
+        [string] $nativeDir,
+        [string[]] $extraDirs = @()
+    )
+    Import-PeImportRenamer
+    $systemDir = [System.Environment]::SystemDirectory
+    $shipped = @{}
+    Get-ChildItem -Path $nativeDir -File -Filter "*.dll" | ForEach-Object { $shipped[$_.Name] = $true }
+
+    $failures = @()
+    foreach ($name in $shipped.Keys) {
+        if (Test-GenericBundledDllName $name) {
+            $failures += "$name is still packaged under its generic name"
+        }
+    }
+    $files = @(Get-PackagedPeFiles -directories (@($nativeDir) + $extraDirs))
+    foreach ($file in $files) {
+        foreach ($import in [GdalNetcore.Build.PeImportRenamer]::GetImportedDllNames($file.FullName)) {
+            if (Test-GenericBundledDllName $import) {
+                $failures += "$($file.Name) imports $import instead of its uniquely named copy"
+            }
+            elseif ($shipped.ContainsKey($import) -or $import -like "api-ms-win-*" -or $import -like "ext-ms-*") {
+                continue
+            }
+            elseif (Test-Path -Path (Join-Path $systemDir $import) -PathType Leaf) {
+                # VC++ redistributable DLLs are not part of Windows; they resolve here
+                # only because the build machine has the redistributable installed.
+                if ($import -match "^(vcruntime|msvcp|vcomp|concrt|vccorlib)\d+") {
+                    Write-BuildWarn "$($file.Name) imports $import, which is not packaged and only found in $systemDir"
+                }
+            }
+            else {
+                $failures += "$($file.Name) imports $import, which is neither packaged nor a system DLL"
+            }
+        }
+    }
+
+    if ($failures.Count -gt 0) {
+        $failures | ForEach-Object { Write-BuildError $_ }
+        throw "Packaged binaries have unresolved or generic DLL imports (see #253)."
+    }
+    Write-BuildStep "Verified DLL imports of $($files.Count) packaged binaries"
 }
 
 function Write-GdalFormats {
