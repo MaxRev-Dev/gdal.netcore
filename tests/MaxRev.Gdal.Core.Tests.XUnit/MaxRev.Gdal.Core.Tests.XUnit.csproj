@@ -23,9 +23,13 @@
     <ProjectReference Include="..\MaxRev.Gdal.Core.Tests.AzureFunctions\MaxRev.Gdal.Core.Tests.AzureFunctions.csproj" />
     <ProjectReference Include="..\MaxRev.Gdal.Core.Tests\MaxRev.Gdal.Core.Tests.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <!-- Compiled directly (not Add-Type'd like in the PowerShell build) so the PE
-         patching logic itself gets unit-test coverage; see PeImportRenamerTests. -->
+  <!-- Compiled directly (not Add-Type'd like in the PowerShell build) so the PE
+       patching logic itself gets unit-test coverage; see PeImportRenamerTests.
+       The Linux test container copies only tests/, so skip both when win/ is absent. -->
+  <ItemGroup Condition="Exists('..\..\win\PeImportRenamer.cs')">
     <Compile Include="..\..\win\PeImportRenamer.cs" Link="PeImportRenamer.cs" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists('..\..\win\PeImportRenamer.cs')">
+    <Compile Remove="PeImportRenamerTests.cs" />
   </ItemGroup>
 </Project>
