@@ -167,7 +167,7 @@ namespace GdalCore_XUnit
 
             var generic = Directory.GetFiles(nativeDir, "*.dll")
                 .Select(Path.GetFileName)
-                .Where(n => Regex.IsMatch(n, @"^(libcrypto-\d+-x64|libssl-\d+-x64|hdf5|hdf5_hl)\.dll$", RegexOptions.IgnoreCase))
+                .Where(n => Regex.IsMatch(n, @"^(libcrypto-\d+-x64|libssl-\d+-x64|hdf5|hdf5_hl|hdf5_cpp|hdf5_hl_cpp)\.dll$", RegexOptions.IgnoreCase))
                 .ToList();
             Assert.True(generic.Count == 0, $"Generic DLL names are still packaged: {string.Join(", ", generic)}");
         }

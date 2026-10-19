@@ -43,7 +43,7 @@ namespace GdalNetcore.Build
         private const uint NewSectionCharacteristics = 0x40000040;
 
         // IMAGE_IMPORT_DESCRIPTOR (PE Format: "Import Directory Table") is 20 bytes;
-        // Name RVA is the 3rd DWORD field.
+        // Name RVA is the 4th DWORD field (offset 12).
         private const int ImportDescriptorSize = 20;
         private const int ImportDescriptorNameOffset = 12;
 

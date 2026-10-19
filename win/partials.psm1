@@ -753,8 +753,13 @@ function Get-PackagedPeFiles {
     param (
         [string[]] $directories
     )
-    $directories | Where-Object { $_ -and (Test-Path -Path $_ -PathType Container) } | ForEach-Object {
-        Get-ChildItem -Path $_ -File | Where-Object { $_.Extension -in ".dll", ".exe" }
+    $ErrorActionPreference = 'Stop'
+    foreach ($dir in $directories) {
+        if (-not $dir) { continue }
+        if (-not (Test-Path -Path $dir -PathType Container)) {
+            throw "Expected a packaged output directory at '$dir' but it does not exist."
+        }
+        Get-ChildItem -Path $dir -File -ErrorAction Stop | Where-Object { $_.Extension -in ".dll", ".exe" }
     }
 }
 
@@ -773,12 +778,17 @@ function Rename-BundledConflictingDLLs {
         [string] $nativeDir,
         [string[]] $extraDirs = @()
     )
+    $ErrorActionPreference = 'Stop'
     Import-PeImportRenamer
     Write-BuildStep "Renaming bundled OpenSSL and HDF5 DLLs to unique names (#253)"
 
+    if (-not (Test-Path -Path $nativeDir -PathType Container)) {
+        throw "Expected a packaged output directory at '$nativeDir' but it does not exist."
+    }
+
     $renames = New-Object 'System.Collections.Generic.Dictionary[string,string]' ([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($entry in $script:BundledDllRenames) {
-        $found = @(Get-ChildItem -Path $nativeDir -File -Filter $entry.Pattern |
+        $found = @(Get-ChildItem -Path $nativeDir -File -Filter $entry.Pattern -ErrorAction Stop |
             Where-Object { $_.Name -like $entry.Pattern })
         if ($found.Count -eq 0 -and $entry.Required) {
             throw "Expected a packaged DLL matching '$($entry.Pattern)' in $nativeDir. Update `$BundledDllRenames in partials.psm1 if it was renamed upstream (see #253)."
@@ -786,6 +796,10 @@ function Rename-BundledConflictingDLLs {
         foreach ($dll in $found) {
             $renames[$dll.Name] = $dll.BaseName + $script:BundledDllRenameSuffix + $dll.Extension
         }
+    }
+
+    if ($renames.Count -eq 0) {
+        throw "No bundled OpenSSL/HDF5 DLLs matching `$BundledDllRenames were found in $nativeDir; nothing to rename (see #253)."
     }
 
     foreach ($file in (Get-PackagedPeFiles -directories (@($nativeDir) + $extraDirs))) {
@@ -798,7 +812,7 @@ function Rename-BundledConflictingDLLs {
     }
 
     foreach ($rename in $renames.GetEnumerator()) {
-        Move-Item -Path (Join-Path $nativeDir $rename.Key) -Destination (Join-Path $nativeDir $rename.Value) -Force
+        Move-Item -Path (Join-Path $nativeDir $rename.Key) -Destination (Join-Path $nativeDir $rename.Value) -Force -ErrorAction Stop
         Write-BuildInfo "Renamed $($rename.Key) => $($rename.Value)"
     }
 }
@@ -811,10 +825,14 @@ function Confirm-PackagedDllImports {
         [string] $nativeDir,
         [string[]] $extraDirs = @()
     )
+    $ErrorActionPreference = 'Stop'
     Import-PeImportRenamer
+    if (-not (Test-Path -Path $nativeDir -PathType Container)) {
+        throw "Expected a packaged output directory at '$nativeDir' but it does not exist."
+    }
     $systemDir = [System.Environment]::SystemDirectory
     $shipped = @{}
-    Get-ChildItem -Path $nativeDir -File -Filter "*.dll" | ForEach-Object { $shipped[$_.Name] = $true }
+    Get-ChildItem -Path $nativeDir -File -Filter "*.dll" -ErrorAction Stop | ForEach-Object { $shipped[$_.Name] = $true }
 
     $failures = @()
     foreach ($name in $shipped.Keys) {
@@ -823,6 +841,9 @@ function Confirm-PackagedDllImports {
         }
     }
     $files = @(Get-PackagedPeFiles -directories (@($nativeDir) + $extraDirs))
+    if ($files.Count -eq 0) {
+        throw "No packaged binaries found under $nativeDir to verify DLL imports for (see #253)."
+    }
     foreach ($file in $files) {
         foreach ($import in [GdalNetcore.Build.PeImportRenamer]::GetImportedDllNames($file.FullName)) {
             if (Test-GenericBundledDllName $import) {
