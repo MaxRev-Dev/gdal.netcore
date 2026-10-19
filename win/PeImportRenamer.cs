@@ -3,14 +3,22 @@
 //
 //  Minimal PE (Portable Executable) import-table editor, loaded by partials.psm1
 //  via Add-Type. It is the Windows counterpart of `patchelf --replace-needed` in
-//  unix/collect-deps-makefile: it lets the build ship bundled DLLs under unique
-//  names, so a foreign DLL with the same base name (already loaded in the process,
-//  or found in System32/PATH) can no longer satisfy our imports (see #253).
+//  unix/collect-deps-makefile (see also delvewheel: https://github.com/adang1345/delvewheel,
+//  which uses the same "append a section when the new name does not fit" trick for
+//  its `--mangle` option): it lets the build ship bundled DLLs under unique names,
+//  so a foreign DLL with the same base name (already loaded in the process, or
+//  found earlier in the DLL search order, e.g. System32) can no longer satisfy our
+//  imports (#253). See the Windows DLL search order docs for why the default
+//  search order makes a same-named DLL elsewhere on the machine a real risk:
+//  https://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-search-order
 //
 //  Only names are rewritten: import and delay-import descriptor DLL names, plus the
 //  export directory name of the renamed DLL itself. Names that do not fit in place
-//  go into a new read-only section appended to the image. Kept to plain C# so it
-//  compiles with Add-Type in any PowerShell host.
+//  go into a new read-only section appended to the image. Kept to plain C# 5 so it
+//  compiles with Add-Type under Windows PowerShell 5.1 as well as pwsh.
+//
+//  PE layout reference throughout: Microsoft PE Format spec,
+//  https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
 //
 using System;
 using System.Collections.Generic;
@@ -21,19 +29,62 @@ namespace GdalNetcore.Build
 {
     public static class PeImportRenamer
     {
+        // Data directory indices (PE Format: "Optional Header Data Directories").
         private const int DirExport = 0;
         private const int DirImport = 1;
-        private const int DirSecurity = 4;
+        private const int DirSecurity = 4; // certificate table (Authenticode)
         private const int DirBoundImport = 11;
         private const int DirDelayImport = 13;
+
+        // IMAGE_SECTION_HEADER (PE Format: "Section Table") is a fixed 40 bytes.
         private const int SectionHeaderSize = 40;
         private const string NewSectionName = ".dllname";
         // IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_READ
         private const uint NewSectionCharacteristics = 0x40000040;
 
+        // IMAGE_IMPORT_DESCRIPTOR (PE Format: "Import Directory Table") is 20 bytes;
+        // Name RVA is the 3rd DWORD field.
+        private const int ImportDescriptorSize = 20;
+        private const int ImportDescriptorNameOffset = 12;
+
+        // IMAGE_DELAYLOAD_DESCRIPTOR (PE Format: "Delay-Load Import Tables (Image
+        // Only)") is 32 bytes; DllNameRVA is the 2nd DWORD field.
+        private const int DelayImportDescriptorSize = 32;
+        private const int DelayImportDescriptorNameOffset = 4;
+        private const int DelayImportDescriptorAttributesOffset = 0;
+
+        // Optional header field offsets, relative to the start of the optional
+        // header (PE Format: "Optional Header Standard/Windows-Specific Fields").
+        // Common to both PE32 and PE32+:
+        private const int OptSectionAlignment = 32;
+        private const int OptFileAlignment = 36;
+        private const int OptSizeOfInitializedData = 8;
+        private const int OptSizeOfImage = 56;
+        private const int OptSizeOfHeaders = 60;
+        private const int OptCheckSum = 64;
+        // PE32+ (64-bit) has an 8-byte wider ImageBase and pushes the data
+        // directory count/array 16 bytes later than PE32.
+        private const int OptImageBase32 = 28;
+        private const int OptImageBase64 = 24;
+        private const int OptNumberOfDataDirectories32 = 92;
+        private const int OptNumberOfDataDirectories64 = 108;
+        private const int OptDataDirectories32 = 96;
+        private const int OptDataDirectories64 = 112;
+        private const int DataDirectoryEntrySize = 8; // RVA (4) + Size (4)
+
+        // COFF file header (PE Format: "COFF File Header (Object and Image)").
+        private const int CoffNumberOfSectionsOffset = 2;
+        private const int CoffSizeOfOptionalHeaderOffset = 16;
+
+        private const ushort OptionalHeaderMagicPe32 = 0x10B;
+        private const ushort OptionalHeaderMagicPe32Plus = 0x20B;
+        private const uint PeSignature = 0x00004550; // "PE\0\0"
+        private const int DosHeaderLfanewOffset = 0x3C;
+
         private sealed class Image
         {
             public byte[] Data;
+            public int CoffHeader;
             public int OptionalHeader;
             public bool Is64;
             public ulong ImageBase;
@@ -69,11 +120,37 @@ namespace GdalNetcore.Build
         /// </summary>
         public static int RewriteDllNames(string path, IDictionary<string, string> renames, string newExportName)
         {
-            var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var kv in renames) lookup[kv.Key] = kv.Value;
-
             var data = File.ReadAllBytes(path);
             var image = Load(data, path);
+
+            var edits = PlanEdits(image, path, renames, newExportName);
+            if (edits.Count == 0) return 0;
+
+            // The certificate table (PE Format: "The Attribute Certificate Table
+            // (Image Only)") covers the whole file via Authenticode; patching
+            // name bytes or the checksum would invalidate the signature.
+            if (GetDirectorySize(image, DirSecurity) != 0)
+                throw new InvalidOperationException(path + ": file is Authenticode-signed; rewriting imports would invalidate the signature.");
+
+            image = ApplyEdits(image, edits, path);
+
+            // Bound imports (PE Format: "Bound Import Table") cache addresses per
+            // DLL name; stale entries for renamed DLLs are dropped so the loader
+            // binds normally instead of trusting a cached address for the old name.
+            SetDirectory(image, DirBoundImport, 0, 0);
+
+            RecomputeChecksum(image);
+            File.WriteAllBytes(path, image.Data);
+            return edits.Count;
+        }
+
+        // ---- patch planning -------------------------------------------------
+
+        private static List<KeyValuePair<NameRef, string>> PlanEdits(
+            Image image, string path, IDictionary<string, string> renames, string newExportName)
+        {
+            var lookup = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in renames) lookup[kv.Key] = kv.Value;
 
             var edits = new List<KeyValuePair<NameRef, string>>();
             foreach (var r in GetImportRefs(image, path))
@@ -88,13 +165,15 @@ namespace GdalNetcore.Build
                 if (exportRef != null && !string.Equals(exportRef.Name, newExportName, StringComparison.Ordinal))
                     edits.Add(new KeyValuePair<NameRef, string>(exportRef, newExportName));
             }
-            if (edits.Count == 0) return 0;
+            return edits;
+        }
 
-            if (GetDirectorySize(image, DirSecurity) != 0)
-                throw new InvalidOperationException(path + ": file is Authenticode-signed; rewriting imports would invalidate the signature.");
-
-            // Same-length or shorter names are written over the old string. Longer
-            // names are collected and placed in a new section.
+        // Same-length or shorter names are written over the old string in place.
+        // Longer names do not fit in the gap after the NUL terminator (the next
+        // string in .rdata follows immediately), so they are collected and placed
+        // in a new section appended to the image.
+        private static Image ApplyEdits(Image image, List<KeyValuePair<NameRef, string>> edits, string path)
+        {
             var pending = new List<KeyValuePair<NameRef, string>>();
             foreach (var e in edits)
             {
@@ -110,45 +189,25 @@ namespace GdalNetcore.Build
                     pending.Add(e);
                 }
             }
-            if (pending.Count > 0) image = AppendNameSection(image, pending, path);
-
-            // Bound imports cache addresses per DLL name; stale entries for renamed
-            // DLLs are dropped so the loader binds normally.
-            SetDirectory(image, DirBoundImport, 0, 0);
-
-            WriteUInt32(image.Data, image.OptionalHeader + 64, ComputeChecksum(image.Data, image.OptionalHeader + 64));
-            File.WriteAllBytes(path, image.Data);
-            return edits.Count;
+            return pending.Count > 0 ? AppendNameSection(image, pending, path) : image;
         }
+
+        // ---- section append (PE Format: "Section Table (Section Headers)") -
 
         private static Image AppendNameSection(Image image, List<KeyValuePair<NameRef, string>> pending, string path)
         {
             var data = image.Data;
             int opt = image.OptionalHeader;
-            uint sectionAlignment = ReadUInt32(data, opt + 32);
-            uint fileAlignment = ReadUInt32(data, opt + 36);
-            uint sizeOfHeaders = ReadUInt32(data, opt + 60);
+            uint sectionAlignment = ReadUInt32(data, opt + OptSectionAlignment);
+            uint fileAlignment = ReadUInt32(data, opt + OptFileAlignment);
+            uint sizeOfHeaders = ReadUInt32(data, opt + OptSizeOfHeaders);
 
-            // A new section header needs 40 free (zero) bytes after the section table,
-            // inside SizeOfHeaders and before the first section's raw data.
             int newHeader = image.SectionTable + image.NumberOfSections * SectionHeaderSize;
-            uint firstRaw = sizeOfHeaders;
-            uint lastVirtualEnd = 0;
-            uint rawEnd = sizeOfHeaders;
-            for (int i = 0; i < image.NumberOfSections; i++)
-            {
-                int s = image.SectionTable + i * SectionHeaderSize;
-                uint virtualSize = ReadUInt32(data, s + 8);
-                uint virtualAddress = ReadUInt32(data, s + 12);
-                uint rawSize = ReadUInt32(data, s + 16);
-                uint rawPointer = ReadUInt32(data, s + 20);
-                if (rawSize != 0 && rawPointer < firstRaw) firstRaw = rawPointer;
-                // The loader requires sections to be virtually contiguous, so the new
-                // one starts where it maps the last one to end (VirtualSize, or the raw
-                // size when VirtualSize is 0).
-                lastVirtualEnd = Math.Max(lastVirtualEnd, virtualAddress + (virtualSize != 0 ? virtualSize : rawSize));
-                rawEnd = Math.Max(rawEnd, rawPointer + rawSize);
-            }
+            uint firstRaw, lastVirtualEnd, rawEnd;
+            ScanSections(image, sizeOfHeaders, out firstRaw, out lastVirtualEnd, out rawEnd);
+
+            // A new section header needs 40 free (zero) bytes after the section
+            // table, inside SizeOfHeaders and before the first section's raw data.
             if (newHeader + SectionHeaderSize > Math.Min(sizeOfHeaders, firstRaw))
                 throw new InvalidOperationException(path + ": no room in the PE header for an extra section.");
             for (int i = newHeader; i < newHeader + SectionHeaderSize; i++)
@@ -157,82 +216,129 @@ namespace GdalNetcore.Build
             if (data.Length > rawEnd)
                 throw new InvalidOperationException(path + ": file has trailing (overlay) data after the last section.");
 
-            // Section payload: each distinct name once, NUL-terminated.
-            var payload = new MemoryStream();
-            var nameOffsets = new Dictionary<string, int>(StringComparer.Ordinal);
-            foreach (var e in pending)
-            {
-                if (nameOffsets.ContainsKey(e.Value)) continue;
-                nameOffsets[e.Value] = (int)payload.Length;
-                var bytes = Encoding.ASCII.GetBytes(e.Value);
-                payload.Write(bytes, 0, bytes.Length);
-                payload.WriteByte(0);
-            }
+            byte[] payload;
+            Dictionary<string, int> nameOffsets;
+            BuildNamePayload(pending, out payload, out nameOffsets);
+
             uint virtualSizeNew = (uint)payload.Length;
             uint rawSizeNew = Align(virtualSizeNew, fileAlignment);
             uint rawPointerNew = Align(rawEnd, fileAlignment);
+            // The loader requires sections to be virtually contiguous, so the new
+            // one starts where the loader maps the last one to end.
             uint virtualAddressNew = Align(lastVirtualEnd, sectionAlignment);
 
             var grown = new byte[rawPointerNew + rawSizeNew];
             Buffer.BlockCopy(data, 0, grown, 0, data.Length);
-            Buffer.BlockCopy(payload.ToArray(), 0, grown, (int)rawPointerNew, (int)virtualSizeNew);
+            Buffer.BlockCopy(payload, 0, grown, (int)rawPointerNew, payload.Length);
 
-            var nameBytes = Encoding.ASCII.GetBytes(NewSectionName);
-            Buffer.BlockCopy(nameBytes, 0, grown, newHeader, Math.Min(8, nameBytes.Length));
-            WriteUInt32(grown, newHeader + 8, virtualSizeNew);
-            WriteUInt32(grown, newHeader + 12, virtualAddressNew);
-            WriteUInt32(grown, newHeader + 16, rawSizeNew);
-            WriteUInt32(grown, newHeader + 20, rawPointerNew);
-            WriteUInt32(grown, newHeader + 36, NewSectionCharacteristics);
+            WriteSectionHeader(grown, newHeader, virtualSizeNew, virtualAddressNew, rawSizeNew, rawPointerNew);
 
-            int coff = image.OptionalHeader - 20;
-            WriteUInt16(grown, coff + 2, (ushort)(image.NumberOfSections + 1));
-            WriteUInt32(grown, opt + 8, ReadUInt32(grown, opt + 8) + rawSizeNew); // SizeOfInitializedData
-            WriteUInt32(grown, opt + 56, Align(virtualAddressNew + virtualSizeNew, sectionAlignment)); // SizeOfImage
+            WriteUInt16(grown, image.CoffHeader + CoffNumberOfSectionsOffset, (ushort)(image.NumberOfSections + 1));
+            WriteUInt32(grown, opt + OptSizeOfInitializedData, ReadUInt32(grown, opt + OptSizeOfInitializedData) + rawSizeNew);
+            WriteUInt32(grown, opt + OptSizeOfImage, Align(virtualAddressNew + virtualSizeNew, sectionAlignment));
 
             image.Data = grown;
             image.NumberOfSections += 1;
+            RepointNameRefs(image, pending, nameOffsets, virtualAddressNew, path);
+            return image;
+        }
+
+        private static void ScanSections(Image image, uint sizeOfHeaders, out uint firstRaw, out uint lastVirtualEnd, out uint rawEnd)
+        {
+            var data = image.Data;
+            firstRaw = sizeOfHeaders;
+            lastVirtualEnd = 0;
+            rawEnd = sizeOfHeaders;
+            for (int i = 0; i < image.NumberOfSections; i++)
+            {
+                int s = image.SectionTable + i * SectionHeaderSize;
+                uint virtualSize = ReadUInt32(data, s + 8);
+                uint virtualAddress = ReadUInt32(data, s + 12);
+                uint rawSize = ReadUInt32(data, s + 16);
+                uint rawPointer = ReadUInt32(data, s + 20);
+                if (rawSize != 0 && rawPointer < firstRaw) firstRaw = rawPointer;
+                lastVirtualEnd = Math.Max(lastVirtualEnd, virtualAddress + (virtualSize != 0 ? virtualSize : rawSize));
+                rawEnd = Math.Max(rawEnd, rawPointer + rawSize);
+            }
+        }
+
+        // Section payload: each distinct name once, NUL-terminated.
+        private static void BuildNamePayload(List<KeyValuePair<NameRef, string>> pending, out byte[] payload, out Dictionary<string, int> nameOffsets)
+        {
+            var stream = new MemoryStream();
+            nameOffsets = new Dictionary<string, int>(StringComparer.Ordinal);
             foreach (var e in pending)
             {
-                uint rva = virtualAddressNew + (uint)nameOffsets[e.Value];
+                if (nameOffsets.ContainsKey(e.Value)) continue;
+                nameOffsets[e.Value] = (int)stream.Length;
+                var bytes = Encoding.ASCII.GetBytes(e.Value);
+                stream.Write(bytes, 0, bytes.Length);
+                stream.WriteByte(0);
+            }
+            payload = stream.ToArray();
+        }
+
+        private static void WriteSectionHeader(byte[] grown, int newHeader, uint virtualSize, uint virtualAddress, uint rawSize, uint rawPointer)
+        {
+            var nameBytes = Encoding.ASCII.GetBytes(NewSectionName);
+            Buffer.BlockCopy(nameBytes, 0, grown, newHeader, Math.Min(8, nameBytes.Length));
+            WriteUInt32(grown, newHeader + 8, virtualSize);
+            WriteUInt32(grown, newHeader + 12, virtualAddress);
+            WriteUInt32(grown, newHeader + 16, rawSize);
+            WriteUInt32(grown, newHeader + 20, rawPointer);
+            WriteUInt32(grown, newHeader + 36, NewSectionCharacteristics);
+        }
+
+        private static void RepointNameRefs(Image image, List<KeyValuePair<NameRef, string>> pending, Dictionary<string, int> nameOffsets, uint sectionRva, string path)
+        {
+            foreach (var e in pending)
+            {
+                uint rva = sectionRva + (uint)nameOffsets[e.Value];
                 if (e.Key.IsVa)
                 {
                     ulong va = image.ImageBase + rva;
                     if (va > uint.MaxValue)
                         throw new InvalidOperationException(path + ": delay-import VA does not fit in 32 bits.");
-                    WriteUInt32(grown, e.Key.FieldOffset, (uint)va);
+                    WriteUInt32(image.Data, e.Key.FieldOffset, (uint)va);
                 }
                 else
                 {
-                    WriteUInt32(grown, e.Key.FieldOffset, rva);
+                    WriteUInt32(image.Data, e.Key.FieldOffset, rva);
                 }
             }
-            return image;
         }
+
+        // ---- header parsing (PE Format: "COFF File Header", "Optional Header") -
 
         private static Image Load(byte[] data, string path)
         {
             if (data.Length < 0x40 || data[0] != 'M' || data[1] != 'Z')
                 throw new InvalidDataException(path + ": not a PE file (no MZ header).");
-            int peHeader = (int)ReadUInt32(data, 0x3C);
-            if (peHeader <= 0 || peHeader + 24 > data.Length || ReadUInt32(data, peHeader) != 0x00004550)
+            int peHeader = (int)ReadUInt32(data, DosHeaderLfanewOffset);
+            if (peHeader <= 0 || peHeader + 24 > data.Length || ReadUInt32(data, peHeader) != PeSignature)
                 throw new InvalidDataException(path + ": not a PE file (no PE signature).");
             int coff = peHeader + 4;
             int opt = coff + 20;
             ushort magic = ReadUInt16(data, opt);
-            if (magic != 0x10B && magic != 0x20B)
+            if (magic != OptionalHeaderMagicPe32 && magic != OptionalHeaderMagicPe32Plus)
                 throw new InvalidDataException(path + ": unknown optional header magic 0x" + magic.ToString("X"));
+
             var image = new Image();
             image.Data = data;
+            image.CoffHeader = coff;
             image.OptionalHeader = opt;
-            image.Is64 = magic == 0x20B;
-            image.ImageBase = image.Is64 ? ReadUInt64(data, opt + 24) : ReadUInt32(data, opt + 28);
-            image.NumberOfSections = ReadUInt16(data, coff + 2);
-            image.SectionTable = opt + ReadUInt16(data, coff + 16);
-            image.DataDirectories = opt + (image.Is64 ? 112 : 96);
-            image.NumberOfDataDirectories = (int)ReadUInt32(data, opt + (image.Is64 ? 108 : 92));
+            image.Is64 = magic == OptionalHeaderMagicPe32Plus;
+            image.ImageBase = image.Is64 ? ReadUInt64(data, opt + OptImageBase64) : ReadUInt32(data, opt + OptImageBase32);
+            image.NumberOfSections = ReadUInt16(data, coff + CoffNumberOfSectionsOffset);
+            image.SectionTable = opt + ReadUInt16(data, coff + CoffSizeOfOptionalHeaderOffset);
+            image.DataDirectories = opt + (image.Is64 ? OptDataDirectories64 : OptDataDirectories32);
+            image.NumberOfDataDirectories = (int)ReadUInt32(data, opt + (image.Is64 ? OptNumberOfDataDirectories64 : OptNumberOfDataDirectories32));
             return image;
         }
+
+        // ---- import / delay-import / export enumeration (PE Format: "Import
+        // Directory Table", "Delay-Load Import Tables (Image Only)", "Export
+        // Directory Table") -------------------------------------------------
 
         private static List<NameRef> GetImportRefs(Image image, string path)
         {
@@ -240,26 +346,25 @@ namespace GdalNetcore.Build
             uint importRva = GetDirectoryRva(image, DirImport);
             if (importRva != 0)
             {
-                // IMAGE_IMPORT_DESCRIPTOR (20 bytes), Name RVA at +12; zero-terminated.
-                for (int d = RvaToOffset(image, importRva, path); ; d += 20)
+                for (int d = RvaToOffset(image, importRva, path); ; d += ImportDescriptorSize)
                 {
-                    uint nameRva = ReadUInt32(image.Data, d + 12);
-                    if (nameRva == 0 && ReadUInt32(image.Data, d + 16) == 0) break;
-                    refs.Add(new NameRef { FieldOffset = d + 12, IsVa = false, Name = ReadName(image, nameRva, path) });
+                    uint nameRva = ReadUInt32(image.Data, d + ImportDescriptorNameOffset);
+                    if (nameRva == 0 && ReadUInt32(image.Data, d + 16) == 0) break; // null descriptor terminates the array
+                    refs.Add(new NameRef { FieldOffset = d + ImportDescriptorNameOffset, IsVa = false, Name = ReadName(image, nameRva, path) });
                 }
             }
             uint delayRva = GetDirectoryRva(image, DirDelayImport);
             if (delayRva != 0)
             {
-                // IMAGE_DELAYLOAD_DESCRIPTOR (32 bytes), DllNameRVA at +4. Attribute
-                // bit 0 clear means the old VC6 format that stores VAs, not RVAs.
-                for (int d = RvaToOffset(image, delayRva, path); ; d += 32)
+                for (int d = RvaToOffset(image, delayRva, path); ; d += DelayImportDescriptorSize)
                 {
-                    uint nameField = ReadUInt32(image.Data, d + 4);
-                    if (nameField == 0) break;
-                    bool isVa = (ReadUInt32(image.Data, d) & 1) == 0;
+                    uint nameField = ReadUInt32(image.Data, d + DelayImportDescriptorNameOffset);
+                    if (nameField == 0) break; // null descriptor terminates the array
+                    // Attribute bit 0 clear means the legacy VC6 format that stores
+                    // VAs instead of RVAs in the descriptor fields.
+                    bool isVa = (ReadUInt32(image.Data, d + DelayImportDescriptorAttributesOffset) & 1) == 0;
                     uint nameRva = isVa ? (uint)(nameField - image.ImageBase) : nameField;
-                    refs.Add(new NameRef { FieldOffset = d + 4, IsVa = isVa, Name = ReadName(image, nameRva, path) });
+                    refs.Add(new NameRef { FieldOffset = d + DelayImportDescriptorNameOffset, IsVa = isVa, Name = ReadName(image, nameRva, path) });
                 }
             }
             return refs;
@@ -269,6 +374,7 @@ namespace GdalNetcore.Build
         {
             uint exportRva = GetDirectoryRva(image, DirExport);
             if (exportRva == 0) return null;
+            // IMAGE_EXPORT_DIRECTORY.Name RVA is the 4th DWORD field (offset 12).
             int field = RvaToOffset(image, exportRva, path) + 12;
             uint nameRva = ReadUInt32(image.Data, field);
             if (nameRva == 0) return null;
@@ -281,29 +387,31 @@ namespace GdalNetcore.Build
             return r.IsVa ? (uint)(value - image.ImageBase) : value;
         }
 
+        // ---- data directory and RVA/offset helpers -------------------------
+
         private static uint GetDirectoryRva(Image image, int index)
         {
             if (index >= image.NumberOfDataDirectories) return 0;
-            return ReadUInt32(image.Data, image.DataDirectories + index * 8);
+            return ReadUInt32(image.Data, image.DataDirectories + index * DataDirectoryEntrySize);
         }
 
         private static uint GetDirectorySize(Image image, int index)
         {
             if (index >= image.NumberOfDataDirectories) return 0;
-            return ReadUInt32(image.Data, image.DataDirectories + index * 8 + 4);
+            return ReadUInt32(image.Data, image.DataDirectories + index * DataDirectoryEntrySize + 4);
         }
 
         private static void SetDirectory(Image image, int index, uint rva, uint size)
         {
             if (index >= image.NumberOfDataDirectories) return;
-            WriteUInt32(image.Data, image.DataDirectories + index * 8, rva);
-            WriteUInt32(image.Data, image.DataDirectories + index * 8 + 4, size);
+            WriteUInt32(image.Data, image.DataDirectories + index * DataDirectoryEntrySize, rva);
+            WriteUInt32(image.Data, image.DataDirectories + index * DataDirectoryEntrySize + 4, size);
         }
 
         private static int RvaToOffset(Image image, uint rva, string path)
         {
             var data = image.Data;
-            if (rva < ReadUInt32(data, image.OptionalHeader + 60)) return (int)rva;
+            if (rva < ReadUInt32(data, image.OptionalHeader + OptSizeOfHeaders)) return (int)rva;
             for (int i = 0; i < image.NumberOfSections; i++)
             {
                 int s = image.SectionTable + i * SectionHeaderSize;
@@ -329,6 +437,14 @@ namespace GdalNetcore.Build
             return Encoding.ASCII.GetString(image.Data, start, end - start);
         }
 
+        // ---- checksum (PE Format: "The .debug Section", CheckSum field of the
+        // optional header; algorithm matches imagehlp!CheckSumMappedFile) -----
+
+        private static void RecomputeChecksum(Image image)
+        {
+            WriteUInt32(image.Data, image.OptionalHeader + OptCheckSum, ComputeChecksum(image.Data, image.OptionalHeader + OptCheckSum));
+        }
+
         // Same algorithm as imagehlp!CheckSumMappedFile: 16-bit one's complement sum
         // of the file with the CheckSum field treated as zero, plus the file length.
         private static uint ComputeChecksum(byte[] data, int checksumOffset)
@@ -345,6 +461,8 @@ namespace GdalNetcore.Build
             sum = (sum & 0xFFFF) + (sum >> 16);
             return (uint)(sum + (ulong)data.Length);
         }
+
+        // ---- primitive read/write helpers -----------------------------------
 
         private static uint Align(uint value, uint alignment)
         {
