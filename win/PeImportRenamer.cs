@@ -144,7 +144,7 @@ namespace GdalNetcore.Build
             return edits.Count;
         }
 
-        // ---- patch planning -------------------------------------------------
+        // patch planning
 
         private static List<KeyValuePair<NameRef, string>> PlanEdits(
             Image image, string path, IDictionary<string, string> renames, string newExportName)
@@ -192,7 +192,7 @@ namespace GdalNetcore.Build
             return pending.Count > 0 ? AppendNameSection(image, pending, path) : image;
         }
 
-        // ---- section append (PE Format: "Section Table (Section Headers)") -
+        // section append (PE Format: "Section Table (Section Headers)")
 
         private static Image AppendNameSection(Image image, List<KeyValuePair<NameRef, string>> pending, string path)
         {
@@ -308,7 +308,7 @@ namespace GdalNetcore.Build
             }
         }
 
-        // ---- header parsing (PE Format: "COFF File Header", "Optional Header") -
+        // header parsing (PE Format: "COFF File Header", "Optional Header")
 
         private static Image Load(byte[] data, string path)
         {
@@ -336,9 +336,9 @@ namespace GdalNetcore.Build
             return image;
         }
 
-        // ---- import / delay-import / export enumeration (PE Format: "Import
+        // import / delay-import / export enumeration (PE Format: "Import
         // Directory Table", "Delay-Load Import Tables (Image Only)", "Export
-        // Directory Table") -------------------------------------------------
+        // Directory Table")
 
         private static List<NameRef> GetImportRefs(Image image, string path)
         {
@@ -387,7 +387,7 @@ namespace GdalNetcore.Build
             return r.IsVa ? (uint)(value - image.ImageBase) : value;
         }
 
-        // ---- data directory and RVA/offset helpers -------------------------
+        // data directory and RVA/offset helpers
 
         private static uint GetDirectoryRva(Image image, int index)
         {
@@ -437,8 +437,8 @@ namespace GdalNetcore.Build
             return Encoding.ASCII.GetString(image.Data, start, end - start);
         }
 
-        // ---- checksum (PE Format: "The .debug Section", CheckSum field of the
-        // optional header; algorithm matches imagehlp!CheckSumMappedFile) -----
+        // checksum (PE Format: "The .debug Section", CheckSum field of the
+        // optional header; algorithm matches imagehlp!CheckSumMappedFile)
 
         private static void RecomputeChecksum(Image image)
         {
@@ -462,7 +462,7 @@ namespace GdalNetcore.Build
             return (uint)(sum + (ulong)data.Length);
         }
 
-        // ---- primitive read/write helpers -----------------------------------
+        // primitive read/write helpers
 
         private static uint Align(uint value, uint alignment)
         {
