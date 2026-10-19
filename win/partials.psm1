@@ -571,10 +571,10 @@ function Build-CsharpBindings {
     }
     Write-BuildStep "Verified packaged libmysql.dll comes from vcpkg"
 
-    # Ship OpenSSL and HDF5 under unique names (#253). This must run after the vcpkg
-    # hash guards above: it rewrites the import tables of the DLLs they compare.
+    # Ship bundled third-party DLLs under unique names (#253). This must run after the
+    # vcpkg hash guards above: it rewrites the import tables of the DLLs they compare.
     $toolsOutputPath = & nmake -f collect-deps-makefile.vc get-tools-output
-    Rename-BundledConflictingDLLs -nativeDir "$outputPath" -extraDirs @("$toolsOutputPath")
+    Rename-BundledDLLs -nativeDir "$outputPath" -extraDirs @("$toolsOutputPath")
     Confirm-PackagedDllImports -nativeDir "$outputPath" -extraDirs @("$toolsOutputPath")
 
     Build-GenerateProjectFiles -packageVersion $packageVersion -preRelease $preRelease
@@ -725,22 +725,34 @@ function Get-CollectDeps {
     Write-BuildInfo "All dependent DLLs have been copied to $destinationDir"
 }
 
-# Bundled DLLs whose names are common on user machines (other GIS/HDF stacks,
-# Python/conda, PostgreSQL, System32, ...). Windows binds imports by base name and
+# Every bundled third-party DLL ships as "<name>-maxrev.dll" and every packaged
+# binary imports the new names (#253). Windows binds imports by base name and
 # reuses a same-named module that is already loaded, wherever it came from, so a
-# foreign older copy can satisfy our imports and fail with "procedure could not be
-# found" (#253). These ship as "<name>-maxrev.dll" and every packaged binary imports
-# the new name. Same idea as the patchelf rename of libssl/libcrypto on Linux
-# (unix/collect-deps-makefile, #224). Patterns keep matching across version bumps;
-# Required ones must be present, so a rename that silently stops applying fails.
+# foreign copy of e.g. zlib.dll, sqlite3.dll or libcrypto-3-x64.dll (other GIS/HDF
+# stacks, Python/conda, PostgreSQL, System32, ...) could otherwise satisfy our
+# imports and fail with "procedure could not be found". Unique names also keep our
+# DLLs from overwriting, or being overwritten by, same-named DLLs of other NuGet
+# packages in the shared runtimes/win-x64/native output folder (#9). Same idea as
+# the patchelf rename of libssl/libcrypto on Linux (unix/collect-deps-makefile,
+# #224), applied to all DLLs because on Windows any already-loaded module with the
+# same base name wins.
+#
+# Kept under their original names (patterns below):
+#   gdal.dll          imported by the *_wrap.dll and P/Invoked by name by consumers
+#   *_wrap.dll        SWIG bindings, DllImport'ed by name from the managed assemblies
+#   VC++ runtime      Microsoft-signed redistributable, meant to be shared
+#   msodbcsql*.dll    Microsoft-signed ODBC driver
+#   OpenCL.dll        ICD loader, normally provided by the OS or GPU driver
+# Any other Authenticode-signed DLL keeps its name too (patching it would break the
+# signature). DLLs in subdirectories (e.g. gdalplugins) are loaded by path at
+# runtime, so they keep their names but still get their imports rewritten.
 $script:BundledDllRenameSuffix = "-maxrev"
-$script:BundledDllRenames = @(
-    @{ Pattern = "libcrypto-*-x64.dll"; Required = $true },
-    @{ Pattern = "libssl-*-x64.dll"; Required = $true },
-    @{ Pattern = "hdf5.dll"; Required = $true },
-    @{ Pattern = "hdf5_hl.dll"; Required = $true },
-    @{ Pattern = "hdf5_cpp.dll"; Required = $false },
-    @{ Pattern = "hdf5_hl_cpp.dll"; Required = $false }
+$script:BundledDllKeepPatterns = @(
+    "gdal.dll",
+    "*_wrap.dll",
+    "vcruntime*.dll", "msvcp*.dll", "concrt*.dll", "vccorlib*.dll", "vcomp*.dll",
+    "msodbcsql*.dll",
+    "OpenCL.dll"
 )
 
 function Import-PeImportRenamer {
@@ -749,6 +761,7 @@ function Import-PeImportRenamer {
     }
 }
 
+# All DLLs and EXEs under the given directories, including subdirectories.
 function Get-PackagedPeFiles {
     param (
         [string[]] $directories
@@ -759,67 +772,115 @@ function Get-PackagedPeFiles {
         if (-not (Test-Path -Path $dir -PathType Container)) {
             throw "Expected a packaged output directory at '$dir' but it does not exist."
         }
-        Get-ChildItem -Path $dir -File -ErrorAction Stop | Where-Object { $_.Extension -in ".dll", ".exe" }
+        Get-ChildItem -Path $dir -File -Recurse -ErrorAction Stop | Where-Object { $_.Extension -in ".dll", ".exe" }
     }
 }
 
-function Test-GenericBundledDllName {
+# DLLs at the top level of the native folder: the ones the loader resolves imports against.
+function Get-TopLevelPackagedDlls {
+    param (
+        [string] $nativeDir
+    )
+    $ErrorActionPreference = 'Stop'
+    if (-not (Test-Path -Path $nativeDir -PathType Container)) {
+        throw "Expected a packaged output directory at '$nativeDir' but it does not exist."
+    }
+    Get-ChildItem -Path $nativeDir -File -ErrorAction Stop | Where-Object { $_.Extension -eq ".dll" }
+}
+
+function Test-KeptBundledDllName {
     param (
         [string] $name
     )
-    foreach ($entry in $script:BundledDllRenames) {
-        if ($name -like $entry.Pattern) { return $true }
+    foreach ($pattern in $script:BundledDllKeepPatterns) {
+        if ($name -like $pattern) { return $true }
     }
     return $false
 }
 
-function Rename-BundledConflictingDLLs {
+# Maps the original name of every bundled DLL that is (or was already) renamed to
+# its unique name. Works on a freshly collected folder as well as on one that was
+# already processed, so Confirm-PackagedDllImports can use it after the rename.
+function Get-BundledDllRenames {
+    param (
+        [string] $nativeDir
+    )
+    $ErrorActionPreference = 'Stop'
+    Import-PeImportRenamer
+    $dlls = @(Get-TopLevelPackagedDlls -nativeDir $nativeDir)
+    if (-not ($dlls | Where-Object { $_.Name -eq "gdal.dll" })) {
+        throw "Expected gdal.dll in $nativeDir; refusing to rename bundled DLLs of an incomplete package (see #253)."
+    }
+    $suffix = $script:BundledDllRenameSuffix
+    $renames = New-Object 'System.Collections.Generic.Dictionary[string,string]' ([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($dll in $dlls) {
+        if (Test-KeptBundledDllName $dll.Name) { continue }
+        $base = $dll.BaseName
+        if ($base.EndsWith($suffix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            $base = $base.Substring(0, $base.Length - $suffix.Length)
+        }
+        elseif ([GdalNetcore.Build.PeImportRenamer]::IsAuthenticodeSigned($dll.FullName)) {
+            continue
+        }
+        $renames[$base + $dll.Extension] = $base + $suffix + $dll.Extension
+    }
+    if ($renames.Count -eq 0) {
+        throw "No bundled third-party DLLs to rename were found in $nativeDir (see #253)."
+    }
+    return , $renames
+}
+
+function Rename-BundledDLLs {
     param (
         [string] $nativeDir,
         [string[]] $extraDirs = @()
     )
     $ErrorActionPreference = 'Stop'
     Import-PeImportRenamer
-    Write-BuildStep "Renaming bundled OpenSSL and HDF5 DLLs to unique names (#253)"
+    Write-BuildStep "Renaming bundled third-party DLLs to unique names (#253)"
 
-    if (-not (Test-Path -Path $nativeDir -PathType Container)) {
-        throw "Expected a packaged output directory at '$nativeDir' but it does not exist."
-    }
+    $renames = Get-BundledDllRenames -nativeDir $nativeDir
+    $renamedNames = New-Object 'System.Collections.Generic.HashSet[string]' ([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($name in $renames.Values) { [void]$renamedNames.Add($name) }
 
-    $renames = New-Object 'System.Collections.Generic.Dictionary[string,string]' ([System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($entry in $script:BundledDllRenames) {
-        $found = @(Get-ChildItem -Path $nativeDir -File -Filter $entry.Pattern -ErrorAction Stop |
-            Where-Object { $_.Name -like $entry.Pattern })
-        if ($found.Count -eq 0 -and $entry.Required) {
-            throw "Expected a packaged DLL matching '$($entry.Pattern)' in $nativeDir. Update `$BundledDllRenames in partials.psm1 if it was renamed upstream (see #253)."
-        }
-        foreach ($dll in $found) {
-            $renames[$dll.Name] = $dll.BaseName + $script:BundledDllRenameSuffix + $dll.Extension
+    $kept = @(Get-TopLevelPackagedDlls -nativeDir $nativeDir |
+        Where-Object { -not $renames.ContainsKey($_.Name) -and -not $renamedNames.Contains($_.Name) })
+    foreach ($dll in $kept) {
+        if (-not (Test-KeptBundledDllName $dll.Name)) {
+            Write-BuildWarn "$($dll.Name) is Authenticode-signed and keeps its name; add it to `$BundledDllKeepPatterns in partials.psm1 if that is intended"
         }
     }
+    Write-BuildInfo "Keeping $($kept.Count) DLL(s) under their original names: $(($kept | ForEach-Object { $_.Name }) -join ', ')"
 
-    if ($renames.Count -eq 0) {
-        throw "No bundled OpenSSL/HDF5 DLLs matching `$BundledDllRenames were found in $nativeDir; nothing to rename (see #253)."
-    }
-
+    $nativeFullPath = (Get-Item -Path $nativeDir -ErrorAction Stop).FullName.TrimEnd('\', '/')
     foreach ($file in (Get-PackagedPeFiles -directories (@($nativeDir) + $extraDirs))) {
-        # the renamed DLL also gets its own export directory name updated
-        $exportName = if ($renames.ContainsKey($file.Name)) { $renames[$file.Name] } else { $null }
+        # a renamed DLL also gets its own export directory name updated
+        $exportName = $null
+        if ($file.Directory.FullName.TrimEnd('\', '/') -eq $nativeFullPath) {
+            if ($renames.ContainsKey($file.Name)) { $exportName = $renames[$file.Name] }
+            elseif ($renamedNames.Contains($file.Name)) { $exportName = $file.Name }
+        }
         $changed = [GdalNetcore.Build.PeImportRenamer]::RewriteDllNames($file.FullName, $renames, $exportName)
         if ($changed -gt 0) {
             Write-BuildInfo "Rewrote $changed DLL name(s) in $($file.Name)"
         }
     }
 
+    $moved = 0
     foreach ($rename in $renames.GetEnumerator()) {
-        Move-Item -Path (Join-Path $nativeDir $rename.Key) -Destination (Join-Path $nativeDir $rename.Value) -Force -ErrorAction Stop
-        Write-BuildInfo "Renamed $($rename.Key) => $($rename.Value)"
+        $source = Join-Path $nativeDir $rename.Key
+        if (Test-Path -Path $source -PathType Leaf) {
+            Move-Item -Path $source -Destination (Join-Path $nativeDir $rename.Value) -Force -ErrorAction Stop
+            $moved++
+        }
     }
+    Write-BuildInfo "Renamed $moved of $($renames.Count) bundled DLL(s) to <name>$($script:BundledDllRenameSuffix).dll"
 }
 
-# Guards the rename above and the dependency collection in general: every import of
-# every packaged binary must resolve to a DLL shipped in the native folder or to an
-# OS DLL, and nothing may still use the generic OpenSSL/HDF5 names.
+# Guards the rename above and the dependency collection in general: no bundled DLL
+# may still ship under its original name, no packaged binary may import one by its
+# original name, and every other import must resolve to a DLL shipped in the
+# native folder or to an OS DLL.
 function Confirm-PackagedDllImports {
     param (
         [string] $nativeDir,
@@ -827,17 +888,15 @@ function Confirm-PackagedDllImports {
     )
     $ErrorActionPreference = 'Stop'
     Import-PeImportRenamer
-    if (-not (Test-Path -Path $nativeDir -PathType Container)) {
-        throw "Expected a packaged output directory at '$nativeDir' but it does not exist."
-    }
+    $renames = Get-BundledDllRenames -nativeDir $nativeDir
     $systemDir = [System.Environment]::SystemDirectory
     $shipped = @{}
-    Get-ChildItem -Path $nativeDir -File -Filter "*.dll" -ErrorAction Stop | ForEach-Object { $shipped[$_.Name] = $true }
+    Get-TopLevelPackagedDlls -nativeDir $nativeDir | ForEach-Object { $shipped[$_.Name] = $true }
 
     $failures = @()
     foreach ($name in $shipped.Keys) {
-        if (Test-GenericBundledDllName $name) {
-            $failures += "$name is still packaged under its generic name"
+        if ($renames.ContainsKey($name)) {
+            $failures += "$name is still packaged under its original name instead of $($renames[$name])"
         }
     }
     $files = @(Get-PackagedPeFiles -directories (@($nativeDir) + $extraDirs))
@@ -846,8 +905,8 @@ function Confirm-PackagedDllImports {
     }
     foreach ($file in $files) {
         foreach ($import in [GdalNetcore.Build.PeImportRenamer]::GetImportedDllNames($file.FullName)) {
-            if (Test-GenericBundledDllName $import) {
-                $failures += "$($file.Name) imports $import instead of its uniquely named copy"
+            if ($renames.ContainsKey($import)) {
+                $failures += "$($file.Name) imports $import instead of $($renames[$import])"
             }
             elseif ($shipped.ContainsKey($import) -or $import -like "api-ms-win-*" -or $import -like "ext-ms-*") {
                 continue
@@ -867,9 +926,9 @@ function Confirm-PackagedDllImports {
 
     if ($failures.Count -gt 0) {
         $failures | ForEach-Object { Write-BuildError $_ }
-        throw "Packaged binaries have unresolved or generic DLL imports (see #253)."
+        throw "Packaged binaries have unresolved DLL imports or bundled DLLs under their original names (see #253)."
     }
-    Write-BuildStep "Verified DLL imports of $($files.Count) packaged binaries"
+    Write-BuildStep "Verified DLL imports of $($files.Count) packaged binaries ($($renames.Count) bundled DLLs uniquely named)"
 }
 
 function Write-GdalFormats {

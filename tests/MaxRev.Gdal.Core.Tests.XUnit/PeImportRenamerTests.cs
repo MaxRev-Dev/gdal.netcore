@@ -10,22 +10,23 @@ namespace GdalCore_XUnit
 {
     // Exercises win/PeImportRenamer.cs directly (compiled into this project, see the
     // csproj's linked Compile item) instead of only through the Windows-only build
-    // pipeline. Since every real rename appends "-maxrev" and therefore lengthens the
-    // DLL name, the "doesn't fit in place, append a new section" path
-    // (PeImportRenamer.AppendNameSection) is what every production rename actually
-    // exercises, so that is what this test targets.
+    // pipeline. Every real rename appends "-maxrev" and therefore lengthens the DLL
+    // name, so the names never fit in place: they go into an appended section
+    // (PeImportRenamer.AppendNameSection) or, when the PE header has no room for
+    // another section header, into the padding of existing read-only data sections
+    // (PeImportRenamer.TryPlaceInSectionPadding). Both paths are covered here.
     //
-    // A copy of this test assembly (or any other managed .NET PE) does not work as
-    // the input: the CLR tools pack the PE header tightly, leaving no slack for an
-    // extra section header, so AppendNameSection always throws "no room in the PE
-    // header for an extra section" for those files. Instead this test builds a
-    // minimal, hand-crafted PE32 image with one section and a single import
-    // descriptor for mscoree.dll, with deliberate header slack, mirroring the real
-    // DLLs this tool patches in CI closely enough to validate the append-section path
-    // end to end on any OS (no Windows runtime is needed to parse or write a PE).
+    // The input is a minimal, hand-crafted PE32 image with one section and a single
+    // import descriptor for mscoree.dll, with deliberate header slack, mirroring the
+    // real DLLs this tool patches in CI closely enough to validate both paths end to
+    // end on any OS (no Windows runtime is needed to parse or write a PE). Managed
+    // .NET PEs are not used because the CLR tools pack the PE header tightly.
     public class PeImportRenamerTests
     {
         private const string DllName = "mscoree.dll";
+        private const string RenamedDllName = "mscoree-maxrev.dll";
+        private const uint CodeSection = 0x60000020; // CNT_CODE | MEM_EXECUTE | MEM_READ
+        private const uint ReadOnlyDataSection = 0x40000040; // CNT_INITIALIZED_DATA | MEM_READ
 
         [Fact]
         public void RewriteDllNames_AppendsSectionAndIsReadableAndIdempotent()
@@ -88,14 +89,97 @@ namespace GdalCore_XUnit
             }
         }
 
+        [Fact]
+        public void RewriteDllNames_UsesSectionPaddingWhenHeaderIsFull()
+        {
+            WithTempFile(path =>
+            {
+                File.WriteAllBytes(path, BuildSyntheticPe32WithImport(DllName, ReadOnlyDataSection, fillHeaderSlack: true));
+                uint originalVirtualSize;
+                using (var reader = new PEReader(File.OpenRead(path)))
+                {
+                    originalVirtualSize = (uint)reader.PEHeaders.SectionHeaders[0].VirtualSize;
+                }
+
+                Assert.True(PeImportRenamer.RewriteDllNames(path, Renames(), null) > 0);
+                Assert.Equal(new[] { RenamedDllName }, PeImportRenamer.GetImportedDllNames(path));
+
+                using (var reader = new PEReader(File.OpenRead(path)))
+                {
+                    var headers = reader.PEHeaders;
+                    // No section was added; the existing one grew over its padding
+                    // by exactly the new NUL-terminated name.
+                    Assert.Single(headers.SectionHeaders);
+                    Assert.Equal(originalVirtualSize + RenamedDllName.Length + 1, (uint)headers.SectionHeaders[0].VirtualSize);
+                }
+
+                var patched = File.ReadAllBytes(path);
+                Assert.Equal(0, PeImportRenamer.RewriteDllNames(path, Renames(), null));
+                Assert.Equal(patched, File.ReadAllBytes(path));
+            });
+        }
+
+        [Fact]
+        public void RewriteDllNames_ThrowsWhenNoSpaceForNewNames()
+        {
+            WithTempFile(path =>
+            {
+                // Header slack is taken and the only section is executable code,
+                // which the padding fallback must not touch.
+                var original = BuildSyntheticPe32WithImport(DllName, CodeSection, fillHeaderSlack: true);
+                File.WriteAllBytes(path, original);
+
+                var ex = Assert.Throws<InvalidOperationException>(() => PeImportRenamer.RewriteDllNames(path, Renames(), null));
+                Assert.Contains("PE header slack after the section table is not empty", ex.Message);
+                Assert.Equal(original, File.ReadAllBytes(path));
+            });
+        }
+
+        [Fact]
+        public void RewriteDllNames_RefusesSignedFiles()
+        {
+            WithTempFile(path =>
+            {
+                File.WriteAllBytes(path, BuildSyntheticPe32WithImport(DllName, CodeSection));
+                Assert.False(PeImportRenamer.IsAuthenticodeSigned(path));
+
+                var signed = BuildSyntheticPe32WithImport(DllName, CodeSection, certificateTableSize: 8);
+                File.WriteAllBytes(path, signed);
+                Assert.True(PeImportRenamer.IsAuthenticodeSigned(path));
+                Assert.Throws<InvalidOperationException>(() => PeImportRenamer.RewriteDllNames(path, Renames(), null));
+                Assert.Equal(signed, File.ReadAllBytes(path));
+            });
+        }
+
+        private static Dictionary<string, string> Renames()
+        {
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { [DllName] = RenamedDllName };
+        }
+
+        private static void WithTempFile(Action<string> test)
+        {
+            var dir = Directory.CreateDirectory(Path.Combine(Path.GetTempPath(), "PeImportRenamerTests-" + Guid.NewGuid().ToString("N")));
+            try
+            {
+                test(Path.Combine(dir.FullName, "synthetic.dll"));
+            }
+            finally
+            {
+                try { Directory.Delete(dir.FullName, true); } catch { /* best-effort cleanup */ }
+            }
+        }
+
         /// <summary>
         /// Builds a minimal valid PE32 image: DOS header/stub, COFF + optional
         /// headers (16 data directories), one ".text" section containing a single
         /// import descriptor (plus its null terminator) for <paramref name="dllName"/>,
         /// and deliberate zero-filled slack between the section table and
         /// SizeOfHeaders so a new section header can be appended later.
+        /// <paramref name="fillHeaderSlack"/> puts non-zero bytes into that slack,
+        /// and <paramref name="certificateTableSize"/> sets the certificate table
+        /// directory as if the file were Authenticode-signed.
         /// </summary>
-        private static byte[] BuildSyntheticPe32WithImport(string dllName)
+        private static byte[] BuildSyntheticPe32WithImport(string dllName, uint sectionCharacteristics = CodeSection, bool fillHeaderSlack = false, uint certificateTableSize = 0)
         {
             const int peHeaderOffset = 0x80;
             const int coffOffset = peHeaderOffset + 4;
@@ -146,7 +230,15 @@ namespace GdalCore_XUnit
             WriteUInt32(data, sectionTableOffset + 12, sectionVirtualAddress);
             WriteUInt32(data, sectionTableOffset + 16, sectionRawSize);
             WriteUInt32(data, sectionTableOffset + 20, sectionRawPointer);
-            WriteUInt32(data, sectionTableOffset + 36, 0x60000020); // CODE | MEM_EXECUTE | MEM_READ
+            WriteUInt32(data, sectionTableOffset + 36, sectionCharacteristics);
+            if (fillHeaderSlack)
+                for (int i = sectionTableOffset + 40; i < sizeOfHeaders; i++) data[i] = 0xCC;
+            if (certificateTableSize != 0)
+            {
+                // Data directory 4 (Certificate Table): a file offset past the image, plus a size
+                WriteUInt32(data, optOffset + 96 + 4 * 8, (uint)data.Length);
+                WriteUInt32(data, optOffset + 96 + 4 * 8 + 4, certificateTableSize);
+            }
 
             // Section content: one import descriptor (20 bytes) + null terminator
             // (20 bytes), then the DLL name string.

@@ -14,8 +14,10 @@
 //
 //  Only names are rewritten: import and delay-import descriptor DLL names, plus the
 //  export directory name of the renamed DLL itself. Names that do not fit in place
-//  go into a new read-only section appended to the image. Kept to plain C# 5 so it
-//  compiles with Add-Type under Windows PowerShell 5.1 as well as pwsh.
+//  go into a new read-only section appended to the image. If the PE header has no
+//  room for another section header, they go into the zero padding at the end of
+//  existing read-only data sections instead. Kept to plain C# 5 so it compiles with
+//  Add-Type under Windows PowerShell 5.1 as well as pwsh.
 //
 //  PE layout reference throughout: Microsoft PE Format spec,
 //  https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
@@ -39,8 +41,13 @@ namespace GdalNetcore.Build
         // IMAGE_SECTION_HEADER (PE Format: "Section Table") is a fixed 40 bytes.
         private const int SectionHeaderSize = 40;
         private const string NewSectionName = ".dllname";
-        // IMAGE_SCN_CNT_INITIALIZED_DATA | IMAGE_SCN_MEM_READ
-        private const uint NewSectionCharacteristics = 0x40000040;
+        // Section characteristics flags (PE Format: "Section Flags").
+        private const uint ScnCntInitializedData = 0x00000040;
+        private const uint ScnMemDiscardable = 0x02000000;
+        private const uint ScnMemExecute = 0x20000000;
+        private const uint ScnMemRead = 0x40000000;
+        private const uint ScnMemWrite = 0x80000000;
+        private const uint NewSectionCharacteristics = ScnCntInitializedData | ScnMemRead;
 
         // IMAGE_IMPORT_DESCRIPTOR (PE Format: "Import Directory Table") is 20 bytes;
         // Name RVA is the 4th DWORD field (offset 12).
@@ -112,6 +119,12 @@ namespace GdalNetcore.Build
             return names.ToArray();
         }
 
+        /// <summary>True if the PE file carries a certificate table (Authenticode signature).</summary>
+        public static bool IsAuthenticodeSigned(string path)
+        {
+            return GetDirectorySize(Load(File.ReadAllBytes(path), path), DirSecurity) != 0;
+        }
+
         /// <summary>
         /// Rewrites imported DLL names found in <paramref name="renames"/> (keys are
         /// matched case-insensitively). If <paramref name="newExportName"/> is set, the
@@ -171,7 +184,7 @@ namespace GdalNetcore.Build
         // Same-length or shorter names are written over the old string in place.
         // Longer names do not fit in the gap after the NUL terminator (the next
         // string in .rdata follows immediately), so they are collected and placed
-        // in a new section appended to the image.
+        // elsewhere (see PlaceLongNames).
         private static Image ApplyEdits(Image image, List<KeyValuePair<NameRef, string>> edits, string path)
         {
             var pending = new List<KeyValuePair<NameRef, string>>();
@@ -189,10 +202,43 @@ namespace GdalNetcore.Build
                     pending.Add(e);
                 }
             }
-            return pending.Count > 0 ? AppendNameSection(image, pending, path) : image;
+            return pending.Count > 0 ? PlaceLongNames(image, pending, path) : image;
+        }
+
+        // Preferred: a new ".dllname" section, which leaves every existing section
+        // untouched. Fallback, for images whose header has no room for another
+        // section header (or that carry overlay data the new section would have to
+        // displace): grow existing read-only data sections into their padding.
+        private static Image PlaceLongNames(Image image, List<KeyValuePair<NameRef, string>> pending, string path)
+        {
+            string reason = GetAppendSectionBlocker(image);
+            if (reason == null) return AppendNameSection(image, pending, path);
+            if (TryPlaceInSectionPadding(image, pending, path)) return image;
+            throw new InvalidOperationException(path + ": " + reason + ", and no read-only data section has enough zero padding to hold the new DLL names.");
         }
 
         // section append (PE Format: "Section Table (Section Headers)")
+
+        // Returns why a section cannot be appended, or null if it can.
+        private static string GetAppendSectionBlocker(Image image)
+        {
+            var data = image.Data;
+            uint sizeOfHeaders = ReadUInt32(data, image.OptionalHeader + OptSizeOfHeaders);
+            int newHeader = image.SectionTable + image.NumberOfSections * SectionHeaderSize;
+            uint firstRaw, lastVirtualEnd, rawEnd;
+            ScanSections(image, sizeOfHeaders, out firstRaw, out lastVirtualEnd, out rawEnd);
+
+            // A new section header needs 40 free (zero) bytes after the section
+            // table, inside SizeOfHeaders and before the first section's raw data.
+            if (newHeader + SectionHeaderSize > Math.Min(sizeOfHeaders, firstRaw))
+                return "no room in the PE header for an extra section";
+            for (int i = newHeader; i < newHeader + SectionHeaderSize; i++)
+                if (data[i] != 0)
+                    return "PE header slack after the section table is not empty";
+            if (data.Length > rawEnd)
+                return "file has trailing (overlay) data after the last section";
+            return null;
+        }
 
         private static Image AppendNameSection(Image image, List<KeyValuePair<NameRef, string>> pending, string path)
         {
@@ -205,16 +251,6 @@ namespace GdalNetcore.Build
             int newHeader = image.SectionTable + image.NumberOfSections * SectionHeaderSize;
             uint firstRaw, lastVirtualEnd, rawEnd;
             ScanSections(image, sizeOfHeaders, out firstRaw, out lastVirtualEnd, out rawEnd);
-
-            // A new section header needs 40 free (zero) bytes after the section
-            // table, inside SizeOfHeaders and before the first section's raw data.
-            if (newHeader + SectionHeaderSize > Math.Min(sizeOfHeaders, firstRaw))
-                throw new InvalidOperationException(path + ": no room in the PE header for an extra section.");
-            for (int i = newHeader; i < newHeader + SectionHeaderSize; i++)
-                if (data[i] != 0)
-                    throw new InvalidOperationException(path + ": PE header slack after the section table is not empty.");
-            if (data.Length > rawEnd)
-                throw new InvalidOperationException(path + ": file has trailing (overlay) data after the last section.");
 
             byte[] payload;
             Dictionary<string, int> nameOffsets;
@@ -292,20 +328,134 @@ namespace GdalNetcore.Build
         private static void RepointNameRefs(Image image, List<KeyValuePair<NameRef, string>> pending, Dictionary<string, int> nameOffsets, uint sectionRva, string path)
         {
             foreach (var e in pending)
+                WriteNameRef(image, e.Key, sectionRva + (uint)nameOffsets[e.Value], path);
+        }
+
+        private static void WriteNameRef(Image image, NameRef r, uint rva, string path)
+        {
+            if (r.IsVa)
             {
-                uint rva = sectionRva + (uint)nameOffsets[e.Value];
-                if (e.Key.IsVa)
-                {
-                    ulong va = image.ImageBase + rva;
-                    if (va > uint.MaxValue)
-                        throw new InvalidOperationException(path + ": delay-import VA does not fit in 32 bits.");
-                    WriteUInt32(image.Data, e.Key.FieldOffset, (uint)va);
-                }
-                else
-                {
-                    WriteUInt32(image.Data, e.Key.FieldOffset, rva);
-                }
+                ulong va = image.ImageBase + rva;
+                if (va > uint.MaxValue)
+                    throw new InvalidOperationException(path + ": delay-import VA does not fit in 32 bits.");
+                WriteUInt32(image.Data, r.FieldOffset, (uint)va);
             }
+            else
+            {
+                WriteUInt32(image.Data, r.FieldOffset, rva);
+            }
+        }
+
+        // section padding fallback
+
+        // Raw section data is padded with zeros up to FileAlignment, so most sections
+        // have unused, file-backed bytes between VirtualSize and SizeOfRawData.
+        // Raising VirtualSize over part of that padding maps those bytes as part of the
+        // section, so the new names can live there without moving any data or adding a
+        // section header. Only non-executable, non-writable, non-discardable
+        // initialized-data sections are used (.rdata, .pdata, .rsrc, ...), and the
+        // grown section must still end before the next section starts. Names are
+        // placed first-fit across sections; nothing is written unless all of them fit.
+        private static bool TryPlaceInSectionPadding(Image image, List<KeyValuePair<NameRef, string>> pending, string path)
+        {
+            var data = image.Data;
+            int opt = image.OptionalHeader;
+            uint sectionAlignment = ReadUInt32(data, opt + OptSectionAlignment);
+
+            var candidates = new List<int>();
+            var used = new Dictionary<int, uint>(); // section header offset -> bytes taken from its padding
+            for (int i = 0; i < image.NumberOfSections; i++)
+            {
+                int s = image.SectionTable + i * SectionHeaderSize;
+                uint characteristics = ReadUInt32(data, s + 36);
+                if ((characteristics & (ScnMemExecute | ScnMemWrite | ScnMemDiscardable)) != 0) continue;
+                if ((characteristics & (ScnCntInitializedData | ScnMemRead)) != (ScnCntInitializedData | ScnMemRead)) continue;
+                uint virtualSize = ReadUInt32(data, s + 8);
+                uint rawSize = ReadUInt32(data, s + 16);
+                uint rawPointer = ReadUInt32(data, s + 20);
+                if (virtualSize == 0 || rawSize <= virtualSize || rawPointer + rawSize > data.Length) continue;
+                candidates.Add(s);
+                used[s] = 0;
+            }
+
+            var rvas = new Dictionary<string, uint>(StringComparer.Ordinal);
+            foreach (var e in pending)
+            {
+                if (rvas.ContainsKey(e.Value)) continue;
+                uint length = (uint)Encoding.ASCII.GetByteCount(e.Value) + 1; // NUL-terminated
+                bool placed = false;
+                foreach (int s in candidates)
+                {
+                    uint virtualSize = ReadUInt32(data, s + 8);
+                    uint virtualAddress = ReadUInt32(data, s + 12);
+                    uint rawSize = ReadUInt32(data, s + 16);
+                    uint rawPointer = ReadUInt32(data, s + 20);
+                    uint start = virtualSize + used[s];
+                    uint end = start + length;
+                    if (end > rawSize || virtualAddress + end > NextSectionStart(image, virtualAddress)) continue;
+                    if (!IsZero(data, (int)(rawPointer + start), (int)length)) continue;
+                    rvas[e.Value] = virtualAddress + start;
+                    used[s] += length;
+                    placed = true;
+                    break;
+                }
+                if (!placed) return false;
+            }
+
+            foreach (var e in pending)
+            {
+                uint rva = rvas[e.Value];
+                var bytes = Encoding.ASCII.GetBytes(e.Value);
+                Buffer.BlockCopy(bytes, 0, data, RvaToOffsetInRaw(image, rva, path), bytes.Length);
+            }
+            uint imageEnd = ReadUInt32(data, opt + OptSizeOfImage);
+            foreach (var kv in used)
+            {
+                if (kv.Value == 0) continue;
+                uint virtualSize = ReadUInt32(data, kv.Key + 8) + kv.Value;
+                WriteUInt32(data, kv.Key + 8, virtualSize);
+                imageEnd = Math.Max(imageEnd, Align(ReadUInt32(data, kv.Key + 12) + virtualSize, sectionAlignment));
+            }
+            WriteUInt32(data, opt + OptSizeOfImage, imageEnd);
+            foreach (var e in pending)
+                WriteNameRef(image, e.Key, rvas[e.Value], path);
+            return true;
+        }
+
+        // Virtual address where the section following the one at virtualAddress
+        // starts (SizeOfImage for the last section).
+        private static uint NextSectionStart(Image image, uint virtualAddress)
+        {
+            uint next = ReadUInt32(image.Data, image.OptionalHeader + OptSizeOfImage);
+            for (int i = 0; i < image.NumberOfSections; i++)
+            {
+                uint va = ReadUInt32(image.Data, image.SectionTable + i * SectionHeaderSize + 12);
+                if (va > virtualAddress && va < next) next = va;
+            }
+            return next;
+        }
+
+        // Like RvaToOffset, but also accepts RVAs in a section's raw padding
+        // (past VirtualSize), which is where the fallback writes before it grows
+        // VirtualSize.
+        private static int RvaToOffsetInRaw(Image image, uint rva, string path)
+        {
+            for (int i = 0; i < image.NumberOfSections; i++)
+            {
+                int s = image.SectionTable + i * SectionHeaderSize;
+                uint virtualAddress = ReadUInt32(image.Data, s + 12);
+                uint rawSize = ReadUInt32(image.Data, s + 16);
+                if (rva >= virtualAddress && rva < virtualAddress + rawSize)
+                    return (int)(ReadUInt32(image.Data, s + 20) + (rva - virtualAddress));
+            }
+            throw new InvalidDataException(path + ": RVA 0x" + rva.ToString("X") + " is not backed by section raw data.");
+        }
+
+        private static bool IsZero(byte[] data, int offset, int length)
+        {
+            for (int i = offset; i < offset + length; i++)
+                if (data[i] != 0) return false;
+            return true;
         }
 
         // header parsing (PE Format: "COFF File Header", "Optional Header")
