@@ -772,7 +772,11 @@ function Get-PackagedPeFiles {
         if (-not (Test-Path -Path $dir -PathType Container)) {
             throw "Expected a packaged output directory at '$dir' but it does not exist."
         }
-        Get-ChildItem -Path $dir -File -Recurse -ErrorAction Stop | Where-Object { $_.Extension -in ".dll", ".exe" }
+        $peFiles = @(Get-ChildItem -Path $dir -File -Recurse -ErrorAction Stop | Where-Object { $_.Extension -in ".dll", ".exe" })
+        if ($peFiles.Count -eq 0) {
+            throw "Expected '$dir' to contain at least one DLL or EXE, but it has none."
+        }
+        $peFiles
     }
 }
 
@@ -877,6 +881,58 @@ function Rename-BundledDLLs {
     Write-BuildInfo "Renamed $moved of $($renames.Count) bundled DLL(s) to <name>$($script:BundledDllRenameSuffix).dll"
 }
 
+# True if the file at $path carries a valid Authenticode signature whose signer
+# is "Microsoft Windows" (the subject used for catalog-signed OS binaries, e.g.
+# those under System32). A third-party DLL dropped into System32 is not signed
+# this way, so it does not pass. Split out as its own function so test harnesses
+# without Get-AuthenticodeSignature (e.g. on macOS) can stub it out.
+function Test-SystemCatalogSigned {
+    param (
+        [string] $path
+    )
+    try {
+        $sig = Get-AuthenticodeSignature -FilePath $path -ErrorAction Stop
+        return $sig.Status -eq 'Valid' -and $sig.SignerCertificate -and $sig.SignerCertificate.Subject -like "CN=Microsoft Windows,*"
+    }
+    catch {
+        return $false
+    }
+}
+
+# True if $name is a Windows system dependency: either an API set name, which the
+# loader always resolves against the OS regardless of what else is installed, or a
+# DLL that is both present in System32 and catalog-signed by "Microsoft Windows".
+# A DLL's mere presence in the build machine's System32 does not establish that it
+# is an OS component; third-party installers (e.g. other GIS stacks, Python/conda)
+# can drop unsigned copies there too. $cache memoizes the result per name since the
+# same import is checked once per packaged binary. $signatureCheck defaults to
+# Test-SystemCatalogSigned (which needs Get-AuthenticodeSignature, Windows-only)
+# but is injectable so non-Windows test harnesses can stub the signature check
+# without any OS dependency.
+function Test-WindowsSystemDependency {
+    param (
+        [string] $name,
+        [string] $systemDir,
+        [System.Collections.Hashtable] $cache,
+        [scriptblock] $signatureCheck = { param($path) Test-SystemCatalogSigned -path $path }
+    )
+    if ($cache.ContainsKey($name)) {
+        return $cache[$name]
+    }
+    $result = $false
+    if ($name -like "api-ms-win-*" -or $name -like "ext-ms-*") {
+        $result = $true
+    }
+    else {
+        $path = Join-Path $systemDir $name
+        if (Test-Path -Path $path -PathType Leaf) {
+            $result = [bool](& $signatureCheck $path)
+        }
+    }
+    $cache[$name] = $result
+    return $result
+}
+
 # Guards the rename above and the dependency collection in general: no bundled DLL
 # may still ship under its original name, no packaged binary may import one by its
 # original name, and every other import must resolve to a DLL shipped in the
@@ -892,6 +948,7 @@ function Confirm-PackagedDllImports {
     $systemDir = [System.Environment]::SystemDirectory
     $shipped = @{}
     Get-TopLevelPackagedDlls -nativeDir $nativeDir | ForEach-Object { $shipped[$_.Name] = $true }
+    $sysDepCache = @{}
 
     $failures = @()
     foreach ($name in $shipped.Keys) {
@@ -908,15 +965,21 @@ function Confirm-PackagedDllImports {
             if ($renames.ContainsKey($import)) {
                 $failures += "$($file.Name) imports $import instead of $($renames[$import])"
             }
-            elseif ($shipped.ContainsKey($import) -or $import -like "api-ms-win-*" -or $import -like "ext-ms-*") {
+            elseif ($shipped.ContainsKey($import)) {
                 continue
             }
-            elseif (Test-Path -Path (Join-Path $systemDir $import) -PathType Leaf) {
+            elseif ($import -match "^(vcruntime|msvcp|vcomp|concrt|vccorlib)\d+") {
                 # VC++ redistributable DLLs are not part of Windows; they resolve here
                 # only because the build machine has the redistributable installed.
-                if ($import -match "^(vcruntime|msvcp|vcomp|concrt|vccorlib)\d+") {
+                if (Test-Path -Path (Join-Path $systemDir $import) -PathType Leaf) {
                     Write-BuildWarn "$($file.Name) imports $import, which is not packaged and only found in $systemDir"
                 }
+                else {
+                    $failures += "$($file.Name) imports $import, which is neither packaged nor a system DLL"
+                }
+            }
+            elseif (Test-WindowsSystemDependency -name $import -systemDir $systemDir -cache $sysDepCache) {
+                continue
             }
             else {
                 $failures += "$($file.Name) imports $import, which is neither packaged nor a system DLL"
