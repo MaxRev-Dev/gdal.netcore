@@ -1,0 +1,88 @@
+name: Mirror GisInternals SDK
+
+# Manual, on-demand job. download.gisinternals.com is a single-maintainer
+# host that goes down often, which breaks the Windows build whenever its
+# cache misses (see win/partials.psm1 Get-GdalSdkIsAvailable). This workflow
+# downloads the GDAL SDK zip once and uploads it as an asset on a dedicated,
+# non-production release tag so win/partials.psm1 can mirror it from this
+# repo's GitHub releases first. It never touches the project's real
+# releases.
+
+on:
+  workflow_dispatch:
+    inputs:
+      sdk-url:
+        description: "URL to download the SDK zip from"
+        type: string
+        required: false
+        default: "http://download.gisinternals.com/sdk/downloads/release-1930-x64-dev.zip"
+      sdk-zip-name:
+        description: "Asset file name to upload"
+        type: string
+        required: false
+        default: "release-1930-x64-dev.zip"
+      mirror-tag:
+        description: "Dedicated release tag used as the mirror"
+        type: string
+        required: false
+        default: "deps-gisinternals-sdk"
+
+permissions:
+  contents: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5.0.1
+
+      - name: Download SDK zip
+        run: |
+          curl --location --fail --show-error \
+            --connect-timeout 30 --retry 5 --retry-delay 10 --retry-all-errors \
+            --output "${{ inputs.sdk-zip-name }}" \
+            "${{ inputs.sdk-url }}"
+
+      - name: Print SHA256
+        id: checksum
+        run: |
+          sha256sum "${{ inputs.sdk-zip-name }}"
+          echo "sha256=$(sha256sum "${{ inputs.sdk-zip-name }}" | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Create or update mirror release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${{ inputs.mirror-tag }}"
+          NOTES="Build dependency mirror. Not a project release.
+
+          This release hosts a pinned copy of the GisInternals SDK zip used by
+          win/partials.psm1 so Windows CI does not depend on
+          download.gisinternals.com being reachable. See win/README.md for
+          details on refreshing this mirror.
+
+          SHA256 of ${{ inputs.sdk-zip-name }}: ${{ steps.checksum.outputs.sha256 }}"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${{ inputs.sdk-zip-name }}" --clobber
+            gh release edit "$TAG" --notes "$NOTES"
+          else
+            gh release create "$TAG" "${{ inputs.sdk-zip-name }}" \
+              --title "GisInternals SDK mirror" \
+              --notes "$NOTES" \
+              --prerelease \
+              --latest=false
+          fi
+
+      - name: Summary
+        run: |
+          {
+            echo "### GisInternals SDK mirror updated"
+            echo ""
+            echo "- Tag: \`${{ inputs.mirror-tag }}\`"
+            echo "- Asset: \`${{ inputs.sdk-zip-name }}\`"
+            echo "- SHA256: \`${{ steps.checksum.outputs.sha256 }}\`"
+            echo ""
+            echo "Update \$script:SDK_ZIP_SHA256 in win/partials.psm1 with the SHA256 above to enable checksum verification."
+          } >> "$GITHUB_STEP_SUMMARY"

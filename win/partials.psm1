@@ -13,7 +13,16 @@ function Set-GdalVariables {
     $env:VS_VERSION = "Visual Studio 17 2022"
     $env:SDK = "release-1930-x64" #2022 x64
     $env:SDK_ZIP = "$env:SDK" + "-dev.zip"
-    $env:SDK_URL = "http://download.gisinternals.com/sdk/downloads/$env:SDK_ZIP"
+    # GisInternals is an unreliable, single-maintainer host that is frequently
+    # unreachable. We mirror the exact zip on this repo's GitHub releases and
+    # try that first; GisInternals stays as a fallback. Both are configurable
+    # via env vars so CI or a local build can override them.
+    if (-Not $env:SDK_MIRROR_URL) {
+        $env:SDK_MIRROR_URL = "https://github.com/MaxRev-Dev/gdal.netcore/releases/download/deps-gisinternals-sdk/$env:SDK_ZIP"
+    }
+    if (-Not $env:SDK_URL) {
+        $env:SDK_URL = "http://download.gisinternals.com/sdk/downloads/$env:SDK_ZIP"
+    }
     $env:LIBWEBP_URL = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-windows-x64.zip"
     $env:LIBZSTD_URL = "https://github.com/facebook/zstd/releases/download/v1.5.5/zstd-v1.5.5-win64.zip"
     $env:LIBDEFLATE_URL = "https://github.com/ebiggers/libdeflate/releases/download/v1.19/libdeflate-1.19-windows-x86_64-bin.zip"
@@ -144,15 +153,71 @@ function Get-7ZipInstallation {
     $env:PATH += ";$env:7Z_ROOT"
 }
 
+# Pinned SHA256 of $env:SDK_ZIP (release-1930-x64-dev.zip). Set this once the
+# mirror release has the real asset uploaded (see win/README.md). While this
+# stays the placeholder below, verification is skipped with a warning instead
+# of failing the build.
+$script:SDK_ZIP_SHA256 = "TODO-PIN-SHA256-AFTER-FIRST-MIRROR-UPLOAD"
+
+function Get-SdkZipFrom {
+    param(
+        [Parameter(Mandatory)] [string] $Url,
+        [Parameter(Mandatory)] [string] $OutFile,
+        [string] $Label = $Url
+    )
+    $maxAttempts = 3
+    for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+        try {
+            Invoke-WebRequest $Url -OutFile $OutFile -TimeoutSec 60 -MaximumRetryCount 2 -RetryIntervalSec 5
+            return $true
+        }
+        catch {
+            Write-BuildWarn "Attempt $attempt/$maxAttempts to download SDK from $Label failed: $($_.Exception.Message)"
+            if (Test-Path -Path $OutFile -PathType Leaf) {
+                Remove-Item -Path $OutFile -Force -ErrorAction SilentlyContinue
+            }
+            if ($attempt -lt $maxAttempts) {
+                Start-Sleep -Seconds 5
+            }
+        }
+    }
+    return $false
+}
+
+function Test-SdkZipChecksum {
+    param([Parameter(Mandatory)] [string] $ZipPath)
+
+    if ($script:SDK_ZIP_SHA256 -eq "TODO-PIN-SHA256-AFTER-FIRST-MIRROR-UPLOAD") {
+        Write-BuildWarn "SDK_ZIP_SHA256 is still the placeholder; skipping checksum verification"
+        return
+    }
+
+    $actual = (Get-FileHash -Path $ZipPath -Algorithm SHA256).Hash
+    if ($actual -ne $script:SDK_ZIP_SHA256) {
+        Write-BuildError "SDK zip checksum mismatch: expected $($script:SDK_ZIP_SHA256), got $actual"
+        throw "GDAL SDK checksum verification failed for $ZipPath"
+    }
+    Write-BuildStep "GDAL SDK checksum verified"
+}
+
 function Get-GdalSdkIsAvailable {
     New-FolderIfNotExistsAndSetCurrentLocation $env:DOWNLOADS_DIR
-    Write-BuildStep "Checking for GDAL SDK from GisInternals"
-    if (-Not (Test-Path -Path $env:SDK_ZIP -PathType Leaf)) { 
-        Write-BuildInfo "Downloading GDAL SDK from GisInternals"
-        Invoke-WebRequest "$env:SDK_URL" -OutFile "$env:SDK_ZIP" 
+    Write-BuildStep "Checking for GDAL SDK"
+    if (-Not (Test-Path -Path $env:SDK_ZIP -PathType Leaf)) {
+        Write-BuildInfo "Downloading GDAL SDK from mirror: $env:SDK_MIRROR_URL"
+        $downloaded = Get-SdkZipFrom -Url $env:SDK_MIRROR_URL -OutFile $env:SDK_ZIP -Label "mirror"
+        if (-Not $downloaded) {
+            Write-BuildWarn "Mirror download failed, falling back to GisInternals: $env:SDK_URL"
+            $downloaded = Get-SdkZipFrom -Url $env:SDK_URL -OutFile $env:SDK_ZIP -Label "GisInternals"
+        }
+        if (-Not $downloaded) {
+            Write-BuildError "Failed to download GDAL SDK from both mirror and GisInternals"
+            throw "Unable to download GDAL SDK ($env:SDK_ZIP)"
+        }
+        Test-SdkZipChecksum -ZipPath "$env:DOWNLOADS_DIR\$env:SDK_ZIP"
         Write-BuildStep "GDAL SDK was downloaded"
     }
-    New-FolderIfNotExistsAndSetCurrentLocation "$env:BUILD_ROOT\sdk" 
+    New-FolderIfNotExistsAndSetCurrentLocation "$env:BUILD_ROOT\sdk"
 
     if (-Not (Test-Path -Path "$env:BUILD_ROOT\sdk\release-*" -PathType Container)) {
         exec { 7za x "$env:DOWNLOADS_DIR\$env:SDK_ZIP" -aoa }
