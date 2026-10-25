@@ -76,17 +76,13 @@ copy-deps:
 #	1. copy gdal.dylib.XX
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
 #	3. copy to output
+#	NOTE: we intentionally do NOT also ship a libgdal.<major>.dylib
+#	alongside the fully versioned libgdal.<major>.<minor>.<patch>.dylib.
+#	NuGet does not preserve symlinks, so a "symlink" copy becomes a second
+#	full ~30+MB binary in the package. Instead every consumer (wrap libs via
+#	dylibbundler, CLI tools via copy-tools below) is patched to reference the
+#	single real, fully versioned file name.
 	cp -rfL $(BINDINGS_SOURCE)/*.dylib $(OUTPUT)/
-	@{ \
-		gdal_lib=$$(ls "$(OUTPUT)"/libgdal.*.dylib 2>/dev/null | head -n 1); \
-		if [ -n "$$gdal_lib" ]; then \
-			gdal_base=$$(basename "$$gdal_lib"); \
-			gdal_major=$$(echo "$$gdal_base" | sed -E 's/^libgdal\.([0-9]+).*/\1/'); \
-			if [ -n "$$gdal_major" ]; then \
-				ln -sf "$$gdal_base" "$(OUTPUT)/libgdal.$$gdal_major.dylib"; \
-			fi; \
-		fi; \
-	};
 
 	dylibbundler -b  \
 		$(addprefix  -x , $(addprefix $(OUTPUT)/,$(notdir $(WRAP_TARGETS)))) \
@@ -108,16 +104,69 @@ copy-deps:
 			codesign --force --sign "$(CODESIGN_IDENTITY)" "$$lib" 2>/dev/null || true; \
 		fi; \
 	done
-	find $(BUILD_BASE_LIB) -maxdepth 1 -type l -name "libgdal.*.dylib" -exec cp -P {} $(OUTPUT)/ \;
 
 copy-tools:
+#	Copy the raw CLI tools, then rewrite every @rpath/libNAME.dylib load
+#	command to point at the real, fully versioned file name we actually
+#	ship in $(OUTPUT) (e.g. @rpath/libproj.25.dylib -> @rpath/libproj.25.9.x.y.dylib).
+#	Tools are built against short "API version" names (libNAME.MAJOR.dylib)
+#	but dylibbundler only patches the wrap/driver dylibs it was given via -x,
+#	not these CLI executables, so without this step any tool that links a
+#	dependency other than libgdal (e.g. gdalsrsinfo -> libproj) fails to
+#	load at runtime because we never ship the short-name file.
 	cp -rfL $(GDAL_BUILD)/bin/* $(TOOLS_OUTPUT)/
 	@for tool in $(TOOLS_OUTPUT)/*; do \
-		if [ -f "$$tool" ]; then \
+		if [ -f "$$tool" ] && file "$$tool" | grep -q "Mach-O"; then \
+			for ref in $$(otool -L "$$tool" | tail -n +2 | awk '{print $$1}' | grep '^@rpath/'); do \
+				libname=$$(basename "$$ref"); \
+				if [ -f "$(OUTPUT)/$$libname" ]; then \
+					continue; \
+				fi; \
+				base_no_ext=$$(echo "$$libname" | sed -E 's/\.dylib$$//'); \
+				real=$$(ls "$(OUTPUT)/$$base_no_ext".*.dylib 2>/dev/null | sort -V | tail -n 1); \
+				if [ -z "$$real" ]; then \
+					echo "ERROR: $$tool references $$ref but no matching library is shipped in $(OUTPUT)"; \
+					exit 1; \
+				fi; \
+				real_name=$$(basename "$$real"); \
+				echo "Patching $$(basename $$tool): $$ref -> @rpath/$$real_name"; \
+				install_name_tool -change "$$ref" "@rpath/$$real_name" "$$tool"; \
+			done; \
 			codesign --remove-signature "$$tool" 2>/dev/null || true; \
-			codesign --force --sign "$(CODESIGN_IDENTITY)" "$$tool" 2>/dev/null || true; \
+			codesign --force --sign "$(CODESIGN_IDENTITY)" "$$tool" || exit 1; \
 		fi; \
 	done
+	$(MAKE) -f collect-deps-makefile check-tool-deps
+
+# Build-time guard: every @rpath reference a shipped tool makes must resolve
+# to a file we actually ship, and every absolute reference must be a system
+# library. Fails the build instead of shipping a tool that dyld can't load.
+check-tool-deps:
+	@status=0; \
+	for tool in $(TOOLS_OUTPUT)/*; do \
+		if [ -f "$$tool" ] && file "$$tool" | grep -q "Mach-O"; then \
+			for ref in $$(otool -L "$$tool" | tail -n +2 | awk '{print $$1}'); do \
+				case "$$ref" in \
+					@rpath/*) \
+						libname=$$(basename "$$ref"); \
+						if [ ! -f "$(OUTPUT)/$$libname" ]; then \
+							echo "ERROR: $$(basename $$tool) references unresolved $$ref"; \
+							status=1; \
+						fi ;; \
+					/usr/lib/*|/System/*) ;; \
+					@loader_path/*|@executable_path/*) ;; \
+					*) \
+						echo "ERROR: $$(basename $$tool) references unexpected absolute path $$ref"; \
+						status=1 ;; \
+				esac; \
+			done; \
+		fi; \
+	done; \
+	if [ "$$status" != "0" ]; then \
+		echo "check-tool-deps: one or more packaged tools reference libraries that are not shipped"; \
+		exit 1; \
+	fi; \
+	echo "check-tool-deps: all packaged tool library references resolve"
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)

@@ -20,7 +20,11 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                 }
                 GdalCli.EnsureEnvironment();
 
-                var toolsToCheck = new[] { "gdalinfo", "ogr2ogr", "gdal_translate" };
+                // gdalsrsinfo is included because it links PROJ directly
+                // (@rpath/libproj.*.dylib on macOS), unlike gdalinfo/ogr2ogr/
+                // gdal_translate which only link libgdal. This exercises the
+                // dyld load path for a dependency other than libgdal itself.
+                var toolsToCheck = new[] { "gdalinfo", "ogr2ogr", "gdal_translate", "gdalsrsinfo" };
                 foreach (var tool in toolsToCheck)
                 {
                     Console.WriteLine($"Running {tool} --version");
@@ -57,6 +61,20 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                         Console.Error.WriteLine($"{tool} (async) failed with exit code {exitCode}");
                         return exitCode;
                     }
+                }
+
+                // Also exercise an actual PROJ lookup through gdalsrsinfo, not
+                // just --version, since --version alone already proves dyld
+                // could resolve libproj; this verifies the lookup works too.
+                Console.WriteLine("Running gdalsrsinfo EPSG:4326");
+                var srsInfoExitCode = GdalCli.Run("gdalsrsinfo", new[] { "EPSG:4326" },
+                    stdout: s => Console.WriteLine($"[GdalCli stdout] {s}"),
+                    stderr: s => Console.Error.WriteLine($"[GdalCli stderr] {s}"));
+
+                if (srsInfoExitCode != 0)
+                {
+                    Console.Error.WriteLine($"gdalsrsinfo EPSG:4326 failed with exit code {srsInfoExitCode}");
+                    return srsInfoExitCode;
                 }
 
                 Console.WriteLine("CLI tools executed successfully.");
