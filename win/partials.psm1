@@ -143,8 +143,10 @@ function Get-7ZipInstallation {
     New-FolderIfNotExists $env:7Z_ROOT 
     $env:7Z_URL = "https://www.7-zip.org/a/7z2501-extra.7z"
     if (-Not (Test-Path -Path "$env:7Z_ROOT\7za.exe" -PathType Leaf)) { 
+        # 7zr.exe is the standalone 7z-only extractor; it unpacks the 7za console build.
+        Invoke-WebRequest "https://www.7-zip.org/a/7zr.exe" -OutFile "$env:7Z_ROOT\7zr.exe"
         Invoke-WebRequest "$env:7Z_URL" -OutFile "$env:7Z_ROOT\7z.7z"
-        Expand-PscxArchive -Path "$env:7Z_ROOT\7z.7z" -OutputPath "$env:7Z_ROOT\"
+        exec { & "$env:7Z_ROOT\7zr.exe" x "$env:7Z_ROOT\7z.7z" "-o$env:7Z_ROOT" -y }
         Write-BuildStep "Installed 7z into $env:7Z_ROOT"
     }
     else {

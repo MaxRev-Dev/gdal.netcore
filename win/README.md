@@ -15,6 +15,8 @@ In this folder contains Powershell and NMake scripts for building Windows runtim
 
 1. [Visual Studio Build Tools (with ATL)](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16). Recommended versions - vs16.0(2019) and vs17.0(2022) or greater (**nmake** and to retarget **libpng** to v143 toolset)
 
+   The scripts locate it with `vswhere.exe`, which the Visual Studio Installer places in `%ProgramFiles(x86)%\Microsoft Visual Studio\Installer`. No PowerShell Gallery modules are needed.
+
 2. [.NET Core SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages respectively.
 
 The Windows build uses the same shared VCPKG manifest authority as Unix and macOS:
