@@ -285,6 +285,36 @@ function Get-ForceResolvePath {
     return $FileName
 }
 
+function Get-VCRedistDir {
+    <#
+    .SYNOPSIS
+        Resolves a folder under the x64 Visual C++ redistributable directory of the
+        toolset used to build GDAL (e.g. Microsoft.VC143.CRT, Microsoft.VC143.OpenMP).
+    .REMARKS
+        Get-VisualStudioVars must have run first so $env:VCToolsRedistDir is set.
+        Fails loudly instead of silently falling back to the GisInternals SDK - the
+        CRT/OpenMP DLLs must always come from the build toolset (see
+        drop-gisinternals-sdk-plan, PR-A).
+    #>
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $Pattern
+    )
+
+    if (-not $env:VCToolsRedistDir) {
+        throw "VCToolsRedistDir is not set. Get-VisualStudioVars must run before resolving the VC++ redistributable."
+    }
+
+    $base = Join-Path $env:VCToolsRedistDir "x64"
+    $resolved = Resolve-Path -Path (Join-Path $base $Pattern) -ErrorAction SilentlyContinue
+
+    if (-not $resolved) {
+        throw "Could not find '$Pattern' under '$base'. The Visual C++ redistributable matching the build toolset is required to ship the runtime DLLs (msvcp140*, vcruntime140*, vcomp140); GDAL will not run without it."
+    }
+
+    return $resolved.Path
+}
+
 function Get-PathRelative {
     param (
         [bool] $isDebug = $false,

@@ -11,7 +11,6 @@ TOOLS_OUTPUT=$(abspath $(PACKAGE_BUILD_ROOT)/tools/$(RID))
 BUILD_ROOT=$(abspath $(BUILD_ROOT))
 BINDINGS_ROOT=$(abspath $(GDAL_CMAKE_TMP)/swig/csharp)
 BINDINGS_OUT=$(abspath $(BASE)/bindings)
-SDK_ROOT=$(ROOT_DIR)/build-win/sdk/release-1930-x64
 
 all: clean_output collect
 
@@ -41,7 +40,8 @@ collect: collect_bindings copyprojdb copytools
 	$(DEL_FILE) "$(OUTPUT)\gdal*.dll"
 	$(COPY) "$(abspath $(BUILD_ROOT)\gdal-build\share\csharp)\*_wrap.dll" "$(OUTPUT)\"
 	$(COPY_I) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).CRT\*.dll" "$(OUTPUT)\"
-	
+	$(COPY_I) "%VCToolsRedistDir%x64\Microsoft.VC$(CRT_VERSION).OpenMP\*.dll" "$(OUTPUT)\"
+
 	for /d %i in ($(BUILD_ROOT)\*-build) do ( cd "%i" &  $(COPY) "%i\bin\*.dll" "$(OUTPUT)\" )
 
 copytools:

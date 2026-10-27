@@ -287,7 +287,7 @@ function Install-Proj {
         -DCMAKE_CXX_FLAGS="/w" `
         -DBUILD_TESTING=OFF `
         -DCMAKE_TOOLCHAIN_FILE="${env:VCPKG_ROOT_GDAL}\scripts\buildsystems\vcpkg.cmake" `
-        -DCMAKE_PREFIX_PATH="${env:VCPKG_INSTALLED};${env:SDK_PREFIX}" `
+        -DCMAKE_PREFIX_PATH="${env:VCPKG_INSTALLED}" `
         -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF `
         -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF `
         -DBUILD_SHARED_LIBS=ON -DENABLE_CURL=ON -DENABLE_TIFF=ON `
@@ -481,6 +481,39 @@ function Build-Gdal {
     }
     Write-BuildStep "Verified HDF5/netCDF/CFITSIO cache entries point to vcpkg"
 
+    # Generic GisInternals SDK leak check (drop-gisinternals-sdk-plan, PR-B): every
+    # CMakeCache entry that still points into the SDK must belong to a library we
+    # haven't migrated off the SDK yet. CMAKE_PREFIX_PATH itself always mentions the
+    # SDK path and is not a leak. As each library in the plan (xerces-c, libxml2,
+    # spatialite, libkml, freexl, libgeotiff, HDF4) moves to vcpkg/internal GDAL in a
+    # follow-up PR, shrink $sdkAllowedCachePrefixes accordingly.
+    $sdkAllowedCachePrefixes = @(
+        "LIBXML2_", "LibXml2_", "PC_LIBXML",
+        "XercesC_",
+        "GEOTIFF_", "GeoTIFF_",
+        "SPATIALITE_", "PC_SPATIALITE",
+        "LIBKML_", "LibKML_",
+        "FREEXL_", "PC_FREEXL",
+        "HDF4_",
+        "KEA_",
+        "ZLIB_"
+    )
+    $sdkCacheHits = Select-String -Path $cacheFile -Pattern "=.*$([regex]::Escape($env:SDK))" |
+        Where-Object { $_.Line -notmatch "^#" -and $_.Line -notmatch "^CMAKE_PREFIX_PATH" }
+    if ($sdkCacheHits) {
+        Write-BuildInfo "CMakeCache entries resolved from the GisInternals SDK:"
+        $sdkCacheHits | ForEach-Object { Write-BuildInfo $_.Line }
+    }
+    $sdkCacheLeaks = $sdkCacheHits | Where-Object {
+        $cacheVar = ($_.Line -split "=", 2)[0]
+        -not ($sdkAllowedCachePrefixes | Where-Object { $cacheVar.StartsWith($_) })
+    }
+    if ($sdkCacheLeaks) {
+        $sdkCacheLeaks | ForEach-Object { Write-BuildError $_.Line }
+        throw "CMake resolved a path from the GisInternals SDK that is outside the allowlist (see drop-gisinternals-sdk-plan). Either fix the vcpkg/internal pin for that library, or add its cache variable prefix to `$sdkAllowedCachePrefixes in win/partials.psm1 with a reason."
+    }
+    Write-BuildStep "Verified GisInternals SDK cache entries are limited to the allowlist (libxml2, Xerces-C, libgeotiff, SpatiaLite, libkml, FreeXL, HDF4, zlib)"
+
     Write-BuildStep "Building GDAL"
     exec { cmake --build . -j $env:CMAKE_PARALLEL_JOBS --config Release --target install }
 
@@ -530,6 +563,53 @@ function Build-CsharpBindings {
     exec { & nmake -f collect-deps-makefile.vc }
 
     Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
+
+    # Verify the MSVC runtime was packaged from the toolset's VC++ redist, not the
+    # GisInternals SDK (PR-A of drop-gisinternals-sdk-plan). Copy-DependentDLLs still
+    # falls back to SDK_PREFIX\bin if the redist copy were ever missing, so compare
+    # hashes against the redist directories, not just presence.
+    $vcRedistCrtDir = Get-VCRedistDir -Pattern "Microsoft.VC14*.CRT"
+    $vcRedistOpenMpDir = Get-VCRedistDir -Pattern "Microsoft.VC14*.OpenMP"
+    foreach ($dllName in @("msvcp140.dll", "vcruntime140.dll", "vcruntime140_1.dll", "concrt140.dll", "vccorlib140.dll")) {
+        $redistDll = Join-Path $vcRedistCrtDir $dllName
+        $packagedDll = Join-Path "$outputPath" $dllName
+        if (-not (Test-Path $redistDll)) {
+            # Not every CRT DLL exists in every toolset version (e.g. concrt140 on
+            # newer MSVC); only compare the ones the redist actually ships.
+            continue
+        }
+        if (-not (Test-Path $packagedDll) -or
+            (Get-FileHash $packagedDll).Hash -ne (Get-FileHash $redistDll).Hash) {
+            throw "Packaged $dllName is not the VC++ redist build. Expected a copy of $redistDll (drop-gisinternals-sdk-plan, PR-A)."
+        }
+    }
+    # gdal.dll imports VCOMP140.DLL (OpenMP runtime) but it was never shipped before
+    # this fix. Ship it from the matching OpenMP redist folder.
+    $vcompRedist = Join-Path $vcRedistOpenMpDir "vcomp140.dll"
+    $vcompPackaged = Join-Path "$outputPath" "vcomp140.dll"
+    if (-not (Test-Path $vcompRedist) -or -not (Test-Path $vcompPackaged) -or
+        (Get-FileHash $vcompPackaged).Hash -ne (Get-FileHash $vcompRedist).Hash) {
+        throw "Packaged vcomp140.dll is missing or is not the VC++ redist build. Expected a copy of $vcompRedist (drop-gisinternals-sdk-plan, PR-A)."
+    }
+    Write-BuildStep "Verified packaged MSVC runtime (CRT + OpenMP) DLLs come from the VC++ redist"
+
+    # Generic GisInternals SDK DLL leak check (drop-gisinternals-sdk-plan, PR-B): any
+    # packaged DLL whose bytes match a copy in SDK_PREFIX\bin must be one of the
+    # libraries we still deliberately ship from the SDK. Everything else (in
+    # particular the MSVC runtime, checked above) must not come from there.
+    $sdkAllowedDlls = @("libxml2.dll", "xerces-c_3_2.dll", "spatialite.dll", "freexl.dll", "hdf.dll", "mfhdf.dll", "xdr.dll", "zlib.dll")
+    $sdkBin = "$env:SDK_PREFIX\bin"
+    if (Test-Path $sdkBin) {
+        Get-ChildItem -Path "$outputPath" -Filter "*.dll" | ForEach-Object {
+            $sdkCandidate = Join-Path $sdkBin $_.Name
+            if ((Test-Path $sdkCandidate) -and
+                ((Get-FileHash $sdkCandidate).Hash -eq (Get-FileHash $_.FullName).Hash) -and
+                ($sdkAllowedDlls -notcontains $_.Name.ToLowerInvariant())) {
+                throw "Packaged $($_.Name) is a byte-for-byte copy of the GisInternals SDK build, and $($_.Name) is not on the SDK DLL allowlist (drop-gisinternals-sdk-plan, PR-B). Either it should come from vcpkg/the VC++ redist, or add it to `$sdkAllowedDlls in win/partials.psm1 with a reason."
+            }
+        }
+    }
+    Write-BuildStep "Verified packaged DLLs from the GisInternals SDK are limited to the allowlist"
 
     # Copy-DependentDLLs falls back to $env:SDK_PREFIX\bin, so a failed vcpkg
     # resolution would silently repackage the SDK's PostgreSQL 14.0 libpq and CI
@@ -702,7 +782,14 @@ function Get-CollectDeps {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", $env:VCToolsRedistDir + "x64\")
+    # The VC++ redist folders must be searched before SDK_PREFIX\bin, otherwise the
+    # (possibly stale) MSVCP140/VCRUNTIME140 DLLs bundled with the GisInternals SDK
+    # would override the ones matching the toolset used to build GDAL (PR-A of
+    # drop-gisinternals-sdk-plan). VCOMP140.DLL (OpenMP) lives in a separate redist
+    # folder and is not shipped unless its directory is listed here too.
+    $vcRedistCrtDir = Get-VCRedistDir -Pattern "Microsoft.VC14*.CRT"
+    $vcRedistOpenMpDir = Get-VCRedistDir -Pattern "Microsoft.VC14*.OpenMP"
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", $vcRedistCrtDir, $vcRedistOpenMpDir, "$env:SDK_PREFIX\bin")
     Write-BuildInfo "Using DLL directories: $dllDirectories"
 
     Write-BuildInfo "Collecting dependent DLLs for $dllFile"
@@ -719,34 +806,115 @@ function Get-CollectDeps {
     Write-BuildInfo "All dependent DLLs have been copied to $destinationDir"
 }
 
+function Get-GdalDriverNames {
+    <#
+    .SYNOPSIS
+        Extracts driver/format short names from `gdalinfo --formats` /
+        `ogrinfo --formats` output, e.g. "  GTiff -raster- (rw+uvs): ..." -> "GTiff".
+    #>
+    param ([string[]] $Lines)
+    $names = New-Object System.Collections.Generic.HashSet[string]
+    foreach ($line in $Lines) {
+        if ($line -match '^\s*(\S+)\s+-(?:raster|vector|raster,multidimensional raster)-') {
+            [void]$names.Add($matches[1])
+        }
+    }
+    return $names
+}
+
+function Get-GdalConfigFormatNames {
+    <#
+    .SYNOPSIS
+        Extracts format names from `gdal-config --formats` output: a single
+        whitespace-separated line.
+    #>
+    param ([string[]] $Lines)
+    $names = New-Object System.Collections.Generic.HashSet[string]
+    foreach ($line in $Lines) {
+        foreach ($name in ($line -split '\s+')) {
+            if ($name) { [void]$names.Add($name) }
+        }
+    }
+    return $names
+}
+
+function Assert-NoGdalDriverRegression {
+    <#
+    .SYNOPSIS
+        Fails the build if a driver/format present in the previously committed
+        baseline is missing from the freshly built GDAL (drop-gisinternals-sdk-plan,
+        PR-B). Additions are fine; only removals fail.
+    .REMARKS
+        tests/gdal-formats/formats-win/*.txt is regenerated here and auto-committed
+        by CI ("List of drivers in current version"), so without this check a lost
+        driver would silently become the new baseline and the xUnit driver tests
+        would never notice (they read the overwritten copy, not git history).
+        To intentionally retire a driver, remove its line from the committed
+        tests/gdal-formats/formats-win/*.txt in the same PR.
+    #>
+    param (
+        [Parameter(Mandatory = $true)] [string] $Label,
+        [string[]] $PreviousLines,
+        [string[]] $CurrentLines,
+        [switch] $ConfigFormat
+    )
+    $previous = if ($ConfigFormat) { Get-GdalConfigFormatNames $PreviousLines } else { Get-GdalDriverNames $PreviousLines }
+    $current = if ($ConfigFormat) { Get-GdalConfigFormatNames $CurrentLines } else { Get-GdalDriverNames $CurrentLines }
+    $missing = $previous | Where-Object { -not $current.Contains($_) }
+    if ($missing) {
+        throw "Driver regression in ${Label}: the previously committed baseline lists '$($missing -join "', '")' but the freshly built GDAL does not. If removing these is intentional, update tests/gdal-formats/formats-win/*.txt in this PR (see win/README.md)."
+    }
+}
+
 function Write-GdalFormats {
     Set-GdalVariables
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
+    $vcRedistCrtDir = Get-VCRedistDir -Pattern "Microsoft.VC14*.CRT"
+    $vcRedistOpenMpDir = Get-VCRedistDir -Pattern "Microsoft.VC14*.OpenMP"
+    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", $vcRedistCrtDir, $vcRedistOpenMpDir, "$env:PROJ_INSTALL_DIR\bin", "$env:SDK_PREFIX\bin", "$env:WEBP_ROOT\bin")
     $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
-    $newPath = ($dllDirectories -join ";") + ";" + $originalPath 
+    $newPath = ($dllDirectories -join ";") + ";" + $originalPath
     [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
 
-    $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats\formats-win") 
+    $formats_path = (Get-ForceResolvePath "$PSScriptRoot\..\tests\gdal-formats\formats-win")
     New-FolderIfNotExists $formats_path
-    
-    Set-Location "$env:GDAL_INSTALL_DIR\bin" 
+
+    $rasterPath = "$formats_path\gdal-formats-win-raster.txt"
+    $vectorPath = "$formats_path\gdal-formats-win-vector.txt"
+    $configPath = "$formats_path\gdal-formats-win.txt"
+    $previousRaster = if (Test-Path $rasterPath) { Get-Content $rasterPath } else { @() }
+    $previousVector = if (Test-Path $vectorPath) { Get-Content $vectorPath } else { @() }
+    $previousConfig = if (Test-Path $configPath) { Get-Content $configPath } else { @() }
+
+    $newRaster = @()
+    $newVector = @()
+    $newConfig = @()
+
+    Set-Location "$env:GDAL_INSTALL_DIR\bin"
     try {
-        (& .\gdalinfo.exe --formats) | Set-Content $formats_path\gdal-formats-win-raster.txt -Force
-        (& .\ogrinfo.exe --formats) | Set-Content $formats_path\gdal-formats-win-vector.txt -Force
+        $newRaster = (& .\gdalinfo.exe --formats)
+        $newRaster | Set-Content $rasterPath -Force
+        $newVector = (& .\ogrinfo.exe --formats)
+        $newVector | Set-Content $vectorPath -Force
 
         # Fix windows style paths in gdal-config
         Write-FixShellScriptOnWindows -shellScriptPath "$env:GDAL_INSTALL_DIR\bin\gdal-config" -variableName "CONFIG_DEP_LIBS"
-        
-        (& $env:GitBash -c "./gdal-config --formats") | Set-Content -Path "$formats_path\gdal-formats-win.txt" -Force
+
+        $newConfig = (& $env:GitBash -c "./gdal-config --formats")
+        $newConfig | Set-Content -Path $configPath -Force
     }
     catch {
         Write-BuildError "Failed to write GDAL formats"
         Write-BuildError $_.Exception.Message
     }
-    
+
     # Restore the original PATH
     [System.Environment]::SetEnvironmentVariable("PATH", $originalPath, [System.EnvironmentVariableTarget]::Process)
+
+    Assert-NoGdalDriverRegression -Label "raster drivers" -PreviousLines $previousRaster -CurrentLines $newRaster
+    Assert-NoGdalDriverRegression -Label "vector drivers" -PreviousLines $previousVector -CurrentLines $newVector
+    Assert-NoGdalDriverRegression -Label "gdal-config formats" -PreviousLines $previousConfig -CurrentLines $newConfig -ConfigFormat
+    Write-BuildStep "Verified no driver regression against the committed formats-win baseline"
 }
 
 function  Write-FixShellScriptOnWindows {

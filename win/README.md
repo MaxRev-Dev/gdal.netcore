@@ -50,6 +50,35 @@ If everything runs smoothly, you can use a local nuget feed to include packages 
 ### Troubleshooting dependencies:
 Use **dumpbin** or [**dependency walker**](https://www.dependencywalker.com/) to check gdal's dependencies. Please ensure the tests are passing before bringing them to prod.
 
+### GisInternals SDK safety net
+
+The Windows build still takes a shrinking set of libraries from the GisInternals SDK
+(`release-1930-x64-dev.zip`), while others come from vcpkg or GDAL's internal copies.
+`Build-Gdal` in `win/partials.psm1` fails the configure step if `CMakeCache.txt`
+resolves anything from the SDK outside the current allowlist (`$sdkAllowedCachePrefixes`),
+and `Build-CsharpBindings` fails the package step if a packaged DLL is a byte-for-byte
+copy of an SDK DLL outside the equivalent allowlist (`$sdkAllowedDlls`). As a library
+moves off the SDK (to vcpkg or an internal GDAL build), remove it from both lists in
+the same PR - the checks exist to make it impossible to silently regress back onto the
+SDK.
+
+The MSVC runtime (`msvcp140*.dll`, `vcruntime140*.dll`, `concrt140.dll`,
+`vccorlib140.dll`, `vcomp140.dll`) is shipped from the Visual C++ redistributable
+matching the toolset used to build GDAL (`Get-VCRedistDir` in `win/functions.psm1`),
+never from the SDK. The build fails outright if that redist folder cannot be found.
+
+### Driver/format regression baseline
+
+`tests/gdal-formats/formats-win/*.txt` is regenerated on every Windows build and then
+auto-committed by CI ("List of drivers in current version"). Before overwriting them,
+`Write-GdalFormats` compares the freshly built driver/format list against the
+previously committed one and fails the build if any driver or format present in the
+committed baseline is missing from the new build (`Assert-NoGdalDriverRegression`).
+Adding drivers is always fine. If you are intentionally dropping a driver (e.g. moving
+a dependency off the GisInternals SDK and accepting the format loss), remove its line
+from the committed `tests/gdal-formats/formats-win/*.txt` files in the same PR so
+there is nothing left to regress against.
+
 Have fun)
 
 Contact me: [Telegram - MaxRev](http://t.me/maxrev)
