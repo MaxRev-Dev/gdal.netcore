@@ -21,7 +21,7 @@ namespace MaxRev.Gdal.Core.Tests.CLI
                 GdalCli.EnsureEnvironment();
 
                 // gdalsrsinfo is included because it links PROJ directly
-                // (@rpath/libproj.*.dylib on macOS), unlike gdalinfo/ogr2ogr/
+                // (@rpath/libproj-maxrev.*.dylib on macOS), unlike gdalinfo/ogr2ogr/
                 // gdal_translate which only link libgdal. This exercises the
                 // dyld load path for a dependency other than libgdal itself.
                 var toolsToCheck = new[] { "gdalinfo", "ogr2ogr", "gdal_translate", "gdalsrsinfo" };

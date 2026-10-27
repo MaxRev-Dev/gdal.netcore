@@ -160,6 +160,14 @@ jobs:
         run: |
           make -f publish-makefile pack BUILD_ARCH=${{ matrix.arch }} BUILD_NUMBER_TAIL=${{ github.run_number }} PRERELEASE=${{ inputs.is-pre-release }}
 
+      # Checks what NuGet actually packed (#9): every bundled dylib ships under its
+      # unique -maxrev name and is validly signed, and nothing loads an original name
+      # or a library outside the package and /usr/lib, /System/Library. The runtime
+      # and CLI packages are checked together because the tools need the runtime's dylibs.
+      - name: Verify unique native library names
+        run: |
+          bash ./unique-native-names.sh verify ../nuget/*.nupkg
+
       - name: Store metadata as artifact
         uses: actions/upload-artifact@v5.0.0
         with:
