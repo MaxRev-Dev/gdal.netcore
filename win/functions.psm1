@@ -160,9 +160,12 @@ function Install-PwshModuleRequirements {
         Import-PackageProvider NuGet -Scope CurrentUser
     } 
 
+    # Some runner images ship without the PSGallery registration; Set-PSRepository
+    # fails on a missing repository, so register it first.
     if (!(Get-PSRepository -Name "PSGallery" -ErrorAction SilentlyContinue)) {
-        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        Register-PSRepository -Default
     }
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 
     if (!(Get-Module -Name "VSSetup" -ErrorAction SilentlyContinue)) {
         Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser -Force
