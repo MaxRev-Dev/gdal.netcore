@@ -21,14 +21,12 @@ on:
         type: string
         required: false
         default: "release-1930-x64-dev.zip"
-      mirror-tag:
-        description: "Dedicated release tag used as the mirror"
-        type: string
-        required: false
-        default: "deps-gisinternals-sdk"
 
 permissions:
   contents: write
+
+env:
+  MIRROR_TAG: deps-gisinternals-sdk
 
 jobs:
   mirror:
@@ -54,7 +52,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          TAG="${{ inputs.mirror-tag }}"
+          TAG="$MIRROR_TAG"
           NOTES="Build dependency mirror. Not a project release.
 
           This release hosts a pinned copy of the GisInternals SDK zip used by
@@ -80,7 +78,7 @@ jobs:
           {
             echo "### GisInternals SDK mirror updated"
             echo ""
-            echo "- Tag: \`${{ inputs.mirror-tag }}\`"
+            echo "- Tag: \`$MIRROR_TAG\`"
             echo "- Asset: \`${{ inputs.sdk-zip-name }}\`"
             echo "- SHA256: \`${{ steps.checksum.outputs.sha256 }}\`"
             echo ""

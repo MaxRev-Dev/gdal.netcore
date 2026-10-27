@@ -195,6 +195,7 @@ function Test-SdkZipChecksum {
     $actual = (Get-FileHash -Path $ZipPath -Algorithm SHA256).Hash
     if ($actual -ne $script:SDK_ZIP_SHA256) {
         Write-BuildError "SDK zip checksum mismatch: expected $($script:SDK_ZIP_SHA256), got $actual"
+        Remove-Item -Path $ZipPath -Force -ErrorAction SilentlyContinue
         throw "GDAL SDK checksum verification failed for $ZipPath"
     }
     Write-BuildStep "GDAL SDK checksum verified"
@@ -214,9 +215,15 @@ function Get-GdalSdkIsAvailable {
             Write-BuildError "Failed to download GDAL SDK from both mirror and GisInternals"
             throw "Unable to download GDAL SDK ($env:SDK_ZIP)"
         }
-        Test-SdkZipChecksum -ZipPath "$env:DOWNLOADS_DIR\$env:SDK_ZIP"
         Write-BuildStep "GDAL SDK was downloaded"
     }
+
+    # The zip may have just been downloaded, restored from cache, or left behind
+    # by a prior run. Verify it every time it is about to be used, and remove it
+    # on mismatch so the next run re-downloads instead of extracting a corrupt
+    # or tampered archive.
+    Test-SdkZipChecksum -ZipPath "$env:DOWNLOADS_DIR\$env:SDK_ZIP"
+
     New-FolderIfNotExistsAndSetCurrentLocation "$env:BUILD_ROOT\sdk"
 
     if (-Not (Test-Path -Path "$env:BUILD_ROOT\sdk\release-*" -PathType Container)) {
