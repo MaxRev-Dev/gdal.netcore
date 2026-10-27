@@ -92,6 +92,7 @@ Provides a minimal setup without requirements to install heavy [GDAL binaries](h
       - [Q: The first run on MacOS is slow and takes more than 3 seconds](#q-the-first-run-on-macos-is-slow-and-takes-more-than-3-seconds)
       - [Q: BadImageFormatException on Windows](#q-badimageformatexception-on-windows)
       - [Q: Publishing the project with runtime packages](#q-publishing-the-project-with-runtime-packages)
+      - [Q: Why do bundled native libraries have a -maxrev suffix?](#q-why-do-bundled-native-libraries-have-a--maxrev-suffix)
   * [About and Contacts](#about-and-contacts)
   * [Acknowledgements](#acknowledgements)
 
@@ -330,6 +331,10 @@ A: The packages were not signed during build in CI. Why? Because it requires to 
 #### Q: Publishing the project with runtime packages
 
 A: There are several ways to publish. One important thing to keep in mind, that you have to ensure the output folder contains either `runtimes/<os>-<arch>/native` path, `gdal-data` folder and `maxrev.gdal.core.libshared/proj.db`. In most cases this should be handled automatically by dotnet. Usually, we release a runtime-dependent binary. The end user will have to install the .NET runtime, but the size of the app will be small and the build time is faster. Otherwise, you can publish a self-contained app which will include all required .NET runtime libraries. More details on publishing can be found [here](https://learn.microsoft.com/en-us/dotnet/core/deploying/). Also, see the sample dockerized project for details in [tests/MaxRev.Gdal.Core.Tests/Dockerfile](tests/MaxRev.Gdal.Core.Tests/Dockerfile).
+
+#### Q: Why do bundled native libraries have a -maxrev suffix?
+
+A: The Linux and macOS runtime packages ship every bundled third-party library under a unique `-maxrev` name, and all packaged libraries and CLI tools are linked against those names. Other NuGet packages with native libraries (NetVips, SkiaSharp, ...) can no longer overwrite ours, or be overwritten by ours, in the shared `runtimes/<rid>/native` output folder, and a same-named library that is already loaded in the process is not used in place of ours. `libgdal` and the SWIG `*_wrap` libraries keep their names. If your code loads one of the bundled libraries by name, use the new name. Details: [unix/README.md](unix/README.md#7-bundled-library-names), [osx/README.md](osx/README.md#bundled-library-names).
 
 ## About and Contacts
 
