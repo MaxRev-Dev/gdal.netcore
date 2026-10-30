@@ -120,7 +120,8 @@ jobs:
           # by a concurrent run between push and extract. Local runners load the image.
           image=${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}
           if [ -n "${{ steps.build.outputs.digest }}" ]; then image="$image@${{ steps.build.outputs.digest }}"; else image="$image:latest"; fi
-          '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }} "$(docker create "$image")" --formats --package-build --metadata --nuget
+          container=$(docker create "$image")
+          '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }} "$container" --formats --package-build --metadata --nuget
 
       # Gates on the glibc floor in shared/GdalCore.opt before anything is uploaded,
       # so a dependency that raises the runtime requirement fails here instead of in
