@@ -160,8 +160,20 @@ function Install-PwshModuleRequirements {
         Import-PackageProvider NuGet -Scope CurrentUser
     } 
 
-    if (!(Get-PSRepository -Name "PSGallery" -ErrorAction SilentlyContinue)) {
-        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+    # PowerShellGet can come up without PSGallery registered (its default
+    # registration is skipped on a transient gallery/network failure).
+    # Set-PSRepository cannot create a missing repository, so register it.
+    for ($attempt = 1; !(Get-PSRepository -Name "PSGallery" -ErrorAction SilentlyContinue); $attempt++) {
+        if ($attempt -gt 3) {
+            throw "PSGallery is still not registered after $($attempt - 1) attempts"
+        }
+        try {
+            Register-PSRepository -Default -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "Registering PSGallery failed (attempt $attempt): $_"
+            Start-Sleep -Seconds 10
+        }
     }
 
     if (!(Get-Module -Name "VSSetup" -ErrorAction SilentlyContinue)) {
