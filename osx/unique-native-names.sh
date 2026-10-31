@@ -10,6 +10,8 @@
 # Suffix goes into the stem, before the version tail:
 #   libproj.25.9.8.1.dylib -> libproj-maxrev.25.9.8.1.dylib, libsqlite3.dylib -> libsqlite3-maxrev.dylib
 #
+# Only top-level bundled libraries are renamed, matching Windows; runtime-loaded
+# plugins in subdirectories retain their names. Current packaging is flat.
 # Kept under their original names (KEEP_REGEX, mirrored in
 # tests/MaxRev.Gdal.Core.Tests.XUnit/UniqueNativeNamesTests.cs):
 #   libgdal.N.x.y.z.dylib  linked by the wraps, the tools and third-party GDAL plugins
@@ -50,7 +52,7 @@ die() { echo "error: $*" >&2; exit 2; }
 is_macho() { file -b "$1" 2>/dev/null | grep -q '^Mach-O'; }
 is_dylib() { file -b "$1" 2>/dev/null | grep -q '^Mach-O.*shared library'; }
 is_kept() { [[ "$1" =~ $KEEP_REGEX ]]; }
-in_list() { case " $(echo $2) " in *" $1 "*) return 0 ;; esac; return 1; }
+in_list() { case " $(printf '%s' "$2" | tr '\n' ' ') " in *" $1 "*) return 0 ;; esac; return 1; }
 
 # libproj.25.9.8.1.dylib -> libproj-maxrev.25.9.8.1.dylib: move every trailing
 # ".<digits>" in front of ".dylib" into the tail, the rest is the stem.
@@ -198,7 +200,7 @@ cmd_rename() {
     for name in $renames; do
         mv "$native/$name" "$native/$(unique_name "$name")"
     done
-    echo "renamed $(echo $renames | wc -w | tr -d ' ') dylibs to *$SUFFIX*, patched and re-signed $count Mach-O files"
+    echo "renamed $(echo "$renames" | wc -w | tr -d ' ') dylibs to *$SUFFIX*, patched and re-signed $count Mach-O files"
     echo "kept:$(for f in $(macho_files "$native"); do n=$(basename "$f"); is_kept "$n" && printf ' %s' "$n"; done)"
 }
 
@@ -295,7 +297,8 @@ cmd_smoke() {
     native=$(cd "$1" && pwd -P)
     command -v python3 >/dev/null 2>&1 || die "python3 not found"
     local gdal
-    gdal=$(ls "$native"/libgdal.[0-9]*.dylib | head -n 1)
+    local candidates=("$native"/libgdal.[0-9]*.dylib)
+    gdal=${candidates[0]}
 
     # Load with no DYLD_* search paths so only the rewritten @loader_path load
     # commands can resolve dependencies, then check which images dyld mapped.

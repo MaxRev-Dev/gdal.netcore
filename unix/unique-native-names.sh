@@ -12,6 +12,8 @@
 # Suffix goes into the stem so the soname keeps its lib*.so[.N] shape:
 #   libproj.so.25 -> libproj-maxrev.so.25, libsqlite3.so -> libsqlite3-maxrev.so
 #
+# Only top-level bundled libraries are renamed, matching Windows; runtime-loaded
+# plugins in subdirectories retain their names. Current packaging is flat.
 # Kept under their original names (KEEP_REGEX, mirrored in
 # tests/MaxRev.Gdal.Core.Tests.XUnit/UniqueNativeNamesTests.cs):
 #   libgdal.so.N        NEEDED by the wraps, the tools and third-party GDAL plugins
@@ -50,7 +52,7 @@ is_elf() {
 }
 is_lib_name() { [[ "$1" =~ \.so(\.[0-9]+)*$ ]]; }
 is_kept() { [[ "$1" =~ $KEEP_REGEX ]]; }
-in_list() { case " $(echo $2) " in *" $1 "*) return 0 ;; esac; return 1; }
+in_list() { case " $(printf '%s' "$2" | tr '\n' ' ') " in *" $1 "*) return 0 ;; esac; return 1; }
 
 # libproj.so.25 -> libproj-maxrev.so.25
 unique_name() {
@@ -144,7 +146,7 @@ cmd_rename() {
     for name in $renames; do
         mv "$native/$name" "$native/$(unique_name "$name")"
     done
-    echo "renamed $(echo $renames | wc -w | tr -d ' ') libraries to *$SUFFIX*, rewrote DT_NEEDED in $count ELF files"
+    echo "renamed $(echo "$renames" | wc -w | tr -d ' ') libraries to *$SUFFIX*, rewrote DT_NEEDED in $count ELF files"
     echo "kept:$(for f in $(elf_files "$native"); do n=$(basename "$f"); is_kept "$n" && printf ' %s' "$n"; done)"
 }
 
@@ -213,6 +215,7 @@ cmd_verify() {
             fail "$name has no SONAME"
         fi
         runpath=$(dyn_values "$f" "Library runpath")
+        # shellcheck disable=SC2016 # Match the literal loader token.
         [[ ":$runpath:" == *':$ORIGIN:'* ]] || fail "$name RUNPATH '$runpath' lacks \$ORIGIN"
     done < "$work_dir/libs"
 
@@ -246,7 +249,8 @@ cmd_smoke() {
     native=$(cd "$1" && pwd -P)
     command -v python3 >/dev/null 2>&1 || die "python3 not found"
     local gdal
-    gdal=$(ls "$native"/libgdal.so.[0-9]* | head -n 1)
+    local candidates=("$native"/libgdal.so.[0-9]*)
+    gdal=${candidates[0]}
 
     # Load with nothing on LD_LIBRARY_PATH so only RUNPATH and the rewritten
     # DT_NEEDED entries can resolve dependencies, then check where they came from.
