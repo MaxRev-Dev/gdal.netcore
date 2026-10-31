@@ -21,7 +21,7 @@ function Set-GdalVariables {
         $env:SDK_MIRROR_URL = "https://github.com/MaxRev-Dev/gdal.netcore/releases/download/deps-gisinternals-sdk/$env:SDK_ZIP"
     }
     if (-Not $env:SDK_URL) {
-        $env:SDK_URL = "http://download.gisinternals.com/sdk/downloads/$env:SDK_ZIP"
+        $env:SDK_URL = "https://download.gisinternals.com/sdk/downloads/$env:SDK_ZIP"
     }
     $env:LIBWEBP_URL = "https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-windows-x64.zip"
     $env:LIBZSTD_URL = "https://github.com/facebook/zstd/releases/download/v1.5.5/zstd-v1.5.5-win64.zip"
