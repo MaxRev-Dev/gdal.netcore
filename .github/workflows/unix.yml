@@ -77,6 +77,7 @@ jobs:
             latest
 
       - name: Build and push on GH runner
+        id: build
         uses: docker/build-push-action@v5
         if: ${{ !contains(matrix.actions-runner, 'self-hosted') }}
         with:
@@ -115,7 +116,12 @@ jobs:
       - name: Extract artifacts
         run: |
           chmod +x '${{ github.workspace }}/ci/extract-container-artifacts.sh'
-          '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }} --formats --package-build --metadata --nuget
+          # Pin to this run's pushed digest: the shared :latest tag can be overwritten
+          # by a concurrent run between push and extract. Local runners load the image.
+          image=${{ env.DOCKER_REGISTRY }}/gdal.netcore.builder.${{ matrix.arch }}
+          if [ -n "${{ steps.build.outputs.digest }}" ]; then image="$image@${{ steps.build.outputs.digest }}"; else image="$image:latest"; fi
+          container=$(docker create "$image")
+          '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }} "$container" --formats --package-build --metadata --nuget
 
       # Gates on the glibc floor in shared/GdalCore.opt before anything is uploaded,
       # so a dependency that raises the runtime requirement fails here instead of in

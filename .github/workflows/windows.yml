@@ -63,10 +63,28 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-
 
-      # Layer 2: Build outputs (PROJ, GDAL, VCPKG installed, SDK)
+      # Layer 2: GisInternals SDK zip. Cached on its own, keyed only on the
+      # SDK name, so it survives build-script changes that would otherwise
+      # bust the builds cache below and force a re-download from an
+      # unreliable host (download.gisinternals.com). We cache the pristine
+      # downloaded zip rather than the extracted build-win/sdk/release-1930-x64/
+      # directory: install.ps1 rewrites absolute paths inside the extracted
+      # SDK, so a cached extraction would be tied to this runner's workspace
+      # layout. Re-extracting the zip on a cache hit is cheap.
+      - name: Cache GisInternals SDK zip
+        id: cache-sdk
+        uses: actions/cache@v4
+        with:
+          path: |
+            build-win/downloads/release-1930-x64-dev.zip
+          key: gis-sdk-${{ runner.os }}-release-1930-x64-dev
+
+      # Layer 3: Build outputs (PROJ, GDAL, VCPKG installed)
       # Keep this cache narrow enough that the separate VCPKG archive cache
       # is less likely to be evicted. Source clones and downloads are rebuilt
       # on demand, but the installed outputs/state stamps stay reusable.
+      # The SDK zip has its own cache above and is intentionally not listed
+      # here; the extracted SDK dir is rebuilt from it on every run.
       - name: Cache build outputs
         id: cache-builds
         uses: actions/cache@v4
@@ -76,7 +94,6 @@ jobs:
             build-win/gdal-build/
             build-win/proj-build/
             build-win/gdal-cmake-temp/swig/csharp/
-            build-win/sdk/release-1930-x64/
             build-win/vcpkg/
             !build-win/vcpkg/buildtrees/
             !build-win/vcpkg/downloads/
@@ -85,7 +102,7 @@ jobs:
           # by prefix mixes them with a different vcpkg baseline.
           key: builds-${{ runner.os }}-${{ hashFiles('shared/swig.lock', 'shared/GdalCore.opt', 'win/install.ps1', 'win/functions.psm1', 'win/partials.psm1', 'win/vcpkg-makefile.vc', 'shared/vcpkg.json', 'shared/vcpkg-configuration.json', 'shared/vcpkg-lock.json') }}
 
-      # Layer 3: .NET SDK packages
+      # Layer 4: .NET SDK packages
       - name: Cache .NET packages
         uses: actions/cache@v4
         with:

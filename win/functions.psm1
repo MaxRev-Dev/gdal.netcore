@@ -118,7 +118,32 @@ function Set-ReplaceContentInFilesByRegex {
 
 function Get-VisualStudioVars {
     Write-BuildStep "Setting Visual Studio Environment"
-    Import-VisualStudioVars -Architecture $env:CMAKE_ARCHITECTURE
+    # vswhere.exe ships with the Visual Studio Installer (2017 and later) at a fixed path.
+    $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+    if (!(Test-Path -Path $vswhere -PathType Leaf)) {
+        throw "vswhere.exe was not found at '$vswhere'. Install Visual Studio or Build Tools with the C++ workload."
+    }
+    $vsPath = & $vswhere -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath |
+        Select-Object -First 1
+    if (!$vsPath) {
+        throw "No Visual Studio installation with the C++ x86/x64 build tools was found."
+    }
+    $vcvarsall = Join-Path $vsPath "VC\Auxiliary\Build\vcvarsall.bat"
+
+    # Run vcvarsall in cmd and import the environment it leaves behind into this session.
+    $marker = "__GDAL_NETCORE_VCVARS_ENV__"
+    [string[]] $output = @(& cmd.exe /c " `"$vcvarsall`" $env:CMAKE_ARCHITECTURE && echo $marker&& set ")
+    $exitCode = $LASTEXITCODE
+    $markerIndex = [Array]::IndexOf($output, $marker)
+    if ($exitCode -ne 0 -or $markerIndex -lt 0) {
+        $output | Write-Host
+        throw "vcvarsall.bat $env:CMAKE_ARCHITECTURE failed (exit code $exitCode)."
+    }
+    foreach ($line in ($output | Select-Object -Skip ($markerIndex + 1))) {
+        if ($line -match '^([^=]+)=(.*)$') {
+            Set-Item -Path "env:$($Matches[1])" -Value $Matches[2]
+        }
+    }
     Write-BuildStep "Visual Studio Environment was initialized"
 }
 
@@ -156,9 +181,9 @@ function Install-PwshModuleRequirements {
         Write-Information "CMake was installed"
     }
 
-    if (!(Get-PackageProvider -Name "NuGet" -Force -ErrorAction SilentlyContinue)) {
-        Import-PackageProvider NuGet -Scope CurrentUser
-    } 
+    # No PowerShell Gallery modules are required: Visual Studio is located with
+    # vswhere.exe (Get-VisualStudioVars) and 7-Zip is unpacked with 7zr.exe
+    # (Get-7ZipInstallation). Keep the bounded default repository registration below.
 
     # PowerShellGet can come up without PSGallery registered (its default
     # registration is skipped on a transient gallery/network failure).
@@ -176,22 +201,6 @@ function Install-PwshModuleRequirements {
         }
     }
 
-    if (!(Get-Module -Name "VSSetup" -ErrorAction SilentlyContinue)) {
-        Install-Module -Name VSSetup -RequiredVersion 2.2.5 -Scope CurrentUser -Force
-    } 
-
-    if (!(Get-Module -Name "Pscx" -ErrorAction SilentlyContinue)) {        
-        Install-Module -Name Pscx -AllowClobber -AllowPrerelease -Scope CurrentUser -Force
-    }
-
-    if (!(Get-Command "Invoke-WebRequest" -ErrorAction SilentlyContinue)) {
-        Install-Module -Name WebKitDev -RequiredVersion 0.4.0 -Force -Scope CurrentUser
-    }
-    
-    if (!(Get-Command "choco" -ErrorAction SilentlyContinue)) {
-        Install-Module -Name Choco -Scope CurrentUser -Force
-    } 
-    
     $swigLockPath = Join-Path $PSScriptRoot "../shared/swig.lock"
     $swigLock = (Get-Content -Raw $swigLockPath).Trim() -split '\s+'
     if ($swigLock.Count -ne 2 -or $swigLock[0] -notmatch '^\d+\.\d+\.\d+$' -or $swigLock[1] -notmatch '^[0-9a-f]{64}$') {
