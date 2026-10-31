@@ -26,10 +26,10 @@ namespace GdalCore_XUnit
         private static readonly Regex KeptLinuxLibName = new Regex(
             @"^lib(gdal\.so\.\d+|.+_wrap\.so|gomp\.so\.\d+)$", RegexOptions.CultureInvariant);
         private static readonly Regex KeptMacOSLibName = new Regex(
-            @"^lib(gdal\.\d+(\.\d+)*\.dylib|.+_wrap\.dylib)$", RegexOptions.CultureInvariant);
+            @"^lib(gdal\.\d+\.dylib|.+_wrap\.dylib)$", RegexOptions.CultureInvariant);
 
         private static readonly Regex LinuxGdalLib = new Regex(@"^libgdal\.so\.\d+$", RegexOptions.CultureInvariant);
-        private static readonly Regex MacOSGdalLib = new Regex(@"^libgdal\.\d+(\.\d+)*\.dylib$", RegexOptions.CultureInvariant);
+        private static readonly Regex MacOSGdalLib = new Regex(@"^libgdal\.\d+\.dylib$", RegexOptions.CultureInvariant);
         private static readonly Regex LinuxSharedLib = new Regex(@"\.so(\.\d+)*$", RegexOptions.CultureInvariant);
 
         private readonly ITestOutputHelper _outputHelper;

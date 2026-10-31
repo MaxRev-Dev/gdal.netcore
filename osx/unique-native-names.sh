@@ -14,11 +14,12 @@
 # plugins in subdirectories retain their names. Current packaging is flat.
 # Kept under their original names (KEEP_REGEX, mirrored in
 # tests/MaxRev.Gdal.Core.Tests.XUnit/UniqueNativeNamesTests.cs):
-#   libgdal.N.x.y.z.dylib  linked by the wraps, the tools and third-party GDAL plugins
+#   libgdal.N.dylib        linked by the wraps, the tools and third-party GDAL plugins
 #   lib*_wrap.dylib        P/Invoked by name from managed code (DllImport("gdal_wrap"))
 #
 # Tools are linked against build-time names such as @rpath/libproj.25.dylib and
-# @rpath/libgdal.39.dylib, which are symlinks in the build tree and are not shipped.
+# @rpath/libgdal.39.dylib. GDAL keeps this public ABI name for external plugins;
+# other build-tree symlinks are resolved to the shipped files.
 # rename resolves each of them to the shipped file and rewrites the load command, so
 # this is also what makes gdalsrsinfo (which links PROJ directly) loadable.
 #
@@ -140,6 +141,13 @@ cmd_rename() {
     [ -z "$links" ] || die "symlinks in $native are not supported:"$'\n'"$links"
     ls "$native"/libgdal.[0-9]*.dylib >/dev/null 2>&1 || die "libgdal.N.dylib not found in $native"
 
+    # Ship one real GDAL binary under its public ABI name, never a symlink copy.
+    local gdals=("$native"/libgdal.[0-9]*.dylib) gdal_file gdal_abi
+    [ "${#gdals[@]}" -eq 1 ] || die "expected one libgdal binary in $native"
+    gdal_file=$(basename "${gdals[0]}")
+    gdal_abi=${gdal_file#libgdal.}
+    gdal_abi=libgdal.${gdal_abi%%.*}.dylib
+
     local f name renames="" already=0
     for f in $(macho_files "$native"); do
         name=$(basename "$f")
@@ -160,7 +168,9 @@ cmd_rename() {
     for f in $(macho_files "$native") $(macho_files "$tools"); do
         name=$(basename "$f")
         args=()
-        if [ "$(dirname "$f")" = "$native" ] && in_list "$name" "$renames"; then
+        if [ "$f" = "$native/$gdal_file" ]; then
+            args+=(-id "@rpath/$gdal_abi")
+        elif [ "$(dirname "$f")" = "$native" ] && in_list "$name" "$renames"; then
             id=$(install_id "$f")
             case "$id" in */*) args+=(-id "${id%/*}/$(unique_name "$name")") ;; *) args+=(-id "$(unique_name "$name")") ;; esac
         fi
@@ -176,6 +186,7 @@ cmd_rename() {
                 target=$(resolve_leaf "$native" "$leaf") || die "$name loads $dep, which does not resolve to a shipped library"
             fi
             new=$target
+            [ "$target" != "$gdal_file" ] || new=$gdal_abi
             in_list "$target" "$renames" && new=$(unique_name "$target")
             [ "$new" = "$leaf" ] || args+=(-change "$dep" "${dep%/*}/$new")
         done
@@ -197,6 +208,7 @@ cmd_rename() {
         count=$((count + 1))
     done < "$plan"
 
+    [ "$gdal_file" = "$gdal_abi" ] || mv "$native/$gdal_file" "$native/$gdal_abi"
     for name in $renames; do
         mv "$native/$name" "$native/$(unique_name "$name")"
     done
@@ -250,7 +262,7 @@ cmd_verify() {
     fail() { echo "FAIL $*"; fails=$((fails + 1)); }
 
     local w
-    echo "$packaged" | tr ' ' '\n' | grep -qE '^libgdal\.[0-9]+(\.[0-9]+)*\.dylib$' || fail "libgdal.N.dylib is not packaged"
+    echo "$packaged" | tr ' ' '\n' | grep -qE '^libgdal\.[0-9]+\.dylib$' || fail "libgdal.N.dylib is not packaged"
     for w in $WRAPS; do in_list "$w" "$packaged" || fail "$w is not packaged"; done
 
     local name id dir
@@ -263,7 +275,12 @@ cmd_verify() {
             fail "${name/$SUFFIX/} ships next to $name"
         fi
         id=$(install_id "$f")
-        [ "${id##*/}" = "$name" ] || fail "$name has install id $id"
+        case "$name" in
+            libgdal.[0-9]*.dylib)
+                [[ "$name" =~ ^libgdal\.[0-9]+\.dylib$ ]] && [ "$id" = "@rpath/$name" ] \
+                    || fail "$name must use the public ABI install id @rpath/libgdal.N.dylib" ;;
+            *) [ "${id##*/}" = "$name" ] || fail "$name has install id $id" ;;
+        esac
     done < "$work_dir/libs"
 
     local dep
