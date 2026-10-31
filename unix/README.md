@@ -8,6 +8,7 @@
       - [Optional libraries](#optional-libraries)
     + [5. **Compiling**](#5-compiling)
     + [6. **How to check dependencies:**](#6-how-to-check-dependencies)
+    + [7. **Bundled library names**](#7-bundled-library-names)
 
 ## Prerequisites
 
@@ -91,4 +92,14 @@ readelf -d "/root/gdal.netcore/build-unix/gdal-build/lib/libgdal.so" | grep NEED
 Or using **ldd**:
 ```bash
 ldd "/root/gdal.netcore/build-unix/gdal-build/lib/libgdal.so"
+```
+
+### 7. **Bundled library names**
+Every bundled third-party library is renamed to `<name>-maxrev` with the suffix in the stem, so the soname keeps its usual shape (for example `libproj-maxrev.so.25`, `libssl-maxrev.so.3`, `libsqlite3-maxrev.so`). Its SONAME is changed to match, and the DT_NEEDED entries and symbol version requirements of every packaged library and CLI tool are rewritten (`unique-native-names.sh rename`, run by the `unique-native-names` target in `collect-deps-makefile`). The dynamic linker reuses any already loaded library whose SONAME equals a DT_NEEDED entry, regardless of RUNPATH, so without this a `libz.so.1` or `libproj.so.25` loaded first by other code would be used instead of ours, and the other way round. Unique names also keep our libraries from overwriting, or being overwritten by, same-named libraries of other NuGet packages in the shared `runtimes/linux-x64/native` output folder (#9). The OpenSSL rename for #224 is part of this: `libssl-maxrev.so.3` cannot shadow the system `libssl.so.3` that .NET uses for HTTPS.
+
+These keep their original names: `libgdal.so.<N>` (linked by the wraps, the tools and third-party GDAL plugins), the SWIG `lib*_wrap.so` (loaded by name from managed code) and `libgomp.so.1` (the GCC OpenMP runtime, best shared with the rest of the process). Code that loads a bundled library by its old name (for example `NativeLibrary.Load("libproj.so.25")`) no longer gets our copy, and external plugins that link a standard soname, such as ODBC drivers needing `libodbcinst.so.2`, load the system library next to ours.
+
+`unique-native-names.sh verify` then fails the build if a bundled library still ships under its original name, or any packaged binary needs an original name or a library that is neither packaged nor part of glibc and the GCC runtime; `unique-native-names.sh smoke` loads the result and runs `gdalinfo` and `gdalsrsinfo`. CI runs `verify` again on the finished packages:
+```bash
+./unique-native-names.sh verify ../nuget/*.nupkg
 ```

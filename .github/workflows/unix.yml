@@ -134,6 +134,15 @@ jobs:
           chmod +x '${{ github.workspace }}/ci/check-glibc-floor.sh'
           '${{ github.workspace }}/ci/check-glibc-floor.sh' nuget/*.nupkg
 
+      # Checks what NuGet actually packed (#9): every bundled library ships under its
+      # unique -maxrev name, and no packaged ELF needs an original name or a library
+      # that is neither packaged nor part of glibc. The runtime and CLI packages are
+      # checked together because the tools need the runtime's libraries.
+      - name: Verify unique native library names
+        run: |
+          chmod +x '${{ github.workspace }}/unix/unique-native-names.sh'
+          '${{ github.workspace }}/unix/unique-native-names.sh' verify nuget/*.nupkg
+
       - name: Extract error artifacts (on failure)
         if: failure()
         run: |

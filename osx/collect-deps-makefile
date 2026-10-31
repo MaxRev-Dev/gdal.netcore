@@ -44,7 +44,7 @@ build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 	$(MAKE) -f gdal-makefile formats-output
 
-linkall: initdirs copy-projdb collect-bindings copy-deps copy-tools
+linkall: initdirs copy-projdb collect-bindings copy-deps copy-tools unique-native-names
 	@echo "Libraries patched successfully"
 
 clean:
@@ -76,17 +76,10 @@ copy-deps:
 #	1. copy gdal.dylib.XX
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
 #	3. copy to output
+#	NuGet does not preserve symlinks. unique-native-names ships one real GDAL
+#	binary as libgdal.<major>.dylib with its public @rpath ABI install ID and
+#	points bundled consumers at it, so external GDAL plugins can still load it.
 	cp -rfL $(BINDINGS_SOURCE)/*.dylib $(OUTPUT)/
-	@{ \
-		gdal_lib=$$(ls "$(OUTPUT)"/libgdal.*.dylib 2>/dev/null | head -n 1); \
-		if [ -n "$$gdal_lib" ]; then \
-			gdal_base=$$(basename "$$gdal_lib"); \
-			gdal_major=$$(echo "$$gdal_base" | sed -E 's/^libgdal\.([0-9]+).*/\1/'); \
-			if [ -n "$$gdal_major" ]; then \
-				ln -sf "$$gdal_base" "$(OUTPUT)/libgdal.$$gdal_major.dylib"; \
-			fi; \
-		fi; \
-	};
 
 	dylibbundler -b  \
 		$(addprefix  -x , $(addprefix $(OUTPUT)/,$(notdir $(WRAP_TARGETS)))) \
@@ -105,19 +98,25 @@ copy-deps:
 				install_name_tool -delete_rpath "$$rpath" "$$lib" 2>/dev/null || true; \
 			done; \
 			codesign --remove-signature "$$lib" 2>/dev/null || true; \
-			codesign --force --sign "$(CODESIGN_IDENTITY)" "$$lib" 2>/dev/null || true; \
+			codesign --force --sign "$(CODESIGN_IDENTITY)" "$$lib" || exit 1; \
 		fi; \
 	done
-	find $(BUILD_BASE_LIB) -maxdepth 1 -type l -name "libgdal.*.dylib" -exec cp -P {} $(OUTPUT)/ \;
 
 copy-tools:
 	cp -rfL $(GDAL_BUILD)/bin/* $(TOOLS_OUTPUT)/
-	@for tool in $(TOOLS_OUTPUT)/*; do \
-		if [ -f "$$tool" ]; then \
-			codesign --remove-signature "$$tool" 2>/dev/null || true; \
-			codesign --force --sign "$(CODESIGN_IDENTITY)" "$$tool" 2>/dev/null || true; \
-		fi; \
-	done
+
+# Renames every bundled dylib except libgdal and the *_wrap libs to <name>-maxrev
+# (issue #9) and rewrites install ids and load commands of all packaged dylibs and
+# tools to match. Tools link build-time names such as @rpath/libproj.25.dylib that
+# are only symlinks in the build tree; they are resolved through the build lib
+# folders to the shipped file. Every patched binary is ad-hoc re-signed.
+# verify fails the build if anything still loads an original name or a library
+# we don't ship, smoke loads the result and runs gdalinfo and gdalsrsinfo.
+unique-native-names:
+	bash ./unique-native-names.sh rename $(OUTPUT) $(TOOLS_OUTPUT) \
+		$(BUILD_BASE_LIB) $(PROJ_BUILD)/lib $(HDF_BUILD)/lib $(VCPKG_INSTALLED_DYNAMIC)/lib
+	bash ./unique-native-names.sh verify $(OUTPUT) $(TOOLS_OUTPUT)
+	bash ./unique-native-names.sh smoke $(OUTPUT) $(TOOLS_OUTPUT) $(LIBSHARED)
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)

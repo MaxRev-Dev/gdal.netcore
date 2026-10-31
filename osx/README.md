@@ -5,6 +5,7 @@
     + [**2. Check for required libraries**](#2-check-for-required-libraries)
     + [**3. Compiling**](#3-compiling)
     + [**How to check dependencies:**](#6-how-to-check-dependencies)
+    + [**Bundled library names**](#bundled-library-names)
     + [**macOS signing](#macos-signing)
 
 ## Prerequisites
@@ -61,6 +62,16 @@ Or after collecting libraries, run **otool** to view dependencies .
 Don't forget to set **DYLD_LIBRARY_PATH**. See **copy-deps** target in **collect-deps-makefile** for details. Assumming the repo path is `/root/gdal.netcore`.
 ```bash
 otool -L "/root/gdal.netcore/build-osx/gdal-build/lib/libgdal.dylib"
+```
+
+### **Bundled library names**
+Every bundled third-party dylib is renamed to `<name>-maxrev` with the suffix in front of the version (for example `libproj-maxrev.25.9.8.1.dylib`, `libsqlite3-maxrev.dylib`). Its install id is changed to match and the load commands of every packaged dylib and CLI tool are rewritten (`unique-native-names.sh rename`, run by the `unique-native-names` target in `collect-deps-makefile`). This keeps our dylibs from overwriting, or being overwritten by, same-named dylibs of other NuGet packages in the shared `runtimes/osx-arm64/native` output folder (#9). The CLI tools are linked against build-time names such as `@rpath/libproj.25.dylib` that are only symlinks in the build tree; the same step points them at the shipped files, so the runtime package ships no symlink copies.
+
+`libgdal.<N>.dylib` ships as a single real file with install ID `@rpath/libgdal.<N>.dylib`, preserving the public ABI for external plugins without a duplicate symlink copy. The SWIG `lib*_wrap.dylib` keep their names because managed code loads them by name. Code that loads a bundled dylib by its old name (for example `NativeLibrary.Load("libproj.25.dylib")`) no longer gets our copy.
+
+Every patched binary is ad-hoc re-signed; on Apple Silicon a binary with a stale signature is killed at load. `unique-native-names.sh verify` then fails the build if a bundled dylib still ships under its original name, any packaged binary loads an original name or a library outside the package and `/usr/lib`, `/System/Library`, or a signature does not verify; `unique-native-names.sh smoke` loads the result and runs `gdalinfo` and `gdalsrsinfo`. CI runs `verify` again on the finished packages:
+```bash
+bash ./unique-native-names.sh verify ../nuget/*.nupkg
 ```
 
 ### **macOS code signing**

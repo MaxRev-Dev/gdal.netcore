@@ -23,26 +23,20 @@ build: linkall
 	@echo "Bindings and drivers are ready to packaging!"
 	$(MAKE) -f gdal-makefile formats-output
 
-linkall: initdirs copy-deps copy-projdb collect-bindings copy-tools
-	$(eval _so_out_:=$(wildcard  $(OUTPUT)/*.so*))
-	@$(foreach lib, $(_so_out_),  @if [ -a $(lib) ]; then echo "Patching $(lib)" & patchelf --set-rpath '$$ORIGIN:$$ORIGIN/runtimes/$(RID)/native' $(lib); fi;${\n})
-
-#	patch for dotnet OpenSsl lib which precedes user loader fetching system libssl.so.3 and libcrypto.so.3
-#	https://github.com/microsoft/vcpkg/discussions/19127#discussioncomment-8139263
-#	https://github.com/MaxRev-Dev/gdal.netcore/issues/224
-#	1. rename NEEDED references in all dependent libraries
-	patchelf --replace-needed libssl.so.3 libssl.so.3.2.0 $(OUTPUT)/*.so*
-	patchelf --replace-needed libcrypto.so.3 libcrypto.so.3.2.0 $(OUTPUT)/*.so*
-#	2. rename the actual files
-	mv $(OUTPUT)/libcrypto.so.3 $(OUTPUT)/libcrypto.so.3.2.0
-	mv $(OUTPUT)/libssl.so.3 $(OUTPUT)/libssl.so.3.2.0
-#	3. patch the SONAME inside the libraries themselves so the dynamic linker
-#	   does not register them as libssl.so.3/libcrypto.so.3 which would shadow
-#	   the system OpenSSL that .NET uses for HTTPS (HttpClient / SslStream)
-	patchelf --set-soname libssl.so.3.2.0 $(OUTPUT)/libssl.so.3.2.0
-	patchelf --set-soname libcrypto.so.3.2.0 $(OUTPUT)/libcrypto.so.3.2.0
-
+linkall: initdirs copy-deps copy-projdb collect-bindings copy-tools unique-native-names
 	@echo "Libraries patched successfully"
+
+# Renames every bundled library except libgdal, the *_wrap libs and libgomp to
+# <name>-maxrev (issue #9), sets the SONAME to match and rewrites DT_NEEDED and
+# version requirements of all packaged libraries and tools; also sets the
+# libraries' RUNPATH to $ORIGIN. This includes OpenSSL: libssl-maxrev.so.3 cannot
+# shadow the system libssl.so.3 that .NET loads for HTTPS (#224).
+# verify fails the build if anything still needs an original name or a library
+# we don't ship, smoke loads the result and runs gdalinfo and gdalsrsinfo.
+unique-native-names:
+	bash ./unique-native-names.sh rename $(OUTPUT) $(TOOLS_OUTPUT)
+	bash ./unique-native-names.sh verify $(OUTPUT) $(TOOLS_OUTPUT)
+	bash ./unique-native-names.sh smoke $(OUTPUT) $(TOOLS_OUTPUT) $(LIBSHARED)
 
 clean:
 	(cd $(BUILD_BASE) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
