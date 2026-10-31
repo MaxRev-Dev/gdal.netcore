@@ -45,10 +45,12 @@ jobs:
           else
               echo "is_version_branch=false" >> $GITHUB_OUTPUT
           fi;
-          # Skip build for specific OS
+          # Skip build for specific OS. Only the subject line counts: a squash merge
+          # copies every PR commit message into the body, and a [skip <os>] used on
+          # one PR commit must not skip that OS for the merged result.
           git log -1 --pretty=format:"%B" | cat
           for os in unix windows osx; do
-            if git log -1 --pretty=format:"%B" | grep -Eq "\[(skip|no) $os\]|\[$os skip\]"; then
+            if git log -1 --pretty=format:"%s" | grep -Eq "\[(skip|no) $os\]|\[$os skip\]"; then
               echo "skip_$os=true" >> $GITHUB_OUTPUT
               echo "Skip build for $os"
             else
