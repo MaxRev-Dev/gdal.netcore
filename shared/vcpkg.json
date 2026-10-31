@@ -15,6 +15,11 @@
       "name": "curl",
       "version": "8.22.0",
       "port-version": 1
+    },
+    {
+      "name": "brotli",
+      "version": "1.2.1",
+      "port-version": 0
     }
   ],
   "features": {
