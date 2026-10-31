@@ -56,7 +56,7 @@ To refresh the mirror, either run the `Mirror GisInternals SDK` workflow (`.gith
 gh release upload deps-gisinternals-sdk release-1930-x64-dev.zip --clobber
 ```
 
-After uploading, set `$script:SDK_ZIP_SHA256` in `win/partials.psm1` to the zip's SHA256 so the build can verify it. Until that value is set away from its placeholder, checksum verification is skipped with a warning.
+After uploading, set `$script:SDK_ZIP_SHA256` in `win/partials.psm1` to the zip's SHA256 (the workflow prints it in the release notes). The build verifies every downloaded or cached zip against it and deletes a mismatching one.
 
 2. Call `./test.ps1` to test runtime and core packages. <br/> 
 If everything runs smoothly, you can use a local nuget feed to include packages in your project.

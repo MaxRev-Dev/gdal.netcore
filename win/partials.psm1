@@ -155,11 +155,10 @@ function Get-7ZipInstallation {
     $env:PATH += ";$env:7Z_ROOT"
 }
 
-# Pinned SHA256 of $env:SDK_ZIP (release-1930-x64-dev.zip). Set this once the
-# mirror release has the real asset uploaded (see win/README.md). While this
-# stays the placeholder below, verification is skipped with a warning instead
-# of failing the build.
-$script:SDK_ZIP_SHA256 = "TODO-PIN-SHA256-AFTER-FIRST-MIRROR-UPLOAD"
+# Pinned SHA256 of $env:SDK_ZIP (release-1930-x64-dev.zip), as uploaded to the
+# deps-gisinternals-sdk mirror release (see win/README.md). Update it together
+# with the mirror asset when the SDK version changes.
+$script:SDK_ZIP_SHA256 = "FD94691EABFD05921889E14B0BD281E4C0F5157AF3D26946B0BD5905E27E5AA0"
 
 function Get-SdkZipFrom {
     param(
