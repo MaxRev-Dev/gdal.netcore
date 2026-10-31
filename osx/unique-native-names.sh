@@ -208,6 +208,12 @@ cmd_rename() {
         count=$((count + 1))
     done < "$plan"
 
+    # x86_64 links are not ad-hoc signed by default; sign what needed no patching too,
+    # e.g. tools that already load the public @rpath/libgdal.N.dylib.
+    for f in $(macho_files "$native") $(macho_files "$tools"); do
+        codesign --verify --strict "$f" 2>/dev/null || resign "$f"
+    done
+
     [ "$gdal_file" = "$gdal_abi" ] || mv "$native/$gdal_file" "$native/$gdal_abi"
     for name in $renames; do
         mv "$native/$name" "$native/$(unique_name "$name")"
