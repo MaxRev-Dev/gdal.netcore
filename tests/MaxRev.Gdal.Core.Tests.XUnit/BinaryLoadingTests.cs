@@ -3,7 +3,11 @@ using OSGeo.GDAL;
 using OSGeo.OGR;
 using OSGeo.OSR;
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection.PortableExecutable;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -135,6 +139,61 @@ namespace GdalCore_XUnit
             var driverCount = Gdal.GetDriverCount();
             Assert.True(driverCount > 0, "Drivers must remain registered after concurrent ConfigureAll calls");
             _outputHelper.WriteLine($"Concurrent ConfigureAll completed across {threadCount} threads; {driverCount} drivers registered");
+        }
+
+        // DLLs the Windows runtime ships under their original names (mirrors
+        // $BundledDllKeepPatterns in win/partials.psm1): gdal.dll and the SWIG
+        // *_wrap.dll are loaded by name from managed code, the VC++ runtime and the
+        // ODBC driver are Microsoft-signed redistributables, OpenCL.dll is the OS ICD loader.
+        private static readonly Regex KeptWindowsDllName = new Regex(
+            @"^(gdal|.+_wrap|vcruntime\d.*|msvcp\d.*|concrt\d.*|vccorlib\d.*|vcomp\d.*|msodbcsql\d.*|opencl)\.dll$",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        [Fact]
+        public void Windows_LoadsUniquelyNamedBundledDlls()
+        {
+            if (!OperatingSystem.IsWindows())
+            {
+                _outputHelper.WriteLine("Skipped: Windows-only check");
+                return;
+            }
+
+            // The Windows runtime ships every bundled third-party DLL as
+            // "<name>-maxrev.dll" so a foreign same-named DLL can't satisfy our
+            // imports (see #253).
+            GdalBase.ConfigureAll();
+            var modules = Process.GetCurrentProcess().Modules.Cast<ProcessModule>().ToList();
+            var gdal = modules.FirstOrDefault(m => string.Equals(m.ModuleName, "gdal.dll", StringComparison.OrdinalIgnoreCase));
+            Assert.NotNull(gdal);
+            var nativeDir = Path.GetDirectoryName(gdal.FileName);
+
+            var fromNativeDir = modules
+                .Where(m => string.Equals(Path.GetDirectoryName(m.FileName), nativeDir, StringComparison.OrdinalIgnoreCase))
+                .Where(m => IsNativeDll(m.FileName))
+                .Select(m => m.ModuleName)
+                .ToList();
+            var notUnique = fromNativeDir
+                .Where(n => !KeptWindowsDllName.IsMatch(n) && !n.EndsWith("-maxrev.dll", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            Assert.True(notUnique.Count == 0, $"Bundled DLLs loaded under their original names: {string.Join(", ", notUnique)}");
+            var renamed = fromNativeDir.Where(n => n.EndsWith("-maxrev.dll", StringComparison.OrdinalIgnoreCase)).ToList();
+            Assert.NotEmpty(renamed);
+            _outputHelper.WriteLine($"Loaded {renamed.Count} uniquely named DLLs from {nativeDir}: {string.Join(", ", renamed)}");
+
+            // No copy of a renamed DLL may also ship under its original name.
+            var generic = Directory.GetFiles(nativeDir, "*-maxrev.dll")
+                .Select(f => Path.GetFileName(f).Replace("-maxrev.dll", ".dll", StringComparison.OrdinalIgnoreCase))
+                .Where(n => File.Exists(Path.Combine(nativeDir, n)))
+                .ToList();
+            Assert.True(generic.Count == 0, $"Bundled DLLs are also packaged under their original names: {string.Join(", ", generic)}");
+        }
+
+        // Managed assemblies can show up in the module list too; only native DLLs
+        // (no CLI metadata) are bundled natives.
+        private static bool IsNativeDll(string path)
+        {
+            using var reader = new PEReader(File.OpenRead(path));
+            return !reader.HasMetadata;
         }
 
         [Fact]

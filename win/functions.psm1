@@ -183,7 +183,23 @@ function Install-PwshModuleRequirements {
 
     # No PowerShell Gallery modules are required: Visual Studio is located with
     # vswhere.exe (Get-VisualStudioVars) and 7-Zip is unpacked with 7zr.exe
-    # (Get-7ZipInstallation), so the build does not depend on PSGallery uptime.
+    # (Get-7ZipInstallation). Keep the bounded default repository registration below.
+
+    # PowerShellGet can come up without PSGallery registered (its default
+    # registration is skipped on a transient gallery/network failure).
+    # Set-PSRepository cannot create a missing repository, so register it.
+    for ($attempt = 1; !(Get-PSRepository -Name "PSGallery" -ErrorAction SilentlyContinue); $attempt++) {
+        if ($attempt -gt 3) {
+            throw "PSGallery is still not registered after $($attempt - 1) attempts"
+        }
+        try {
+            Register-PSRepository -Default -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "Registering PSGallery failed (attempt $attempt): $_"
+            Start-Sleep -Seconds 10
+        }
+    }
 
     $swigLockPath = Join-Path $PSScriptRoot "../shared/swig.lock"
     $swigLock = (Get-Content -Raw $swigLockPath).Trim() -split '\s+'

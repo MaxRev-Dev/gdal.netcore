@@ -64,6 +64,12 @@ If everything runs smoothly, you can use a local nuget feed to include packages 
 ### Troubleshooting dependencies:
 Use **dumpbin** or [**dependency walker**](https://www.dependencywalker.com/) to check gdal's dependencies. Please ensure the tests are passing before bringing them to prod.
 
+Every bundled third-party DLL is renamed to `<name>-maxrev.dll` (for example `libcrypto-3-x64-maxrev.dll`, `zlib-maxrev.dll`, `proj_9-maxrev.dll`), and the import tables of every packaged binary (DLLs and tools) are rewritten to match (`Rename-BundledDLLs` in `partials.psm1`, `PeImportRenamer.cs`). Windows binds imports by base name and reuses a same-named module that is already loaded, so without this a DLL from another application (already loaded, or found in System32/PATH) could be used instead of ours (see #253). Unique names also keep our DLLs from overwriting, or being overwritten by, same-named DLLs of other NuGet packages in the shared `runtimes/win-x64/native` output folder.
+
+These keep their original names (`$BundledDllKeepPatterns`): `gdal.dll` and the SWIG `*_wrap.dll` (loaded by name from managed code and by consumers), the VC++ runtime and `msodbcsql17.dll` (Microsoft-signed redistributables), `OpenCL.dll` (OS ICD loader), and any other Authenticode-signed DLL. DLLs in subdirectories, such as GDAL plugins loaded by path, keep their names too but get their imports rewritten. Code that loads a bundled DLL by its old name (for example `NativeLibrary.Load("sqlite3.dll")`) no longer binds to our copy.
+
+New names that do not fit in place go into a small read-only section appended to the DLL. If the PE header has no room for another section header, they go into the zero padding at the end of existing read-only data sections instead; the build fails only if neither fits. `Confirm-PackagedDllImports` then fails the build if a bundled DLL still ships under its original name, or any packaged binary imports an original name or a DLL that is neither packaged nor a system DLL.
+
 Have fun)
 
 Contact me: [Telegram - MaxRev](http://t.me/maxrev)
