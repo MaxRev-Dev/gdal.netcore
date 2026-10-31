@@ -31,25 +31,33 @@ env:
 jobs:
   mirror:
     runs-on: ubuntu-latest
+    env:
+      SDK_ZIP_NAME: ${{ inputs.sdk-zip-name }}
+      SDK_URL: ${{ inputs.sdk-url }}
     steps:
       - uses: actions/checkout@v5.0.1
 
       - name: Download SDK zip
         run: |
+          set -euo pipefail
+          [[ "$SDK_ZIP_NAME" =~ ^[A-Za-z0-9._-]+\.zip$ ]] || { echo "Invalid SDK zip name" >&2; exit 1; }
+          [[ "$SDK_URL" == https://* || "$SDK_URL" == http://download.gisinternals.com/* ]] || { echo "Invalid SDK URL" >&2; exit 1; }
           curl --location --fail --show-error \
             --connect-timeout 30 --retry 5 --retry-delay 10 --retry-all-errors \
-            --output "${{ inputs.sdk-zip-name }}" \
-            "${{ inputs.sdk-url }}"
+            --output "$SDK_ZIP_NAME" \
+            "$SDK_URL"
 
       - name: Print SHA256
         id: checksum
         run: |
-          sha256sum "${{ inputs.sdk-zip-name }}"
-          echo "sha256=$(sha256sum "${{ inputs.sdk-zip-name }}" | cut -d ' ' -f1)" >> "$GITHUB_OUTPUT"
+          sha256sum "./$SDK_ZIP_NAME"
+          checksum=$(sha256sum "./$SDK_ZIP_NAME" | cut -d ' ' -f1)
+          echo "sha256=$checksum" >> "$GITHUB_OUTPUT"
 
       - name: Create or update mirror release
         env:
           GH_TOKEN: ${{ github.token }}
+          CHECKSUM: ${{ steps.checksum.outputs.sha256 }}
         run: |
           set -euo pipefail
           TAG="$MIRROR_TAG"
@@ -60,13 +68,13 @@ jobs:
           download.gisinternals.com being reachable. See win/README.md for
           details on refreshing this mirror.
 
-          SHA256 of ${{ inputs.sdk-zip-name }}: ${{ steps.checksum.outputs.sha256 }}"
+          SHA256 of $SDK_ZIP_NAME: $CHECKSUM"
 
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "${{ inputs.sdk-zip-name }}" --clobber
+            gh release upload "$TAG" "./$SDK_ZIP_NAME" --clobber
             gh release edit "$TAG" --notes "$NOTES"
           else
-            gh release create "$TAG" "${{ inputs.sdk-zip-name }}" \
+            gh release create "$TAG" "./$SDK_ZIP_NAME" \
               --title "GisInternals SDK mirror" \
               --notes "$NOTES" \
               --prerelease \
@@ -74,13 +82,15 @@ jobs:
           fi
 
       - name: Summary
+        env:
+          CHECKSUM: ${{ steps.checksum.outputs.sha256 }}
         run: |
           {
             echo "### GisInternals SDK mirror updated"
             echo ""
             echo "- Tag: \`$MIRROR_TAG\`"
-            echo "- Asset: \`${{ inputs.sdk-zip-name }}\`"
-            echo "- SHA256: \`${{ steps.checksum.outputs.sha256 }}\`"
+            echo "- Asset: \`$SDK_ZIP_NAME\`"
+            echo "- SHA256: \`$CHECKSUM\`"
             echo ""
             echo "Update \$script:SDK_ZIP_SHA256 in win/partials.psm1 with the SHA256 above to enable checksum verification."
           } >> "$GITHUB_STEP_SUMMARY"
