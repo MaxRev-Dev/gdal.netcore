@@ -123,6 +123,12 @@ jobs:
           container=$(docker create "$image")
           '${{ github.workspace }}/ci/extract-container-artifacts.sh' ${{ matrix.arch }} "$container" --formats --package-build --metadata --nuget
 
+      # Compare after extraction: the build container has neither .git nor the
+      # committed per-architecture baselines.
+      - name: Verify driver baseline
+        run: |
+          bash "${{ github.workspace }}/shared/scripts/check-driver-regression.sh" unix "${{ matrix.arch }}" "${{ github.workspace }}/tests/gdal-formats"
+
       # Gates on the glibc floor in shared/GdalCore.opt before anything is uploaded,
       # so a dependency that raises the runtime requirement fails here instead of in
       # a user's loader. readelf reads foreign-arch ELF, so arm64 checks fine here.

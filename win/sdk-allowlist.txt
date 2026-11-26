@@ -1,0 +1,24 @@
+# Exact original DLL names, checked before the -maxrev rename.
+# GDAL still searches SDK_PREFIX via CMAKE_PREFIX_PATH and INCLUDE/LIB.
+# Runtime names cross-checked against the shipped win-x64 native DLL inventory.
+# libkml and libgeotiff are linked statically: no shipped DLL to allow here.
+libxml2.dll
+xerces-c_3_2.dll
+spatialite.dll
+freexl.dll
+hdf.dll
+mfhdf.dll
+xdr.dll
+zlib.dll
+z.dll
+# SDK transitive libraries can carry the SDK VC runtime rather than the VS copy.
+concrt140.dll
+msvcp140.dll
+msvcp140_1.dll
+msvcp140_2.dll
+msvcp140_atomic_wait.dll
+msvcp140_codecvt_ids.dll
+vccorlib140.dll
+vcruntime140.dll
+vcruntime140_1.dll
+vcruntime140_threads.dll

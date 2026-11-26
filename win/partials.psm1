@@ -605,8 +605,15 @@ function Build-CsharpBindings {
     Write-BuildInfo "Output path: $outputPath"
     exec { & nmake -f collect-deps-makefile.vc }
 
+    . "$PSScriptRoot/check-sdk-leaks.ps1"
+    $toolsOutputPath = & nmake -f collect-deps-makefile.vc get-tools-output
+    $sourceDirectories = @(Get-ChildItem -Path "$env:BUILD_ROOT/*-build" -Directory | ForEach-Object { Join-Path $_.FullName "bin" })
+    $sourceDirectories += @("$env:GDAL_INSTALL_DIR/share/csharp")
+    $sourceDirectories += @((Get-VcRuntimeDllSources).Values | ForEach-Object { Split-Path $_ -Parent } | Select-Object -Unique)
+    $script:CollectedSources = Initialize-CollectedSources -OutputDirectories @("$outputPath", "$toolsOutputPath") -SourceDirectories $sourceDirectories
     Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
     Confirm-VcRuntimeDlls -DestinationDirectory "$outputPath"
+    Confirm-NoUnexpectedSdkFiles -OutputDirectories @("$outputPath", "$toolsOutputPath") -Sources $script:CollectedSources -SdkRoot $env:SDK_PREFIX
 
     # Copy-DependentDLLs falls back to $env:SDK_PREFIX\bin, so a failed vcpkg
     # resolution would silently repackage the SDK's PostgreSQL 14.0 libpq and CI
@@ -768,6 +775,7 @@ function Copy-DependentDLLs {
     $fileName = [System.IO.Path]::GetFileName($dllFileInternal)
     $destinationPath = Join-Path -Path $destinationDir -ChildPath $fileName
     Copy-Item -Path $dllFileInternal -Destination $destinationPath -Force
+    $script:CollectedSources[[IO.Path]::GetFullPath($destinationPath)] = @([IO.Path]::GetFullPath($dllFileInternal))
     $dllProcessed[$fileName] = $true
     Write-BuildInfo "Copied main DLL: $dllFileInternal => $dllPaths"
 
@@ -778,6 +786,7 @@ function Copy-DependentDLLs {
             
         if (-Not (Test-Path -Path $destinationPath) -or (-not $dllProcessed.ContainsKey($fileName))) {
             Copy-Item -Path $dllPathLocal -Destination $destinationPath -Force
+            $script:CollectedSources[[IO.Path]::GetFullPath($destinationPath)] = @([IO.Path]::GetFullPath($dllPathLocal))
             Write-Output "$targetDll > Copied: $dllPathLocal to $destinationPath"
                 
             $dllProcessed[$fileName] = $true
@@ -1114,10 +1123,15 @@ function Write-GdalFormats {
     catch {
         Write-BuildError "Failed to write GDAL formats"
         Write-BuildError $_.Exception.Message
+        throw
     }
-    
-    # Restore the original PATH
-    [System.Environment]::SetEnvironmentVariable("PATH", $originalPath, [System.EnvironmentVariableTarget]::Process)
+    finally {
+        [System.Environment]::SetEnvironmentVariable("PATH", $originalPath, [System.EnvironmentVariableTarget]::Process)
+    }
+    $checker = Convert-ToUnixPath "$PSScriptRoot/../shared/scripts/check-driver-regression.sh"
+    $formatsUnix = Convert-ToUnixPath $formats_path
+    & $env:GitBash -c "bash $checker win $env:CMAKE_ARCHITECTURE $formatsUnix"
+    if ($LASTEXITCODE -ne 0) { throw "Windows driver regression check failed" }
 }
 
 function  Write-FixShellScriptOnWindows {
