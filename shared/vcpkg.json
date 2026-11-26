@@ -129,6 +129,14 @@
     "osx-dynamic": {
       "description": "macOS dynamic runtime dependency set while preserving the separate sqlite tool pass.",
       "dependencies": [
+        {
+          "name": "sqlite3",
+          "host": true,
+          "features": [
+            "tool",
+            "rtree"
+          ]
+        },
         "unixodbc",
         "openssl",
         "zlib",

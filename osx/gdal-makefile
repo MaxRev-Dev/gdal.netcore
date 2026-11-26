@@ -104,6 +104,9 @@ configure_gdal:
 configure_proj:
 	@echo "$(TARGET_PREFIX) PROJ Configuring..."
 
+	# Check the host tool before CMake hides an execute_process launch failure.
+	@"$(VCPKG_INSTALLED)/tools/sqlite3" :memory: "SELECT 1;" >/dev/null || exit 1
+
 	@if [[ -d "$(BUILD_ROOT)/proj-cmake-temp" ]]; then rm "$(BUILD_ROOT)/proj-cmake-temp/CMakeCache.txt"; fi;
 	@if [[ -d "$(BUILD_ROOT)/proj-build" ]]; then rm -r "$(BUILD_ROOT)/proj-build"; fi;
 	@if [[ -d "$(PROJ_ROOT)/test" ]]; then rm -r "$(PROJ_ROOT)/test"; fi;
