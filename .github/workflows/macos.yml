@@ -103,7 +103,14 @@ jobs:
 
       - name: Install CMake
         run: |
-          pipx install cmake
+          # Boost.Locale in our vcpkg baseline fails the stricter source_group(TREE)
+          # path check in CMake 4.5: https://github.com/microsoft/vcpkg/pull/55069
+          pipx install --force cmake==4.4.5
+          cmake_bin="$(pipx environment --value PIPX_BIN_DIR)"
+          echo "$cmake_bin" >> "$GITHUB_PATH"
+          export PATH="$cmake_bin:$PATH"
+          command -v cmake
+          cmake --version
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v5.0.0
