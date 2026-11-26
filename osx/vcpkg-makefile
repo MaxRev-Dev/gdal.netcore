@@ -76,6 +76,13 @@ define VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE
 	set(VCPKG_BUILD_TYPE release)
 	set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
 	set(VCPKG_OSX_DEPLOYMENT_TARGET $(OSX_DEPLOYMENT_TARGET))
+	# libavif's Findaom can combine Homebrew headers with the vcpkg dylib.
+	# Newer headers enable codec controls absent from our pinned aom runtime.
+	if(PORT STREQUAL "libavif")
+		list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS
+			"-DAOM_INCLUDE_DIR=$${CURRENT_INSTALLED_DIR}/include"
+			"-DAOM_LIBRARY=$${CURRENT_INSTALLED_DIR}/lib/libaom.dylib")
+	endif()
 endef
 
 define VCPKG_TRIPLET_OSX_STATIC_RELEASE
@@ -135,7 +142,7 @@ install_packages: sync_manifest_lock_to_install_root
 		$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root; \
 		exit 0; \
 	fi; \
-	sanitize_env='env -u PKG_CONFIG_PATH -u CMAKE_PREFIX_PATH -u CPATH -u LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH'; \
+	sanitize_env='env -u PKG_CONFIG_PATH -u CMAKE_PREFIX_PATH -u CPATH -u C_INCLUDE_PATH -u CPLUS_INCLUDE_PATH -u LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH'; \
 	run_manifest_install() { \
 		triplet="$$1"; \
 		feature="$$2"; \
