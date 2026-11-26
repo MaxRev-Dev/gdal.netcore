@@ -229,6 +229,9 @@ Here's a good place to start:
 
 
 ## **Development**
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contributor and maintainer guidance.
+
 ## How to compile on Windows
 
 Enter [win](win/) directory to find out how.
