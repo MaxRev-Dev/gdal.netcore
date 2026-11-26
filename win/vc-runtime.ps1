@@ -2,13 +2,14 @@ param([string] $DestinationDirectory)
 
 $ErrorActionPreference = 'Stop'
 
-# Names shipped by MaxRev.Gdal.WindowsRuntime.Minimal 3.13.3.611. Keep this
-# explicit: copying *.dll would change the package when VS adds another DLL.
+# CRT names shipped by MaxRev.Gdal.WindowsRuntime.Minimal 3.13.3.611, plus
+# vcomp140.dll for GDAL OpenMP imports. Keep the shipped set explicit.
 function Get-VcRuntimeDllNames {
     @(
         'concrt140.dll', 'msvcp140.dll', 'msvcp140_1.dll', 'msvcp140_2.dll',
         'msvcp140_atomic_wait.dll', 'msvcp140_codecvt_ids.dll', 'vccorlib140.dll',
-        'vcruntime140.dll', 'vcruntime140_1.dll', 'vcruntime140_threads.dll'
+        'vcruntime140.dll', 'vcruntime140_1.dll', 'vcruntime140_threads.dll',
+        'vcomp140.dll'
     )
 }
 
@@ -52,18 +53,30 @@ function Get-VcRuntimeDirectory {
     return $crt
 }
 
+# Resolve OpenMP beside the selected CRT, keeping the same redist version and
+# toolset family rather than searching another installation or System32.
+function Get-VcRuntimeDllSources {
+    $crt = Get-VcRuntimeDirectory
+    $openMp = Join-Path (Split-Path $crt -Parent) ((Split-Path $crt -Leaf) -replace '\.CRT$', '.OpenMP')
+    $sources = @{}
+    foreach ($name in (Get-VcRuntimeDllNames)) {
+        $directory = if ($name -eq 'vcomp140.dll') { $openMp } else { $crt }
+        $source = Join-Path $directory $name
+        if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
+            throw "Missing expected MSVC runtime DLL '$name' in '$directory'."
+        }
+        $sources[$name] = $source
+    }
+    return $sources
+}
+
 function Copy-VcRuntimeDlls {
     param([Parameter(Mandatory)] [string] $DestinationDirectory)
-    $crt = Get-VcRuntimeDirectory
     # Validate the whole set before copying anything. Never fall back to SDK/bin.
-    foreach ($name in (Get-VcRuntimeDllNames)) {
-        if (-not (Test-Path -LiteralPath (Join-Path $crt $name) -PathType Leaf)) {
-            throw "Missing expected MSVC runtime DLL '$name' in '$crt'."
-        }
-    }
+    $sources = Get-VcRuntimeDllSources
     New-Item -ItemType Directory -Path $DestinationDirectory -Force -ErrorAction Stop | Out-Null
     foreach ($name in (Get-VcRuntimeDllNames)) {
-        $source = Join-Path $crt $name
+        $source = $sources[$name]
         $version = (Get-Item -LiteralPath $source).VersionInfo.FileVersion
         Write-Host "MSVC runtime: $name version=$version source=$source"
         Copy-Item -LiteralPath $source -Destination $DestinationDirectory -Force -ErrorAction Stop
@@ -72,9 +85,9 @@ function Copy-VcRuntimeDlls {
 
 function Confirm-VcRuntimeDlls {
     param([Parameter(Mandatory)] [string] $DestinationDirectory)
-    $crt = Get-VcRuntimeDirectory
+    $sources = Get-VcRuntimeDllSources
     foreach ($name in (Get-VcRuntimeDllNames)) {
-        $source = Join-Path $crt $name
+        $source = $sources[$name]
         $packaged = Join-Path $DestinationDirectory $name
         if (-not (Test-Path -LiteralPath $source -PathType Leaf) -or
             -not (Test-Path -LiteralPath $packaged -PathType Leaf) -or
@@ -83,7 +96,7 @@ function Confirm-VcRuntimeDlls {
             throw "Packaged MSVC runtime '$name' does not match '$source'."
         }
     }
-    Write-Host 'Verified all ten packaged MSVC runtime DLLs come from Visual Studio redist.'
+    Write-Host "Verified all $($sources.Count) packaged MSVC runtime DLLs come from Visual Studio redist."
 }
 
 if ($DestinationDirectory) {

@@ -685,7 +685,7 @@ function Copy-DependentDLLs {
         [string]$overridePath = $null # Optional parameter for path override
     )
     $dllProcessed = @{}
-    $vcRuntimeDirectory = Get-VcRuntimeDirectory
+    $vcRuntimeSources = Get-VcRuntimeDllSources
     $targetDll = [System.IO.Path]::GetFileName($dllFileInternal)
     Write-BuildStep "Copying dependent DLLs for $dllFileInternal"
     # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
@@ -719,11 +719,7 @@ function Copy-DependentDLLs {
                     if ($dllName -notin (Get-VcRuntimeDllNames)) {
                         throw "Unexpected MSVC runtime dependency '$dllName'; update the explicit shipped runtime list."
                     }
-                    $runtimePath = Join-Path $vcRuntimeDirectory $dllName
-                    if (-not (Test-Path -LiteralPath $runtimePath -PathType Leaf)) {
-                        throw "Missing expected MSVC runtime DLL '$dllName' in '$vcRuntimeDirectory'."
-                    }
-                    $dllPaths += $runtimePath
+                    $dllPaths += $vcRuntimeSources[$dllName]
                     continue
                 }
                     
@@ -786,6 +782,17 @@ function Copy-DependentDLLs {
                 
             $dllProcessed[$fileName] = $true
         }        
+    }
+
+    # ldd is transitive and cannot identify the direct importer. Inspect each
+    # collected PE import table so build logs show the actual dependency edge.
+    Import-PeImportRenamer
+    foreach ($path in (@($dllFileInternal) + $dllPaths | Select-Object -Unique)) {
+        foreach ($import in [GdalNetcore.Build.PeImportRenamer]::GetImportedDllNames($path)) {
+            if ($import -match '^(vcruntime|msvcp|concrt|vccorlib|vcomp)\d+.*\.dll$') {
+                Write-BuildInfo "MSVC runtime import: $([System.IO.Path]::GetFileName($path)) -> $import"
+            }
+        }
     }
 }
 
@@ -1084,7 +1091,9 @@ function Confirm-PackagedDllImports {
 function Write-GdalFormats {
     Set-GdalVariables
 
-    $dllDirectories = @((Get-VcRuntimeDirectory), "$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
+    $runtimeSources = Get-VcRuntimeDllSources
+    $runtimeDirectories = @((Split-Path $runtimeSources['vcruntime140.dll'] -Parent), (Split-Path $runtimeSources['vcomp140.dll'] -Parent))
+    $dllDirectories = $runtimeDirectories + @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
     $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
     $newPath = ($dllDirectories -join ";") + ";" + $originalPath 
     [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
