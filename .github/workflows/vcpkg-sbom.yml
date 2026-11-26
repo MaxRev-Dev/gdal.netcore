@@ -1,0 +1,67 @@
+name: vcpkg dependency inventory
+
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: macos-latest
+            platform: osx
+          - os: windows-latest
+            platform: windows
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5.0.1
+        with:
+          persist-credentials: false
+      - name: Read pinned registry baseline
+        id: registry
+        run: |
+          baseline=$(python3 -c 'import json; print(json.load(open("shared/vcpkg-configuration.json"))["default-registry"]["baseline"])')
+          [[ "$baseline" =~ ^[0-9a-f]{40}$ ]]
+          echo "baseline=$baseline" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v5.0.1
+        with:
+          repository: microsoft/vcpkg
+          ref: ${{ steps.registry.outputs.baseline }}
+          path: .vcpkg-security
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Bootstrap pinned vcpkg
+        if: runner.os != 'Windows'
+        run: .vcpkg-security/bootstrap-vcpkg.sh -disableMetrics
+      - name: Bootstrap pinned vcpkg on Windows
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: .vcpkg-security\bootstrap-vcpkg.bat -disableMetrics
+      - name: Resolve native dependencies and generate CycloneDX SBOM
+        env:
+          TARGET_PLATFORM: ${{ matrix.platform }}
+        run: python3 .github/scripts/vcpkg-sbom.py .vcpkg-security "$RUNNER_TEMP/vcpkg-sbom" "$TARGET_PLATFORM"
+      - uses: actions/upload-artifact@v5.0.0
+        if: always()
+        with:
+          name: vcpkg-sbom-${{ matrix.platform }}
+          path: ${{ runner.temp }}/vcpkg-sbom/
+          if-no-files-found: warn
+          retention-days: 30
+      # OSV has no vcpkg ecosystem. Do not treat generic/vcpkg package names
+      # as NuGet or distro packages: that would produce misleading results.
+      - name: Explain inventory coverage
+        run: |
+          echo 'CycloneDX inventory and dry-run plans uploaded. Covers x64/arm64 feature sets with native host tools and built-in triplets; real builds use custom release-only triplets, so this approximates the shipped port set. This is a resolution inventory, not a built-release SBOM. OSV scanning is deferred until reliable upstream source identity mapping is available for vcpkg ports.' >> "$GITHUB_STEP_SUMMARY"

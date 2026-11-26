@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      github-actions:
+        patterns: ["*"]
+  - package-ecosystem: nuget
+    directories:
+      - /tests/**
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      test-nuget:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /ci
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      build-images:
+        patterns: ["*"]
