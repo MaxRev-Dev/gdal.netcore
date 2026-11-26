@@ -270,6 +270,28 @@ ours = sorted(os.path.basename(p) for p in mapped if os.path.dirname(p) == nativ
 bad = [n for n in ours if not re.match(keep, n) and suffix not in n]
 if bad or drivers <= 0 or not any(suffix in n for n in ours):
     sys.exit("smoke load FAILED: drivers=%d, loaded under original names: %s" % (drivers, bad))
+expected_proj = os.environ.get("EXPECTED_PROJ_VERSION")
+if not expected_proj:
+    sys.exit("EXPECTED_PROJ_VERSION must be set for the smoke check")
+import glob
+candidates = glob.glob(os.path.join(native, "libproj-maxrev.so*"))
+if len(candidates) != 1:
+    sys.exit("expected exactly one bundled PROJ library, found: %s" % candidates)
+loaded_proj = {os.path.realpath(p) for p in mapped
+               if re.match(r"^libproj(?:-maxrev)?\.", os.path.basename(p))}
+if loaded_proj != {os.path.realpath(candidates[0])}:
+    sys.exit("expected only the bundled PROJ to be loaded, found: %s" % sorted(loaded_proj))
+class ProjInfo(ctypes.Structure):
+    _fields_ = [("major", ctypes.c_int), ("minor", ctypes.c_int),
+                ("patch", ctypes.c_int), ("release", ctypes.c_char_p),
+                ("version", ctypes.c_char_p), ("searchpath", ctypes.c_char_p),
+                ("paths", ctypes.POINTER(ctypes.c_char_p)), ("path_count", ctypes.c_size_t)]
+proj = ctypes.CDLL(candidates[0])
+proj.proj_info.restype = ProjInfo
+actual_proj = proj.proj_info().version.decode()
+if actual_proj != expected_proj:
+    sys.exit("bundled PROJ version mismatch: expected %s, found %s" % (expected_proj, actual_proj))
+print("bundled PROJ %s verified" % actual_proj)
 print("loaded GDAL %s: %d drivers, %d libraries from %s" % (
     gdal.GDALVersionInfo(b"RELEASE_NAME").decode(), drivers, len(ours), native))
 EOF

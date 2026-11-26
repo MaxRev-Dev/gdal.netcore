@@ -11,7 +11,7 @@ using Xunit.Abstractions;
 namespace GdalCore_XUnit
 {
     // The Linux and macOS runtimes ship every bundled third-party library as
-    // "<name>-maxrev" (libproj-maxrev.so.25, libproj-maxrev.25.9.8.1.dylib), so a
+    // "<name>-maxrev" (libproj-maxrev.so.25, libproj-maxrev.25.9.9.0.dylib), so a
     // same-named library of another package can neither overwrite ours in the flat
     // runtimes/<rid>/native output nor satisfy our imports at load time (see #9).
     [Collection("Sequential")]
