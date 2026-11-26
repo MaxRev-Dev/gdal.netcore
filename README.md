@@ -5,6 +5,8 @@ A simple (as is) build engine of [GDAL](https://gdal.org/) library for [.NET](ht
 
 Provides a minimal setup without requirements to install heavy [GDAL binaries](https://gdal.org/download.html#binaries) into your system.
 
+For supported versions and private vulnerability reporting, see the [security policy](SECURITY.md).
+
 ## Packages (NuGet)
 
 #### C# Bindings and runtime libraries:
