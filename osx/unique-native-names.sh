@@ -8,7 +8,7 @@
 # install id also keeps dyld from treating another package's libpng16.16.dylib as ours.
 #
 # Suffix goes into the stem, before the version tail:
-#   libproj.25.9.8.1.dylib -> libproj-maxrev.25.9.8.1.dylib, libsqlite3.dylib -> libsqlite3-maxrev.dylib
+#   libproj.25.9.9.0.dylib -> libproj-maxrev.25.9.9.0.dylib, libsqlite3.dylib -> libsqlite3-maxrev.dylib
 #
 # Only top-level bundled libraries are renamed, matching Windows; runtime-loaded
 # plugins in subdirectories retain their names. Current packaging is flat.
@@ -55,7 +55,7 @@ is_dylib() { file -b "$1" 2>/dev/null | grep -q '^Mach-O.*shared library'; }
 is_kept() { [[ "$1" =~ $KEEP_REGEX ]]; }
 in_list() { case " $(printf '%s' "$2" | tr '\n' ' ') " in *" $1 "*) return 0 ;; esac; return 1; }
 
-# libproj.25.9.8.1.dylib -> libproj-maxrev.25.9.8.1.dylib: move every trailing
+# libproj.25.9.9.0.dylib -> libproj-maxrev.25.9.9.0.dylib: move every trailing
 # ".<digits>" in front of ".dylib" into the tail, the rest is the stem.
 unique_name() {
     local stem=${1%.dylib} tail=.dylib
@@ -342,6 +342,28 @@ ours = sorted(os.path.basename(p) for p in images if os.path.dirname(os.path.rea
 bad = [n for n in ours if not re.match(keep, n) and suffix not in n]
 if bad or drivers <= 0 or not any(suffix in n for n in ours):
     sys.exit("smoke load FAILED: drivers=%d, loaded under original names: %s" % (drivers, bad))
+expected_proj = os.environ.get("EXPECTED_PROJ_VERSION")
+if not expected_proj:
+    sys.exit("EXPECTED_PROJ_VERSION must be set for the smoke check")
+import glob
+candidates = glob.glob(os.path.join(native, "libproj-maxrev*.dylib"))
+if len(candidates) != 1:
+    sys.exit("expected exactly one bundled PROJ library, found: %s" % candidates)
+loaded_proj = {os.path.realpath(p) for p in images
+               if re.match(r"^libproj(?:-maxrev)?\.", os.path.basename(p))}
+if loaded_proj != {os.path.realpath(candidates[0])}:
+    sys.exit("expected only the bundled PROJ to be loaded, found: %s" % sorted(loaded_proj))
+class ProjInfo(ctypes.Structure):
+    _fields_ = [("major", ctypes.c_int), ("minor", ctypes.c_int),
+                ("patch", ctypes.c_int), ("release", ctypes.c_char_p),
+                ("version", ctypes.c_char_p), ("searchpath", ctypes.c_char_p),
+                ("paths", ctypes.POINTER(ctypes.c_char_p)), ("path_count", ctypes.c_size_t)]
+proj = ctypes.CDLL(candidates[0])
+proj.proj_info.restype = ProjInfo
+actual_proj = proj.proj_info().version.decode()
+if actual_proj != expected_proj:
+    sys.exit("bundled PROJ version mismatch: expected %s, found %s" % (expected_proj, actual_proj))
+print("bundled PROJ %s verified" % actual_proj)
 print("loaded GDAL %s: %d drivers, %d dylibs from %s" % (
     gdal.GDALVersionInfo(b"RELEASE_NAME").decode(), drivers, len(ours), native))
 EOF
