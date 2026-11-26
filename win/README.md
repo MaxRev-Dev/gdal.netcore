@@ -17,6 +17,16 @@ In this folder contains Powershell and NMake scripts for building Windows runtim
 
    The scripts locate it with `vswhere.exe`, which the Visual Studio Installer places in `%ProgramFiles(x86)%\Microsoft Visual Studio\Installer`. No PowerShell Gallery modules are needed.
 
+The packaged MSVC runtime comes from the active toolset's `VCToolsRedistDir`
+when that directory exists. Otherwise, the scripts use `vswhere.exe` to find
+the latest installation, then the latest numeric version directory under
+`VC\Redist\MSVC`, in `x64\Microsoft.VC14*.CRT`.
+`vc-runtime.ps1` keeps the ten runtime DLL names shipped in package 3.13.3.611,
+logs their source paths and file versions, and fails if any is missing.
+Dependency collection always uses these copies, and packaging verifies their
+hashes before rewriting third-party imports. SDK and System32 copies cannot
+replace the runtime DLLs in the package.
+
 2. [.NET Core SDK](https://dotnet.microsoft.com/en-us/download/dotnet/7.0) and [Nuget.exe](https://docs.microsoft.com/en-us/nuget/install-nuget-client-tools) - for building and publishing packages respectively.
 
 The Windows build uses the same shared VCPKG manifest authority as Unix and macOS:

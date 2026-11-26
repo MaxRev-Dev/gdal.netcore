@@ -1,3 +1,5 @@
+. "$PSScriptRoot\vc-runtime.ps1"
+
 function Set-GdalVariables {
     $sharedConfig = Get-ForceResolvePath "$PSScriptRoot\..\shared\GdalCore.opt"
     $gdalVersion = (Select-String -Path $sharedConfig -Pattern '^GDAL_VERSION=(.+)$' | Select-Object -First 1).Matches.Groups[1].Value.Trim()
@@ -73,6 +75,7 @@ function Get-WindowsBuildSignature {
         "$root\shared\GdalCore.opt",
         "$root\win\install.ps1",
         "$root\win\partials.psm1",
+        "$root\win\vc-runtime.ps1",
         "$root\win\vcpkg-makefile.vc",
         "$root\shared\vcpkg.json",
         "$root\shared\vcpkg-configuration.json",
@@ -603,6 +606,7 @@ function Build-CsharpBindings {
     exec { & nmake -f collect-deps-makefile.vc }
 
     Get-CollectDeps "$env:GDAL_INSTALL_DIR\bin\gdal.dll" "$outputPath"
+    Confirm-VcRuntimeDlls -DestinationDirectory "$outputPath"
 
     # Copy-DependentDLLs falls back to $env:SDK_PREFIX\bin, so a failed vcpkg
     # resolution would silently repackage the SDK's PostgreSQL 14.0 libpq and CI
@@ -681,6 +685,7 @@ function Copy-DependentDLLs {
         [string]$overridePath = $null # Optional parameter for path override
     )
     $dllProcessed = @{}
+    $vcRuntimeSources = Get-VcRuntimeDllSources
     $targetDll = [System.IO.Path]::GetFileName($dllFileInternal)
     Write-BuildStep "Copying dependent DLLs for $dllFileInternal"
     # Convert Windows paths to Unix paths for Git Bash and construct LD_LIBRARY_PATH
@@ -707,6 +712,16 @@ function Copy-DependentDLLs {
             if ($matches.Count -gt 1) {
                 $dllPath = $matches[1]
                 $dllName = [System.IO.Path]::GetFileName($dllPath)
+
+                # ldd can resolve these from System32, SDK/bin or another build
+                # directory. Always take the shipped runtime from VS redist.
+                if ($dllName -match '^(vcruntime|msvcp|concrt|vccorlib|vcomp)\d+.*\.dll$') {
+                    if ($dllName -notin (Get-VcRuntimeDllNames)) {
+                        throw "Unexpected MSVC runtime dependency '$dllName'; update the explicit shipped runtime list."
+                    }
+                    $dllPaths += $vcRuntimeSources[$dllName]
+                    continue
+                }
                     
                 # we don't need system DLLs, so drop 'em if name starts with api-
                 if ($dllName -match "^api-") {
@@ -768,6 +783,17 @@ function Copy-DependentDLLs {
             $dllProcessed[$fileName] = $true
         }        
     }
+
+    # ldd is transitive and cannot identify the direct importer. Inspect each
+    # collected PE import table so build logs show the actual dependency edge.
+    Import-PeImportRenamer
+    foreach ($path in (@($dllFileInternal) + $dllPaths | Select-Object -Unique)) {
+        foreach ($import in [GdalNetcore.Build.PeImportRenamer]::GetImportedDllNames($path)) {
+            if ($import -match '^(vcruntime|msvcp|concrt|vccorlib|vcomp)\d+.*\.dll$') {
+                Write-BuildInfo "MSVC runtime import: $([System.IO.Path]::GetFileName($path)) -> $import"
+            }
+        }
+    }
 }
 
 function Get-CollectDeps {
@@ -781,7 +807,7 @@ function Get-CollectDeps {
     $env:GDAL_DRIVER_PATH = "$env:GDAL_INSTALL_DIR\share\gdal"
     $env:PROJ_LIB = "$env:PROJ_INSTALL_DIR\share\proj"
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", $env:VCToolsRedistDir + "x64\")
+    $dllDirectories = @((Get-VcRuntimeDirectory), "$env:GDAL_INSTALL_DIR\bin", "$env:PROJ_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin")
     Write-BuildInfo "Using DLL directories: $dllDirectories"
 
     Write-BuildInfo "Collecting dependent DLLs for $dllFile"
@@ -1044,12 +1070,7 @@ function Confirm-PackagedDllImports {
             elseif ($import -match "^(vcruntime|msvcp|vcomp|concrt|vccorlib)\d+") {
                 # VC++ redistributable DLLs are not part of Windows; they resolve here
                 # only because the build machine has the redistributable installed.
-                if (Test-Path -Path (Join-Path $systemDir $import) -PathType Leaf) {
-                    Write-BuildWarn "$($file.Name) imports $import, which is not packaged and only found in $systemDir"
-                }
-                else {
-                    $failures += "$($file.Name) imports $import, which is neither packaged nor a system DLL"
-                }
+                $failures += "$($file.Name) imports unpackaged MSVC runtime $import; it must be shipped from Visual Studio redist."
             }
             elseif (Test-WindowsSystemDependency -name $import -systemDir $systemDir -cache $sysDepCache) {
                 continue
@@ -1070,7 +1091,9 @@ function Confirm-PackagedDllImports {
 function Write-GdalFormats {
     Set-GdalVariables
 
-    $dllDirectories = @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
+    $runtimeSources = Get-VcRuntimeDllSources
+    $runtimeDirectories = @((Split-Path $runtimeSources['vcruntime140.dll'] -Parent), (Split-Path $runtimeSources['vcomp140.dll'] -Parent))
+    $dllDirectories = $runtimeDirectories + @("$env:GDAL_INSTALL_DIR\bin", "$env:VCPKG_INSTALLED\bin", "$env:SDK_PREFIX\bin", "$env:PROJ_INSTALL_DIR\bin", "$webpRoot\bin")
     $originalPath = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Process)
     $newPath = ($dllDirectories -join ";") + ";" + $originalPath 
     [System.Environment]::SetEnvironmentVariable("PATH", $newPath, [System.EnvironmentVariableTarget]::Process)
