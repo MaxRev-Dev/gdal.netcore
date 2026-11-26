@@ -87,12 +87,6 @@
         },
         "netcdf-c",
         {
-          "name": "libgeotiff",
-          "features": [
-            "tools"
-          ]
-        },
-        {
           "name": "sqlite3",
           "features": [
             "tool",
@@ -164,12 +158,6 @@
           ]
         },
         "netcdf-c",
-        {
-          "name": "libgeotiff",
-          "features": [
-            "tools"
-          ]
-        },
         {
           "name": "sqlite3",
           "features": [
