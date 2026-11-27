@@ -125,6 +125,7 @@ Supported Formats: (ro:read-only, rw:read-write, +:write from scratch, u:update,
   DAAS -raster- (ro): Airbus DS Intelligence Data As A Service driver
   SIGDEM -raster- (rwv): Scaled Integer Gridded DEM .sigdem (*.sigdem)
   EXR -raster- (rw+vs): Extended Dynamic Range Image File Format (*.exr)
+  HEIF -raster- (rwv): ISO/IEC 23008-12:2017 High Efficiency Image File Format (*.heic, *.heif)
   AVIF -raster- (rwvs): AV1 Image File Format (*.avif)
   TGA -raster- (rov): TGA/TARGA Image File Format (*.tga)
   OGCAPI -raster,vector- (rov): OGCAPI

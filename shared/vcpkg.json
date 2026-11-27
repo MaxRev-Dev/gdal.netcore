@@ -106,6 +106,17 @@
           "features": [
             "parquet"
           ]
+        },
+        {
+          "name": "libavif",
+          "default-features": false,
+          "features": [
+            "aom"
+          ]
+        },
+        {
+          "name": "libheif",
+          "default-features": false
         }
       ]
     },
@@ -205,7 +216,18 @@
             "private-api"
           ]
         },
-        "libmysql"
+        "libmysql",
+        {
+          "name": "libavif",
+          "default-features": false,
+          "features": [
+            "aom"
+          ]
+        },
+        {
+          "name": "libheif",
+          "default-features": false
+        }
       ]
     },
     "windows-dynamic": {
@@ -276,6 +298,17 @@
           "features": [
             "parquet"
           ]
+        },
+        {
+          "name": "libavif",
+          "default-features": false,
+          "features": [
+            "aom"
+          ]
+        },
+        {
+          "name": "libheif",
+          "default-features": false
         }
       ]
     }

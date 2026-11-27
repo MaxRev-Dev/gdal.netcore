@@ -76,6 +76,15 @@ define VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE
 	set(VCPKG_BUILD_TYPE release)
 	set(VCPKG_CMAKE_SYSTEM_NAME Darwin)
 	set(VCPKG_OSX_DEPLOYMENT_TARGET $(OSX_DEPLOYMENT_TARGET))
+	# libavif's Findaom can combine Homebrew headers with the vcpkg dylib.
+	# Newer headers enable codec controls absent from our pinned aom runtime.
+	if(PORT STREQUAL "libavif")
+		list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS
+			# Keep the pinned include directory ahead of compiler host includes.
+			"-DCMAKE_NO_SYSTEM_FROM_IMPORTED=ON"
+			"-DAOM_INCLUDE_DIR=$${CURRENT_INSTALLED_DIR}/include"
+			"-DAOM_LIBRARY=$${CURRENT_INSTALLED_DIR}/lib/libaom.dylib")
+	endif()
 endef
 
 define VCPKG_TRIPLET_OSX_STATIC_RELEASE
@@ -135,7 +144,7 @@ install_packages: sync_manifest_lock_to_install_root
 		$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root; \
 		exit 0; \
 	fi; \
-	sanitize_env='env -u PKG_CONFIG_PATH -u CMAKE_PREFIX_PATH -u CPATH -u LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH'; \
+	sanitize_env='env -u PKG_CONFIG_PATH -u CMAKE_PREFIX_PATH -u CPATH -u C_INCLUDE_PATH -u CPLUS_INCLUDE_PATH -u LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH'; \
 	run_manifest_install() { \
 		triplet="$$1"; \
 		feature="$$2"; \
@@ -169,6 +178,12 @@ install_packages: sync_manifest_lock_to_install_root
 	run_manifest_install "$(VCPKG_RID)-dynamic" "osx-dynamic"; \
 	$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root; \
 	printf '%s' "$$current_signature" > '$(VCPKG_STATE_STAMP)'
+
+	@# Reject GPL HEVC/AVC encoders even if a transitive feature enables them.
+	@test -f "$(VCPKG_ROOT)/installed/vcpkg/status"
+	@if grep -Eq "^Package: x26[45]$$" "$(VCPKG_ROOT)/installed/vcpkg/status"; then \
+		echo "GPL codec x264/x265 found in vcpkg install; refusing redistribution" >&2; exit 1; \
+	fi
 
 remove_packages:
 	@echo "$(TARGET_PREFIX) Manifest mode owns package inventory; use build_cleanup to remove installed trees."
