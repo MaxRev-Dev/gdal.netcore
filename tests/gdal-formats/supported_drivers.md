@@ -30,7 +30,7 @@ Combining these abbreviations, you get:
 | AIVector        | ✗              | ✗               | ✗              | ro             | ro              | ro             |
 | AVCBin          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
 | AVCE00          | ✗              | ✗               | ✗              | rov            | rov             | rov            |
-| AVIF            | ✗              | ✗               | ✗              | ✗              | ✗               | ✗              |
+| AVIF            | rwvs           | rwvs            | rwvs           | ✗              | ✗               | ✗              |
 | AirSAR          | rov            | rov             | rov            | ✗              | ✗               | ✗              |
 | AmigoCloud      | ✗              | ✗               | ✗              | rw+            | rw+             | rw+            |
 | Arrow           | ✗              | ✗               | ✗              | rw+v           | rw+v            | rw+v           |
@@ -103,6 +103,7 @@ Combining these abbreviations, you get:
 | HDF4Image       | rw+            | rw+             | rw+            | ✗              | ✗               | ✗              |
 | HDF5            | rovs           | rovs            | rovs           | ✗              | ✗               | ✗              |
 | HDF5Image       | rov            | rov             | rov            | ✗              | ✗               | ✗              |
+| HEIF            | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | HF2             | rwv            | rwv             | rwv            | ✗              | ✗               | ✗              |
 | HFA             | rw+uv          | rw+uv           | rw+uv          | ✗              | ✗               | ✗              |
 | HTTP            | ro             | ro              | ro             | ro             | ro              | ro             |
