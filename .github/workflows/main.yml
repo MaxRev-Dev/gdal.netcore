@@ -91,6 +91,11 @@ jobs:
 
   TestAndPushPackages:
     needs: [env-context, LinuxBuild, WindowsBuild, MacOSBuild]
+    # id-token: nuget.org trusted publishing (OIDC). contents: driver-list commit and release tag.
+    permissions:
+      contents: write
+      actions: read
+      id-token: write
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -236,11 +241,20 @@ jobs:
           message: "List of drivers in current version [ci skip]"
           add: "${{ github.workspace }}/tests/gdal-formats/**"
 
+      # Trusted publishing: exchanges the GitHub OIDC token for a short-lived nuget.org key.
+      # The nuget.org policy is bound to MaxRev-Dev/gdal.netcore, workflow main.yml, no environment.
+      - name: NuGet - trusted publishing login
+        id: nuget-login
+        if: ${{  github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || fromJson(needs.env-context.outputs.is-version-branch) }}
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        with:
+          user: MaxRev
+
       - name: Push packages
         if: ${{  github.event.pull_request.merged == true || github.ref == 'refs/heads/main' || fromJson(needs.env-context.outputs.is-version-branch) }}
         run: |
           make -f push-packages-makefile PRERELEASE=${{ env.IS_PRE_RELEASE }} INCLUDE_CORE=1 \
-            BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ secrets.API_KEY_NUGET }}
+            BUILD_NUMBER_TAIL=${{ github.run_number }} API_KEY_GITHUB=${{ secrets.API_KEY_GITHUB }} API_KEY_NUGET=${{ steps.nuget-login.outputs.NUGET_API_KEY }}
 
       # Tagging used to ride on the add-and-commit step above, which skips tagging when
       # there is nothing to commit. The driver list is unchanged on most releases, so
