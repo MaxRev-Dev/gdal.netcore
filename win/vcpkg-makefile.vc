@@ -68,6 +68,7 @@ build_cleanup: $(VCPKG_CLEANUP)
 install_packages:
 	@echo "$(LOG_PREFIX) Installing manifest feature windows-dynamic for $(VCPKG_RID)"
 	@$(VCPKG) install $(VCPKG_MANIFEST_ARGS) --triplet $(VCPKG_RID) --x-feature=windows-dynamic $(VCPKG_ENSURE_INSTALLED)
+	@powershell -NoProfile -Command "if (Select-String -LiteralPath '$(VCPKG_INSTALL_ROOT)\vcpkg\status' -Pattern '^Package: x26[45]$$' -ErrorAction Stop) { throw 'GPL codec x264/x265 found in vcpkg install; refusing redistribution' }"
 remove:  
 	$(VCPKG) remove $(r):$(VCPKG_RID) $(VCPKG_PARAMS_REMOVE)
 remove_packages:

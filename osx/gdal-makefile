@@ -54,13 +54,23 @@ configure_gdal:
 	@if [[ -d "$(GDAL_ROOT)/autotest" ]]; then rm -r "$(GDAL_ROOT)/autotest"; fi;
 
 	-mkdir -p $(GDAL_CMAKE_TMP)
-	@cd $(GDAL_CMAKE_TMP) && cmake $(GDAL_ROOT) \
+	@cd $(GDAL_CMAKE_TMP) && env -u CPATH -u C_INCLUDE_PATH -u CPLUS_INCLUDE_PATH cmake $(GDAL_ROOT) \
 		-DCMAKE_INSTALL_PREFIX=$(BUILD_ROOT)/gdal-build -Wno-dev \
 		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_IGNORE_PREFIX_PATH="/usr/local;/opt/homebrew" \
+		-DCMAKE_SYSTEM_IGNORE_PREFIX_PATH="/usr/local;/opt/homebrew" \
+		-DCMAKE_NO_SYSTEM_FROM_IMPORTED=ON \
 		-DCMAKE_C_FLAGS="-fPIC -w" \
 		-DCMAKE_CXX_FLAGS="-fPIC -w" \
 		-DGDAL_USE_DEFLATE=OFF \
+		-DGDAL_USE_AVIF=ON \
+		-DAVIF_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include \
+		-DAVIF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libavif.dylib \
+		-DGDAL_USE_HEIF=ON \
+		-DHEIF_INCLUDE_DIR=$(VCPKG_INSTALLED_DYNAMIC)/include \
+		-DHEIF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libheif.dylib \
 		-DGDAL_USE_ZLIB_INTERNAL=ON \
+		-DGDAL_USE_JSONC_INTERNAL=ON \
 		-DGDAL_CSHARP_APPS=OFF \
 		-DCSHARP_MONO=OFF \
 		-DGDAL_CSHARP_TESTS=OFF \

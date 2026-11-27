@@ -27,7 +27,7 @@ brew_retry() {
 
 # requirements for CI runner
 for formula in make pkg-config autoconf automake \
-    autoconf-archive pcre2 libtool dylibbundler gsed bison; do
+    autoconf-archive pcre2 libtool dylibbundler gsed bison nasm; do
     brew list --formula --versions "$formula" >/dev/null 2>&1 || brew_retry install "$formula"
 done
 

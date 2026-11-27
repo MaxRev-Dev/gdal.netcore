@@ -133,5 +133,11 @@ install_packages: sync_manifest_lock_to_install_root
 	done
 	@$(MAKE) -f vcpkg-makefile sync_manifest_lock_from_install_root
 
+	@# Reject GPL HEVC/AVC encoders even if a transitive feature enables them.
+	@test -f "$(VCPKG_ROOT)/installed/vcpkg/status"
+	@if grep -Eq "^Package: x26[45]$$" "$(VCPKG_ROOT)/installed/vcpkg/status"; then \
+		echo "GPL codec x264/x265 found in vcpkg install; refusing redistribution" >&2; exit 1; \
+	fi
+
 remove_packages:
 	@echo "$(TARGET_PREFIX) Manifest mode owns package inventory; use build_cleanup to remove installed trees."

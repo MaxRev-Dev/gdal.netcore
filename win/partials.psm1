@@ -522,6 +522,12 @@ function Build-Gdal {
         -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF `
         -DCMAKE_FIND_USE_SYSTEM_PACKAGE_REGISTRY=OFF `
         -DGDAL_USE_OPENEXR=OFF `
+        -DGDAL_USE_AVIF=ON `
+        -DAVIF_INCLUDE_DIR="$env:VCPKG_INSTALLED\include" `
+        -DAVIF_LIBRARY="$env:VCPKG_INSTALLED\lib\avif.lib" `
+        -DGDAL_USE_HEIF=ON `
+        -DHEIF_INCLUDE_DIR="$env:VCPKG_INSTALLED\include" `
+        -DHEIF_LIBRARY="$env:VCPKG_INSTALLED\lib\heif.lib" `
         $env:WEBP_INCLUDE  $env:WEBP_LIB `
         $env:PROJ_ROOT $env:MYSQL_LIBRARY $env:MYSQL_INCLUDE_DIR_ARG `
         $env:Poppler_INCLUDE_DIR $env:Poppler_LIBRARY `
