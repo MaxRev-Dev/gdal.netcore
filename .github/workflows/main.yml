@@ -215,11 +215,16 @@ jobs:
           path: nuget/*.nupkg
           overwrite: true
 
+      - name: Set up Python for gdal formats
+        uses: actions/setup-python@v6.1.0
+        with:
+          python-version: '3.12'
+
       - name: Process gdal formats
         working-directory: shared/scripts
         run: |
           python -m venv venv && source venv/bin/activate
-          pip install -r requirements.txt
+          python -m pip install -r requirements.txt
           python ./combine-formats.py '${{ github.workspace }}/tests/gdal-formats'
 
       - name: Commit changes
