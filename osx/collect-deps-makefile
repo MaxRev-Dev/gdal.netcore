@@ -83,9 +83,9 @@ copy-deps:
 
 	dylibbundler -b  \
 		$(addprefix  -x , $(addprefix $(OUTPUT)/,$(notdir $(WRAP_TARGETS)))) \
+		-s $(PROJ_BUILD)/lib \
 		-s ${VCPKG_INSTALLED_DYNAMIC}/lib \
 		-s $(BUILD_BASE_LIB) \
-		-s $(PROJ_BUILD)/lib \
 		-s $(HDF_BUILD)/lib \
 		-of \
 		-cd -d $(OUTPUT)/ -p "@loader_path/"
@@ -116,7 +116,7 @@ unique-native-names:
 	bash ./unique-native-names.sh rename $(OUTPUT) $(TOOLS_OUTPUT) \
 		$(BUILD_BASE_LIB) $(PROJ_BUILD)/lib $(HDF_BUILD)/lib $(VCPKG_INSTALLED_DYNAMIC)/lib
 	bash ./unique-native-names.sh verify $(OUTPUT) $(TOOLS_OUTPUT)
-	bash ./unique-native-names.sh smoke $(OUTPUT) $(TOOLS_OUTPUT) $(LIBSHARED)
+	EXPECTED_PROJ_VERSION=$(PROJ_VERSION) bash ./unique-native-names.sh smoke $(OUTPUT) $(TOOLS_OUTPUT) $(LIBSHARED)
 
 copy-projdb:
 	-mkdir -p $(LIBSHARED)
