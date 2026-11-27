@@ -35,7 +35,7 @@ jobs:
       SDK_ZIP_NAME: ${{ inputs.sdk-zip-name }}
       SDK_URL: ${{ inputs.sdk-url }}
     steps:
-      - uses: actions/checkout@v5.0.1
+      - uses: actions/checkout@v7.0.1
 
       - name: Download SDK zip
         run: |
