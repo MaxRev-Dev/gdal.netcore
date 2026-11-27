@@ -71,6 +71,7 @@ configure_gdal:
 		-DHEIF_LIBRARY=$(VCPKG_INSTALLED_DYNAMIC)/lib/libheif.dylib \
 		-DGDAL_USE_ZLIB_INTERNAL=ON \
 		-DGDAL_USE_JSONC_INTERNAL=ON \
+		-DGDAL_USE_GEOTIFF_INTERNAL=ON \
 		-DGDAL_CSHARP_APPS=OFF \
 		-DCSHARP_MONO=OFF \
 		-DGDAL_CSHARP_TESTS=OFF \
@@ -102,6 +103,9 @@ configure_gdal:
 
 configure_proj:
 	@echo "$(TARGET_PREFIX) PROJ Configuring..."
+
+	# Check the host tool before CMake hides an execute_process launch failure.
+	@"$(VCPKG_INSTALLED)/tools/sqlite3" :memory: "SELECT 1;" >/dev/null || exit 1
 
 	@if [[ -d "$(BUILD_ROOT)/proj-cmake-temp" ]]; then rm "$(BUILD_ROOT)/proj-cmake-temp/CMakeCache.txt"; fi;
 	@if [[ -d "$(BUILD_ROOT)/proj-build" ]]; then rm -r "$(BUILD_ROOT)/proj-build"; fi;

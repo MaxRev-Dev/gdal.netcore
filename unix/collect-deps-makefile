@@ -36,7 +36,7 @@ linkall: initdirs copy-deps copy-projdb collect-bindings copy-tools unique-nativ
 unique-native-names:
 	bash ./unique-native-names.sh rename $(OUTPUT) $(TOOLS_OUTPUT)
 	bash ./unique-native-names.sh verify $(OUTPUT) $(TOOLS_OUTPUT)
-	bash ./unique-native-names.sh smoke $(OUTPUT) $(TOOLS_OUTPUT) $(LIBSHARED)
+	EXPECTED_PROJ_VERSION=$(PROJ_VERSION) bash ./unique-native-names.sh smoke $(OUTPUT) $(TOOLS_OUTPUT) $(LIBSHARED)
 
 clean:
 	(cd $(BUILD_BASE) && rm -f ${CSHARP_MODULES} *.$(OBJ_EXT) *.config *.dll *.mdb *.exe)
@@ -71,7 +71,7 @@ copy-deps:
 #	2. get deps inlcuding PROJ and LD_LIBRARY_PATH
 #   3. copy to output
 	ls $(OUTPUT)/ | grep -P 'libgdal.so.(?:\d+)' | \
-			LD_LIBRARY_PATH=$(LD_LIBRARY_PATH):$(PROJ_BUILD)/lib:$(HDF_BUILD)/lib xargs -I {} \
+			LD_LIBRARY_PATH=$(PROJ_BUILD)/lib:$(LD_LIBRARY_PATH):$(HDF_BUILD)/lib xargs -I {} \
 			ldd $(OUTPUT)/{} | grep -E "proj|/lib/|$(ROOT_DIR)/build-unix" | awk '{print $$3}' | xargs -I {} cp -vv {} $(OUTPUT)/
 #   4. remove system libs
 #   https://github.com/dotnet/core/blob/main/Documentation/self-contained-linux-apps.md
