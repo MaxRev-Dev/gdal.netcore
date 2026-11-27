@@ -80,6 +80,8 @@ define VCPKG_TRIPLET_OSX_DYNAMIC_RELEASE
 	# Newer headers enable codec controls absent from our pinned aom runtime.
 	if(PORT STREQUAL "libavif")
 		list(APPEND VCPKG_CMAKE_CONFIGURE_OPTIONS
+			# Keep the pinned include directory ahead of compiler host includes.
+			"-DCMAKE_NO_SYSTEM_FROM_IMPORTED=ON"
 			"-DAOM_INCLUDE_DIR=$${CURRENT_INSTALLED_DIR}/include"
 			"-DAOM_LIBRARY=$${CURRENT_INSTALLED_DIR}/lib/libaom.dylib")
 	endif()
