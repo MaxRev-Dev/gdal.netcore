@@ -47,9 +47,7 @@ jobs:
         uses: ./.github/actions/set-credentials
         with:
           api-key-github: ${{ secrets.API_KEY_GITHUB }}
-          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
-          api-user-nuget: ${{ secrets.API_USER_NUGET }}
           shell: pwsh
 
       # Layer 1: VCPKG binary cache
@@ -194,9 +192,7 @@ jobs:
         uses: ./.github/actions/set-credentials
         with:
           api-key-github: ${{ secrets.API_KEY_GITHUB }}
-          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
-          api-user-nuget: ${{ secrets.API_USER_NUGET }}
           shell: pwsh
 
       - uses: actions/download-artifact@v8.0.2
@@ -236,8 +232,6 @@ jobs:
         uses: ./.github/actions/set-credentials
         with:
           api-key-github: ${{ secrets.API_KEY_GITHUB }}
-          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
-          api-user-nuget: ${{ secrets.API_USER_NUGET }}
           shell: pwsh
 

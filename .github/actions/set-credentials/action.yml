@@ -7,12 +7,6 @@ inputs:
   api-user-github:
     required: true
     description: "GitHub API user"
-  api-key-nuget:
-    required: true
-    description: "NuGet API key"
-  api-user-nuget:
-    required: true
-    description: "NuGet API user"
   shell:
     required: false
     description: "Shell to use"
@@ -29,7 +23,7 @@ runs:
         dotnet nuget remove source github > $null -ErrorAction SilentlyContinue
         dotnet nuget remove source nuget.org > $null -ErrorAction SilentlyContinue
         dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
-        dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
+        dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org
         New-Item -Path "${{ github.workspace }}/nuget/" -ItemType Directory -Force
         dotnet nuget add source "${{ github.workspace }}/nuget/" --name local.ci
 
@@ -42,6 +36,6 @@ runs:
         dotnet nuget remove source github > /dev/null || :
         dotnet nuget remove source nuget.org > /dev/null || :
         dotnet nuget add source https://nuget.pkg.github.com/MaxRev-Dev/index.json --name github --store-password-in-clear-text -u ${{ inputs.api-user-github }} -p ${{ inputs.api-key-github }}
-        dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org --store-password-in-clear-text -u ${{ inputs.api-user-nuget }} -p ${{ inputs.api-key-nuget }}
+        dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org
         mkdir -p "${{ github.workspace }}/nuget/"
         dotnet nuget add source "${{ github.workspace }}/nuget/" --name local.ci
