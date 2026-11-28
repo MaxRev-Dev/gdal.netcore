@@ -219,7 +219,7 @@ jobs:
           overwrite: true
 
       - name: Set up Python for gdal formats
-        uses: actions/setup-python@v6.1.0
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: '3.12'
 
