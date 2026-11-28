@@ -114,9 +114,7 @@ jobs:
         uses: ./.github/actions/set-credentials
         with:
           api-key-github: ${{ secrets.API_KEY_GITHUB }}
-          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
-          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v6.1.0

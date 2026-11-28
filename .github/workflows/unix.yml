@@ -46,9 +46,7 @@ jobs:
         uses: ./.github/actions/set-credentials
         with:
           api-key-github: ${{ secrets.API_KEY_GITHUB }}
-          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
-          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4.4.0
@@ -311,9 +309,7 @@ jobs:
         uses: ./.github/actions/set-credentials
         with:
           api-key-github: ${{ secrets.API_KEY_GITHUB }}
-          api-key-nuget: ${{ secrets.API_KEY_NUGET }}
           api-user-github: ${{ secrets.API_USER_GITHUB }}
-          api-user-nuget: ${{ secrets.API_USER_NUGET }}
 
       - name: Build bundle
         run: |
