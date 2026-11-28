@@ -1,5 +1,5 @@
 # Builds GDAL.NETCORE on Linux
-FROM debian:12 AS base
+FROM debian:13 AS base
 LABEL org.opencontainers.image.source=https://github.com/MaxRev-Dev/gdal.netcore
 LABEL org.opencontainers.image.description="GDAL.NETCORE unix build image"
 LABEL org.opencontainers.image.licenses=MIT
